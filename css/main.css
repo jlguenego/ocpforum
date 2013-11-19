@@ -1,0 +1,208 @@
+@font-face {
+	font-family:'Ubuntu';
+	src: url('../font/ubuntu-r-webfont.eot');
+	src: url('../font/ubuntu-r-webfont.eot?iefix') format('eot'),
+		url('../font/ubuntu-r-webfont.woff') format('woff'),
+		url('../font/ubuntu-r-webfont.ttf') format('truetype'),
+		url('../font/ubuntu-r-webfont.svg') format('svg');
+	font-weight:300;font-style:normal;
+}
+
+@font-face {
+	font-family:'Ubuntu';
+	src: url('../font/ubuntu-ri-webfont.eot');
+	src: url('../font/ubuntu-ri-webfont.eot?iefix') format('eot'),
+		url('../font/ubuntu-ri-webfont.woff') format('woff'),
+		url('../font/ubuntu-ri-webfont.ttf') format('truetype'),
+		url('../font/ubuntu-ri-webfont.svg') format('svg');
+	font-weight:300;
+	font-style:italic;
+}
+
+@font-face {
+	font-family:'Ubuntu';
+	src: url('../font/ubuntu-b-webfont.eot');
+	src: url('../font/ubuntu-b-webfont.eot?iefix') format('eot'),
+		url('../font/ubuntu-b-webfont.woff') format('woff'),
+		url('../font/ubuntu-b-webfont.ttf') format('truetype'),
+		url('../font/ubuntu-b-webfont.svg') format('svg');
+	font-weight:700;
+	font-style:normal;
+}
+
+@font-face {
+	font-family:'Ubuntu';
+	src: url('../font/ubuntu-bi-webfont.eot');
+	src: url('../font/ubuntu-bi-webfont.eot?iefix') format('eot'),
+		url('../font/ubuntu-bi-webfont.woff') format('woff'),
+		url('../font/ubuntu-bi-webfont.ttf') format('truetype'),
+		url('../font/ubuntu-bi-webfont.svg') format('svg');
+	font-weight:700;
+	font-style:italic;
+}
+
+html, body {
+	margin: 0px;
+	padding: 0px;
+	font-family: 'Ubuntu', sans-serif;
+	font-weight: 300;
+}
+
+body {
+	font-size: 16px;
+	margin: 0;
+	padding: 0;
+	color: #646464;
+	background-color: #f7f7f7;
+}
+
+#of_page {
+	max-width: 940px;
+	margin: auto;
+}
+
+#of_header {
+	margin: 30px 0 30px 0;
+}
+
+#of_logo {
+	float: left;
+}
+
+#of_body {
+}
+
+#of_content {
+	position: relative;
+	min-height: 400px;
+	padding: 30px 40px 40px 40px;
+
+	text-align: justify;
+	background-color: #FFFFFF;
+	border: 2px solid #ebebeb;
+	-webkit-border-radius: 6px;
+	-moz-border-radius: 6px;
+	border-radius: 6px;
+}
+
+#of_footer {
+	position: relative;
+	padding: 20px 0 20px 40px;
+	text-align: left;
+	font-size: 14px;
+}
+
+#of_footer a {
+	margin-right: 15px;
+	white-space: nowrap;
+}
+
+#of_copyright {
+	margin-top: 15px;
+}
+
+a:link, a:visited, a:active {
+	color: #2c6fad;
+	text-decoration: none;
+}
+
+#of_menu_bar {
+	display: inline-block;
+
+	padding-left: 25px;
+}
+
+.of_menu_label {
+	margin: 12px 10px 0 0;
+	float: left;
+	text-decoration: none;
+
+	font-size: 110%;
+	color: #2c6fad;
+}
+
+.of_menu_label a {
+	color: #2c6fad;
+}
+
+.of_menu_label a:hover {
+	color: #FFFFFF;
+}
+
+.of_menu_body a {
+	display: block;
+	padding: 6px 10px 3px 10px;
+
+	-webkit-box-sizing: border-box;
+	-moz-box-sizing: border-box;
+	box-sizing: border-box;
+	color: #2c6fad;
+}
+
+.of_menu_body a:hover {
+	background-color: #2c6fad;
+	color: #FFFFFF;
+}
+
+a, a:link, a:visited, a:hover, a:active {
+	text-decoration: none;
+}
+
+#of_lang {
+	float: right;
+	margin: 0px;
+	margin-top: 10px;
+	padding: 0px;
+
+	text-align: right;
+	font-family: sans-serif;
+
+	border-left: 2px solid transparent;
+	border-right: 2px solid transparent;
+	border-top: 2px solid transparent;
+}
+
+#of_lang:hover {
+	border: 2px solid #ebebeb;
+}
+
+#of_lang:hover a {
+	color: black;
+}
+
+#of_lang ul {
+	margin: 0px;
+	padding: 0px;
+}
+
+#of_lang li {
+	margin: 0px;
+	padding: 0px;
+	list-style: none;
+}
+
+#of_lang a {
+	text-decoration: none;
+	font-size: 115%;
+	width: 100px;
+	display: inline-block;
+	color: #b8b8b8;
+	padding: 4px 8px;
+}
+
+#of_lang_list {
+	display: none;
+	color: #b8b8b8;
+}
+
+#of_lang:hover #of_lang_list {
+	display: block;
+}
+
+#of_lang:hover #of_lang_list a {
+	color: #b8b8b8;
+}
+
+#of_lang:hover #of_lang_list a:hover {
+	color: black;
+}

@@ -2,12 +2,10 @@
 	height: 26px;
 	padding: 6px 10px 4px 10px;
 	line-height: 14px;
-	font-size: 13px;
 	box-sizing: border-box;
 	-moz-box-sizing: border-box;
 
 	background-color: transparent;
-	color: #C0C0BE;
 	cursor: pointer;
 
 	border-radius: 5px;

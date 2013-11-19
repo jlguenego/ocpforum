@@ -82,11 +82,6 @@ $.widget( "ui.ocp_menu", {
 
 		var width = this.menu_body.outerWidth();
 		var body_offset_right = menu_body_offset.left + width;
-		var window_w = this.element.parent().width();
-		if (body_offset_right > window_w) {
-			body_offset_right -= (body_offset_right - window_w);
-			menu_body_offset.left = body_offset_right - width;
-		}
 
 		this.menu_body.css({
 			position: 'absolute',
