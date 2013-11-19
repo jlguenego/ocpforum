@@ -1,0 +1,44 @@
+.widget_menu_button {
+	height: 26px;
+	padding: 6px 10px 4px 10px;
+	line-height: 14px;
+	font-size: 13px;
+	box-sizing: border-box;
+	-moz-box-sizing: border-box;
+
+	background-color: transparent;
+	color: #C0C0BE;
+	cursor: pointer;
+
+	border-radius: 5px;
+}
+
+.widget_menu_root {
+	border-radius: 5px 5px 0px 0px;
+}
+
+a.widget_menu_button, a.widget_menu_button:link, a.widget_menu_button:visited, a.widget_menu_button:active {
+	color: #C0C0BE;
+}
+
+.widget_menu_button:hover, a.widget_menu_button:hover, .widget_menu_button.selected {
+	background-color: #2c6fad;
+	color: #FFFFFF;
+}
+
+.widget_menu_transition {
+	position: absolute;
+	height: 15px;
+	border: 1px solid #2c6fad;
+	border: none;
+}
+
+.widget_menu_body {
+	white-space: nowrap;
+	margin: 0px;
+	padding: 5px 0px;
+	background-color: #fff;
+	border: 1px solid #2c6fad;
+
+	z-index: 1;
+}
