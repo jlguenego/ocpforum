@@ -15,11 +15,21 @@ include(BASE_DIR . '/include/top_page.inc');
 
 .image {
 	display: block;
-	width: 75%;
-	height: 75%;
 	margin: auto;
-	border: 1px solid black;
 }
+
+#slide_container {
+	width: 600px;
+	margin: auto;
+}
+
+.slidesjs-container {
+	border: 1px solid black;
+
+	box-sizing: border-box;
+}
+
+
 
 .mainsummary {
 	font-size:145%;
@@ -78,10 +88,86 @@ include(BASE_DIR . '/include/top_page.inc');
 	margin:5px 15px;
 	display:inline-block;
 }
+
+.slidesjs-previous, .slidesjs-next {
+	float: left;
+	display: inline-block;
+	vertical-align: top;
+
+	width: 18px;
+	height: 18px;
+
+	margin-top: 15px;
+
+
+	font-size: 0px;
+	background-image: url('image/arrows.png');
+	overflow: hidden;
+}
+
+.slidesjs-previous {
+	margin-left: 10px;
+}
+
+.slidesjs-next {
+	background-position: 100% 0%;
+}
+
+.slidesjs-previous:hover, .slidesjs-next:hover {
+	background-image: url('image/arrows_hover.png');
+}
+
+.slidesjs-pagination {
+	float: right;
+	margin: 0px;
+	padding: 0px;
+	margin-right: 10px;
+	margin-top: 15px;
+}
+
+.slidesjs-pagination-item {
+	display: inline-block;
+	vertical-align: top;
+	width: 7px;
+	height: 7px;
+
+	margin: 0px;
+	padding: 0px;
+	padding-left: 10px;
+
+
+	font-size: 0px;
+}
+
+.slidesjs-pagination-item a {
+	display: block;
+	border: 2px solid black;
+	border-radius: 10px;
+	width: 100%;
+	height: 100%;
+	cursor: pointer;
+}
+
+.slidesjs-pagination-item a:hover {
+	background-color: #CE2C29;
+	border-color: #CE2C29;
+}
+
+.slidesjs-pagination-item a.active {
+	border-color: black;
+	background-color: black;
+}
 </style>
 
 <p class="mainsummary">Bitcoin is an innovative payment network and a new kind of money.</p>
-<img src="image/ocp_presentation.png" class="image" />
+
+<div id="slide_container">
+	<div id="slides" class="image">
+		<img src="image/ocp_presentation_1.png" />
+		<img src="image/ocp_presentation_2.png" />
+		<img src="image/ocp_presentation_3.png" />
+	</div>
+</div>
 <div class="mainlist">
 	<div><div>
 		<img src="image/icon/main_ico_instant.svg" alt="Icon">
@@ -111,6 +197,15 @@ include(BASE_DIR . '/include/top_page.inc');
 	<a href="/en/bitcoin-for-businesses">Businesses</a>
 	<a href="/en/bitcoin-for-developers">Developers</a>
 </div>
+
+<script>
+$(document).ready(function() {
+	$("#slides").slidesjs({
+		width: 200,
+		height: 130
+	});
+});
+</script>
 
 <?php
 

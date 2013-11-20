@@ -13,6 +13,8 @@
 		<link rel="stylesheet" href="_ext/jquery-ui-1.10.3/themes/base/minified/jquery-ui.min.css" />
 		<!-- END JQUERY / JQUERY UI -->
 
+		<script src="_ext/jquery.slides.min.js"></script>
+
 
 		<script src="js/widget_menu.js"></script>
 		<link rel="stylesheet" href="js/theme/default/widget_menu.css" />
