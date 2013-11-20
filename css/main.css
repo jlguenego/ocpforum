@@ -212,3 +212,73 @@ a, a:link, a:visited, a:hover, a:active {
 a:link:hover, a:visited:hover, a:active:hover {
 	color: #63a4e1;
 }
+
+
+
+.mainbutton{
+	text-align:center;
+}
+.mainbutton a,.mainbutton a:link,.mainbutton a:visited,.mainbutton a:active{
+	font-family:'Ubuntu',sans-serif;
+	font-weight:400;
+	font-size:150%;
+	text-shadow:0 2px 6px rgba(0, 0, 0, 0.6);
+	text-align:left;
+	display:inline-block;
+	background-color:#2c6fad;
+	border:1px solid #20598f;
+	background-image:-o-linear-gradient(bottom, #20598f 14%, #2c6fad 70%);
+	background-image:-moz-linear-gradient(bottom, #20598f 14%, #2c6fad 70%);
+	background-image:-webkit-linear-gradient(bottom, #20598f 14%, #2c6fad 70%);
+	background-image:-ms-linear-gradient(bottom, #20598f 14%, #2c6fad 70%);
+	background-image:linear-gradient(bottom, #20598f 14%, #2c6fad 70%);
+	color:#fff;padding:15px 20px 20px 68px;margin:40px 0 40px 0;
+	-webkit-border-radius:12px;
+	-moz-border-radius:12px;
+	border-radius:12px;
+}
+.mainbutton a:hover{
+	background-image:none;
+	color:#fff;
+}
+.mainbutton img{
+	margin-right:10px;
+	margin-left:-52px;
+	margin-bottom:-12px;
+	height:42px;
+	width:42px;
+}
+
+
+
+h1 {
+	font-family: 'Ubuntu',sans-serif;
+	font-weight: 700;
+	color: #0d579b;
+	font-size: 160%;
+	margin-top: 0;
+	text-align: center;
+}
+
+.summary {
+	font-size: 125%;
+	margin-bottom: 40px;
+	text-align: center;
+}
+
+h2 {
+	font-family: 'Ubuntu',sans-serif;
+	font-weight: 700;
+	color: #383838;
+	font-size: 130%;
+	text-align: left;
+}
+
+.titleicon {
+	width: 32px;
+	height: 32px;
+	vertical-align: middle;
+	margin-right: 8px;
+	position: relative;
+	top: -2px;
+}

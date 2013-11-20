@@ -1,4 +1,11 @@
-<!--#include virtual="top_page.html" -->
+<?php
+
+define('BASE_DIR', '.');
+
+
+include(BASE_DIR . '/include/top_page.inc');
+
+?>
 
 <style>
 .maindesc {
@@ -7,8 +14,9 @@
 }
 
 .image {
-	width: 640px;
-	height: 340px;
+	display: block;
+	width: 75%;
+	height: 75%;
 	margin: auto;
 	border: 1px solid black;
 }
@@ -56,40 +64,6 @@
 	width:48px;
 }
 
-.mainbutton{
-	text-align:center;
-}
-.mainbutton a,.mainbutton a:link,.mainbutton a:visited,.mainbutton a:active{
-	font-family:'Ubuntu',sans-serif;
-	font-weight:400;
-	font-size:150%;
-	text-shadow:0 2px 6px rgba(0, 0, 0, 0.6);
-	text-align:left;
-	display:inline-block;
-	background-color:#2c6fad;
-	border:1px solid #20598f;
-	background-image:-o-linear-gradient(bottom, #20598f 14%, #2c6fad 70%);
-	background-image:-moz-linear-gradient(bottom, #20598f 14%, #2c6fad 70%);
-	background-image:-webkit-linear-gradient(bottom, #20598f 14%, #2c6fad 70%);
-	background-image:-ms-linear-gradient(bottom, #20598f 14%, #2c6fad 70%);
-	background-image:linear-gradient(bottom, #20598f 14%, #2c6fad 70%);
-	color:#fff;padding:15px 20px 20px 68px;margin:40px 0 40px 0;
-	-webkit-border-radius:12px;
-	-moz-border-radius:12px;
-	border-radius:12px;
-}
-.mainbutton a:hover{
-	background-image:none;
-	color:#fff;
-}
-.mainbutton img{
-	margin-right:10px;
-	margin-left:-52px;
-	margin-bottom:-12px;
-	height:42px;
-	width:42px;
-}
-
 .mainoverview {
 	font-size: 130%;
 	text-align: center;
@@ -107,7 +81,7 @@
 </style>
 
 <p class="mainsummary">Bitcoin is an innovative payment network and a new kind of money.</p>
-<div class="image"></div>
+<img src="image/ocp_presentation.png" class="image" />
 <div class="mainlist">
 	<div><div>
 		<img src="image/icon/main_ico_instant.svg" alt="Icon">
@@ -128,10 +102,18 @@
 	<b>Bitcoin is open-source; its design is public, nobody owns or controls Bitcoin and everyone can take part</b>.
 	Through many of its unique properties, Bitcoin allows exciting uses that could not be covered by any previous payment system.
 </p>
-<div class="mainbutton"><a href="/en/getting-started"><img src="/img/but_bitcoin.svg" alt="icon">Get started with Bitcoin</a></div>
+<div class="mainbutton"><a href="/en/getting-started">
+	<img src="image/logo_shadow.png" alt="icon">Get started with Bitcoin
+</a></div>
 <div class="mainoverview">Or get a quick overview for</div>
-<div class="mainoverviews"><a href="/en/bitcoin-for-individuals">Individuals</a> <a href="/en/bitcoin-for-businesses">Businesses</a> <a href="/en/bitcoin-for-developers">Developers</a></div>
+<div class="mainoverviews">
+	<a href="simple.html">Individuals</a>
+	<a href="/en/bitcoin-for-businesses">Businesses</a>
+	<a href="/en/bitcoin-for-developers">Developers</a>
+</div>
 
+<?php
 
+include(BASE_DIR . '/include/bottom_page.inc');
 
-<!--#include virtual="bottom_page.html" -->
+?>

@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html>
 	<head>
-		<base href="./" />
+		<base href="<?php echo BASE_DIR; ?>" />
 		<meta charset="utf-8" />
 		<title>OCP Forum</title>
-		<link rel="icon" type="image/png" href="css/image/ocp_logo.png">
+		<link rel="icon" type="image/png" href="image/ocp_logo.png">
 		<link rel="stylesheet" href="css/main.css" />
 
 		<!-- JQUERY / JQUERY UI -->
@@ -16,6 +16,9 @@
 
 		<script src="js/widget_menu.js"></script>
 		<link rel="stylesheet" href="js/theme/default/widget_menu.css" />
+
+		<script src="js/widget_content_table.js"></script>
+		<link rel="stylesheet" href="js/theme/default/widget_content_table.css" />
 	</head>
 
 	<body>

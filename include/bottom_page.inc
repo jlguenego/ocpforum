@@ -13,10 +13,10 @@
 
 
 			<div id="menu1_body" class="of_menu_body">
-				<a href="/en/bitcoin-for-individuals" class="of_menu_item">Individuals</a>
+				<a href="simple.html" class="of_menu_item">Individuals</a>
 				<a href="/en/bitcoin-for-businesses" class="of_menu_item">Businesses</a>
 				<a href="/en/bitcoin-for-developers" class="of_menu_item">Developers</a>
-				<a href="/en/getting-started" class="of_menu_item">Getting started</a>
+				<a href="two_columns_numbered.html" class="of_menu_item">Getting started</a>
 				<a href="/en/how-it-works" class="of_menu_item">How it works</a>
 				<a href="/en/you-need-to-know" class="menuof_menu_item_item">You need to know</a>
 			</div>
@@ -27,7 +27,7 @@
 				<a href="/en/development" class="of_menu_item">Development</a>
 				<a href="/en/vocabulary" class="of_menu_item">Vocabulary</a>
 				<a href="/en/events" class="of_menu_item">Events</a>
-				<a href="/en/press" class="of_menu_item">Press</a>
+				<a href="press.html" class="of_menu_item">Press</a>
 			</div>
 		</div>
 
