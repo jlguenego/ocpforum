@@ -19,28 +19,28 @@ include(BASE_DIR . '/include/top_page.inc');
 }
 
 .of_tablehalf div {
-display: inline-block;
-width: 400px;
-vertical-align: top;
-margin-left: 40px;
-margin-bottom: 20px;
+	display: inline-block;
+	width: 400px;
+	vertical-align: top;
+	margin-left: 40px;
+	margin-bottom: 20px;
 }
 
 .of_tablehalf img {
-width: 400px;
-height: 220px;
--webkit-border-radius: 10px;
--moz-border-radius: 10px;
-border-radius: 10px;
+	width: 400px;
+	height: 220px;
+	-webkit-border-radius: 10px;
+	-moz-border-radius: 10px;
+	border-radius: 10px;
 }
 
 .of_tablehalf h2 img {
-width: auto;
-height: auto;
+	width: auto;
+	height: auto;
 }
 
 .attribution {
-font-size: 75%;
+	font-size: 75%;
 }
 </style>
 
