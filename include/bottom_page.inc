@@ -22,11 +22,11 @@
 			</div>
 
 			<div id="menu2_body" class="of_menu_body">
-				<a href="simple.html" class="of_menu_item">Simple</a>
-				<a href="table_content.html" class="of_menu_item">Table content</a>
-				<a href="two_columns.html" class="of_menu_item">Two columns</a>
-				<a href="two_columns_numbered.html" class="of_menu_item">Two columns numbered</a>
-				<a href="press.html" class="of_menu_item">Press</a>
+				<a href="layout/simple.php" class="of_menu_item">Simple</a>
+				<a href="layout/table_content.php" class="of_menu_item">Table content</a>
+				<a href="layout/two_columns.php" class="of_menu_item">Two columns</a>
+				<a href="layout/two_columns_numbered.php" class="of_menu_item">Two columns numbered</a>
+				<a href="layout/press.php" class="of_menu_item">Press</a>
 			</div>
 		</div>
 
