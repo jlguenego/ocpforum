@@ -19,3 +19,10 @@
 .widget_content_table ul li {
 	font-weight: normal;
 }
+
+.widget_content_table a, .widget_content_table a:link,
+.widget_content_table a:active, .widget_content_table a:visited {
+	display: block;
+	text-decoration: none;
+	line-height: 1.5em;
+}

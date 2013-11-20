@@ -87,6 +87,10 @@ body {
 	font-family: "Helvetica Neue","Helvetica",Arial,sans-serif;
 }
 
+#of_content p, #of_content li {
+	line-height: 1.5em;
+}
+
 #of_footer {
 	position: relative;
 	padding: 20px 0 20px 40px;
