@@ -39,7 +39,7 @@
 
 				<div id="of_menu_bar">
 					<div id="menu1" class="of_menu_label">Introduction</div>
-					<div id="menu2" class="of_menu_label">Resources</div>
+					<div id="menu2" class="of_menu_label">Templates</div>
 					<div id="menu3" class="of_menu_label"><a href="/en/innovation">Innovation</a></div>
 					<div id="menu4" class="of_menu_label"><a href="/en/support-bitcoin">Participate</a></div>
 					<div id="menu5" class="of_menu_label"><a href="/en/faq">FAQ</a></div>

@@ -22,11 +22,10 @@
 			</div>
 
 			<div id="menu2_body" class="of_menu_body">
-				<a href="/en/resources" class="of_menu_item">Resources</a>
-				<a href="/en/community" class="of_menu_item">Community</a>
-				<a href="/en/development" class="of_menu_item">Development</a>
-				<a href="/en/vocabulary" class="of_menu_item">Vocabulary</a>
-				<a href="/en/events" class="of_menu_item">Events</a>
+				<a href="simple.html" class="of_menu_item">Simple</a>
+				<a href="table_content.html" class="of_menu_item">Table content</a>
+				<a href="two_columns.html" class="of_menu_item">Two columns</a>
+				<a href="two_columns_numbered.html" class="of_menu_item">Two columns numbered</a>
 				<a href="press.html" class="of_menu_item">Press</a>
 			</div>
 		</div>
