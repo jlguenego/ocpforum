@@ -159,7 +159,7 @@ include(BASE_DIR . '/include/top_page.inc');
 }
 </style>
 
-<p class="mainsummary">Bitcoin is an innovative payment network and a new kind of money.</p>
+<p class="mainsummary">OCP allows anybody to store data in anybody computer without trusting anybody.</p>
 
 <div id="slide_container">
 	<div id="slides" class="image">
@@ -171,25 +171,25 @@ include(BASE_DIR . '/include/top_page.inc');
 <div class="mainlist">
 	<div><div>
 		<img src="image/icon/main_ico_instant.svg" alt="Icon">
-		<div>Instant peer-to-peer<br>transactions</div>
+		<div>Open and<br/>transparent</div>
 	</div></div>
 	<div><div>
 		<img src="image/icon/main_ico_worldwide.svg" alt="Icon">
-		<div>Worldwide<br>payments</div>
+		<div>Fully<br/>distributed</div>
 	</div></div>
 	<div><div>
 		<img src="image/icon/main_ico_lowfee.svg" alt="Icon">
-		<div>Zero or low<br>processing fees</div>
+		<div>Secure and<br/>Confidential</div>
 	</div></div>
 </div>
 <p class="maindesc">
-	Bitcoin uses peer-to-peer technology to operate with no central authority or banks;
-	managing transactions and the issuing of bitcoins is carried out collectively by the network.
-	<b>Bitcoin is open-source; its design is public, nobody owns or controls Bitcoin and everyone can take part</b>.
-	Through many of its unique properties, Bitcoin allows exciting uses that could not be covered by any previous payment system.
+	OCP (Open Cloud Protocol) uses peer-to-peer technology to operate with no central authority or storage provider;
+	all storage functionalities, such as buying or selling storage space, storing or retrieving data is carried out collectively by the network.
+	<b>OCP is open-source; its design is public, nobody owns or controls OCP and everyone can take part</b>.
+	Through many of its unique properties, OCP allows exciting uses that could not be covered by any previous storage system.
 </p>
 <div class="mainbutton"><a href="/en/getting-started">
-	<img src="image/logo_shadow.png" alt="icon">Get started with Bitcoin
+	<img src="image/logo_shadow.png" alt="icon">Get started with OCP
 </a></div>
 <div class="mainoverview">Or get a quick overview for</div>
 <div class="mainoverviews">

@@ -13,8 +13,8 @@
 
 
 			<div id="menu1_body" class="of_menu_body">
-				<a href="simple.html" class="of_menu_item">Individuals</a>
-				<a href="/en/bitcoin-for-businesses" class="of_menu_item">Businesses</a>
+				<a href="page/individual.php" class="of_menu_item">Individuals</a>
+				<a href="page/business.php" class="of_menu_item">Businesses</a>
 				<a href="/en/bitcoin-for-developers" class="of_menu_item">Developers</a>
 				<a href="two_columns_numbered.html" class="of_menu_item">Getting started</a>
 				<a href="/en/how-it-works" class="of_menu_item">How it works</a>
