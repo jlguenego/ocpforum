@@ -44,6 +44,14 @@ include(BASE_DIR . '/include/top_page.inc');
 	increasing used storage space per semantic data unit.
 </p>
 
+<h2><img class="titleicon" src="image/icon/ico_lock.svg" alt="Icon">Resiliency</h2>
+<p>
+	OCP is a fully distributed system meaning that there is no central node in the system. Having
+	central node, or node with exclusive responsability makes the system more vulnerable to internal or external
+	attacks. OCP is designed to form a distributed system with a maximum of resiliency. Any node shutdown
+	must have the smallest impact possible on the system behavior. Single point of failure are avoided.
+</p>
+
 <h2><img class="titleicon" src="image/icon/ico_simple.svg" alt="Icon">Performance</h2>
 <p>
 	Network performance clearly relied on the physical network throughput. But OCP still tries to increase
@@ -60,6 +68,12 @@ include(BASE_DIR . '/include/top_page.inc');
 	must be integrated as a plugin on the OCP Client. Because OCP is open, we try to make a big
 	community working with it, and make it able to detect all potential security breach to insure
 	the best support.
+</p>
+
+<h2><img class="titleicon" src="image/icon/ico_simple.svg" alt="Icon">Transparency</h2>
+<p>
+	All OCP network details can be visualized. Each node that is used can be inspected. The quality of service
+	can be measured and evaluated. So the final user can have a good and reliable measure of the health of the system.
 </p>
 
 <h2><img class="titleicon" src="image/icon/ico_simple.svg" alt="Icon">Portability</h2>
@@ -85,6 +99,12 @@ include(BASE_DIR . '/include/top_page.inc');
 <h2><img class="titleicon" src="image/icon/ico_simple.svg" alt="Icon">Resellable storage</h2>
 <p>
 	Most of the cloud storage are based on monthly fee. With OCP, you can resell what you don't use.
+</p>
+
+<h2><img class="titleicon" src="image/icon/ico_mobile.svg" alt="Icon">Public and private network</h2>
+<p>
+	There is one OCP official public network where you can connect to (see the <a href="pages/sponsor-list">official sponsor list</a>).
+	But OCP network can be also private. A company can decide to run its own private OCP network.
 </p>
 
 <div class="introlink">
