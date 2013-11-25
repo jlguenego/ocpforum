@@ -1,9 +1,10 @@
 <?php
 
-define('BASE_DIR', '.');
+define('ROOT_DIR', dirname(__FILE__));
+define('BASE_DIR', dirname($_SERVER['SCRIPT_NAME']));
 
 
-include(BASE_DIR . '/include/top_page.inc');
+include(ROOT_DIR . '/include/top_page.inc');
 
 ?>
 
@@ -209,6 +210,6 @@ $(document).ready(function() {
 
 <?php
 
-include(BASE_DIR . '/include/bottom_page.inc');
+include(ROOT_DIR . '/include/bottom_page.inc');
 
 ?>

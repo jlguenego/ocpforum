@@ -1,9 +1,10 @@
 <?php
 
-define('BASE_DIR', '..');
+define('ROOT_DIR', dirname(dirname(__FILE__)));
+define('BASE_DIR', dirname(dirname($_SERVER['SCRIPT_NAME'])));
 
 
-include(BASE_DIR . '/include/top_page.inc');
+include(ROOT_DIR . '/include/top_page.inc');
 
 ?>
 
@@ -18,9 +19,9 @@ include(BASE_DIR . '/include/top_page.inc');
 
 <h1>Coming Soon</h1>
 <p>This page was not yet written. But it is coming soon. To speed up the OCP project, you can participate by making donation
-	or even spending time as a developer, web designer, tester, and even as as a researcher...</p>
+	or even spending time as a developer, web designer, tester, and even as a researcher...</p>
 <?php
 
-include(BASE_DIR . '/include/bottom_page.inc');
+include(ROOT_DIR . '/include/bottom_page.inc');
 
 ?>

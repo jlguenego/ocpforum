@@ -1,9 +1,10 @@
 <?php
 
-define('BASE_DIR', '..');
+define('ROOT_DIR', dirname(dirname(__FILE__)));
+define('BASE_DIR', dirname(dirname($_SERVER['SCRIPT_NAME'])));
 
 
-include(BASE_DIR . '/include/top_page.inc');
+include(ROOT_DIR . '/include/top_page.inc');
 
 ?>
 
@@ -52,6 +53,6 @@ include(BASE_DIR . '/include/top_page.inc');
 <p>This is only a very short and concise summary of the system. If you want to get into the details, you can <a href="/bitcoin.pdf">read the original paper</a> that describes the system's design, and explore the <a href="https://en.bitcoin.it/wiki/Main_Page">Bitcoin wiki</a>.</p>
 <?php
 
-include(BASE_DIR . '/include/bottom_page.inc');
+include(ROOT_DIR . '/include/bottom_page.inc');
 
 ?>

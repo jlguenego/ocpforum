@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 	<head>
-		<base href="<?php echo BASE_DIR; ?>" />
+		<base href="<?php echo BASE_DIR; ?>/" />
 		<meta charset="utf-8" />
 		<title>OCP Forum</title>
 		<link rel="icon" type="image/png" href="image/ocp_logo.png">

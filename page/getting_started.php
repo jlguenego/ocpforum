@@ -1,9 +1,10 @@
 <?php
 
-define('BASE_DIR', '..');
+define('ROOT_DIR', dirname(dirname(__FILE__)));
+define('BASE_DIR', dirname(dirname($_SERVER['SCRIPT_NAME'])));
 
 
-include(BASE_DIR . '/include/top_page.inc');
+include(ROOT_DIR . '/include/top_page.inc');
 
 ?>
 
@@ -108,7 +109,7 @@ include(BASE_DIR . '/include/top_page.inc');
 				Before you start using OCP, there are a few things that you need to know
 				in order to use it securely and avoid common pitfalls.
 			</p>
-			<div class="of_cell_button"><a href="/page/you-need-to-know.php">Read more</a></div>
+			<div class="of_cell_button"><a href="page/you-need-to-know.php">Read more</a></div>
 		</div><!--
 		--><div class="of_table_cell">
 			<h2><span>2.</span> Choose your OCP Client</h2>
@@ -117,7 +118,7 @@ include(BASE_DIR . '/include/top_page.inc');
 				in your everyday life installed on your mobile or your computer.
 				In any case, choosing an OCP Client can be done in a minute.
 			</p>
-			<div class="of_cell_button"><a href="/page/you-need-to-know.php">Choose your OCP client</a></div>
+			<div class="of_cell_button"><a href="page/you-need-to-know.php">Choose your OCP client</a></div>
 		</div>
 	</div>
 	<div class="of_table_row">
@@ -128,7 +129,7 @@ include(BASE_DIR . '/include/top_page.inc');
 				or by buying them from a friend or someone near you. You can also buy them directly from an exchange
 				with your bank account. All this operation can be done on an OCP Market Place.
 			</p>
-			<div class="of_cell_button"><a href="/page/find-a-market-place.php">Find an OCP Market Place</a></div>
+			<div class="of_cell_button"><a href="page/find-a-market-place.php">Find an OCP Market Place</a></div>
 		</div><!--
 		--><div class="of_table_cell">
 			<h2><span>4.</span> Sell or resell OCP storage space</h2>
@@ -136,7 +137,7 @@ include(BASE_DIR . '/include/top_page.inc');
 				There is a growing number of services and merchants needing OCP storage space all over the world.
 				You can sell your own physical OCP Storage space or resell some OCP storage space you already bought.
 			</p>
-			<div class="of_cell_button"><a href="/page/find-a-market-place.php">Find an OCP Market Place</a></div>
+			<div class="of_cell_button"><a href="page/find-a-market-place.php">Find an OCP Market Place</a></div>
 		</div>
 	</div>
 </div>
@@ -151,14 +152,14 @@ include(BASE_DIR . '/include/top_page.inc');
 				You can store data using an OCP Client. The way to store data is highly configurable
 				to meet your security needs, and performance requirements.
 			</p>
-			<div class="of_cell_button"><a href="/page/storing-data.php">Choose your wallet</a></div>
+			<div class="of_cell_button"><a href="page/storing-data.php">Choose your wallet</a></div>
 		</div><!--
 		--><div class="of_table_cell">
 			<h2><span>2.</span> Retrieving data</h2>
 			<p>Data can be retrieved with the OCP Client. To retrieve a piece of data,
 				the address must be known and if the data is encrypted,
 				the encryption key must be known as well.</p>
-			<div class="of_cell_button"><a href="/page/retrieving-data.php">Read more</a></div>
+			<div class="of_cell_button"><a href="page/retrieving-data.php">Read more</a></div>
 		</div>
 	</div>
 
@@ -168,7 +169,7 @@ include(BASE_DIR . '/include/top_page.inc');
 				<p>More than simply storing and retrieving your data,
 					you can share your data and have all collaboration processes to work on them
 					with your organization (friends, work team, etc.)</p>
-			<div class="of_cell_button"><a href="/page/share-and-collaborate.php">Read More</a></div>
+			<div class="of_cell_button"><a href="page/share-and-collaborate.php">Read More</a></div>
 
 		</div><!--
 		--><div class="of_table_cell">
@@ -176,13 +177,13 @@ include(BASE_DIR . '/include/top_page.inc');
 				<p>OCP is just a storage layer, so you can write a lot of applications using this
 					storage layer. For instance, you can imagine a social network where everybody own
 					its own storage space and control exactly what there is inside.</p>
-			<div class="of_cell_button"><a href="/page/write-your-own-ocp-application.php">Read More</a></div>
+			<div class="of_cell_button"><a href="page/write-your-own-ocp-application.php">Read More</a></div>
 		</div>
 	</div>
 </div>
 
 <?php
 
-include(BASE_DIR . '/include/bottom_page.inc');
+include(ROOT_DIR . '/include/bottom_page.inc');
 
 ?>

@@ -1,8 +1,10 @@
 <?php
 
-define('BASE_DIR', '..');
-include(BASE_DIR . '/include/top_page.inc');
+define('ROOT_DIR', dirname(dirname(__FILE__)));
+define('BASE_DIR', dirname(dirname($_SERVER['SCRIPT_NAME'])));
 
+
+include(ROOT_DIR . '/include/top_page.inc');
 ?>
 
 
@@ -685,6 +687,6 @@ function materialShow(e) {
 
 <?php
 
-include(BASE_DIR . '/include/bottom_page.inc');
+include(ROOT_DIR . '/include/bottom_page.inc');
 
 ?>
