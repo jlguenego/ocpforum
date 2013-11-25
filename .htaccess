@@ -1,4 +1,0 @@
-Options +Includes
-AddType text/html .html
-AddOutputFilter INCLUDES .html
-ErrorDocument 404 /ocpforum/page/coming-soon.php
