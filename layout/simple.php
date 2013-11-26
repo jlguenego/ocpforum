@@ -32,7 +32,7 @@ include(ROOT_DIR . '/include/top_page.inc');
 <p>
 	ocpforum transactions are secured by military grade cryptography.
 	Nobody can charge you money or make a payment on your behalf.
-	So long as you take the required steps to <a href="/en/secure-your-wallet">protect your wallet</a>,
+	So long as you take the required steps to <a href="page/secure-your-wallet">protect your wallet</a>,
 	ocpforum can give you control over your money and a strong level of protection against many types of fraud.
 </p>
 
@@ -61,7 +61,7 @@ include(ROOT_DIR . '/include/top_page.inc');
 <h2><img class="titleicon" src="image/icon/ico_anon.svg" alt="Icon">Protect your identity</h2>
 <p>With ocpforum, there is no credit card number that some malicious actor can collect in order to impersonate you.
 	In fact, it is even possible to send a payment without revealing your identity, almost just like with physical money.
-	You should however take note that some effort can be required to <a href="/en/protect-your-privacy">protect your privacy</a>.
+	You should however take note that some effort can be required to <a href="page/protect-your-privacy">protect your privacy</a>.
 </p>
 
 <div class="introlink">

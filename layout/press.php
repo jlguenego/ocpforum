@@ -373,7 +373,7 @@ font-size: 80%;
   <a href="javaScript:" onclick="faqShow(event);">How does ocpforum work?</a>
   <div>
   <p>From a user perspective, ocpforum is nothing more than a mobile app or computer program that provides a personal ocpforum wallet and allows a user to send and receive ocpforums with them. This is how ocpforum works for most users.</p>
-  <p>Behind the scenes, the ocpforum network is sharing a public ledger called the "block chain". This ledger contains every transaction ever processed, allowing a user's computer to verify the validity of each transaction. The authenticity of each transaction is protected by digital signatures corresponding to the sending addresses, allowing all users to have full control over sending ocpforums from their own ocpforum addresses. In addition, anyone can process transactions using the computing power of specialized hardware and earn a reward in ocpforums for this service. This is often called "mining". To learn more about ocpforum, you can consult the <a href="/en/how-it-works">dedicated page</a> and the <a href="http://ocpforum.org/ocpforum.pdf">original paper</a>.</p>
+  <p>Behind the scenes, the ocpforum network is sharing a public ledger called the "block chain". This ledger contains every transaction ever processed, allowing a user's computer to verify the validity of each transaction. The authenticity of each transaction is protected by digital signatures corresponding to the sending addresses, allowing all users to have full control over sending ocpforums from their own ocpforum addresses. In addition, anyone can process transactions using the computing power of specialized hardware and earn a reward in ocpforums for this service. This is often called "mining". To learn more about ocpforum, you can consult the <a href="page/how-it-works">dedicated page</a> and the <a href="http://ocpforum.org/ocpforum.pdf">original paper</a>.</p>
   </div>
 </div>
 <div>
@@ -435,7 +435,7 @@ font-size: 80%;
 <div>
   <a href="javaScript:" onclick="faqShow(event);">Is ocpforum secure?</a>
   <div>
-  <p>The ocpforum technology - the protocol and the cryptography - has a strong security track record, and the ocpforum network is probably the biggest distributed computing project in the world. ocpforum's most common vulnerability is in user error. ocpforum wallet files that store the necessary private keys can be accidentally deleted, lost or stolen. This is pretty similar to physical cash stored in a digital form. Fortunately, users can employ sound <a href="/en/secure-your-wallet">security practices</a> to protect their money or use service providers that offer good levels of security and insurance against theft or loss.</p>
+  <p>The ocpforum technology - the protocol and the cryptography - has a strong security track record, and the ocpforum network is probably the biggest distributed computing project in the world. ocpforum's most common vulnerability is in user error. ocpforum wallet files that store the necessary private keys can be accidentally deleted, lost or stolen. This is pretty similar to physical cash stored in a digital form. Fortunately, users can employ sound <a href="page/secure-your-wallet">security practices</a> to protect their money or use service providers that offer good levels of security and insurance against theft or loss.</p>
   </div>
 </div>
 <div>
@@ -485,7 +485,7 @@ font-size: 80%;
 <div>
   <a href="javaScript:" onclick="faqShow(event);">Who created ocpforum?</a>
   <div>
-  <p>ocpforum is the first implementation of a concept called "crypto-currency", which was first described in 1998 by Wei Dai on the cypherpunks mailing list, suggesting the idea of a new form of money that uses cryptography to control its creation and transactions, rather than a central authority. The first ocpforum specification and proof of concept was published in 2009 in a cryptography mailing list by Satoshi Nakamoto. Satoshi left the project in late 2010 without revealing much about himself. The community has since grown exponentially with <a href="/en/development">many developers</a> working on ocpforum.</p>
+  <p>ocpforum is the first implementation of a concept called "crypto-currency", which was first described in 1998 by Wei Dai on the cypherpunks mailing list, suggesting the idea of a new form of money that uses cryptography to control its creation and transactions, rather than a central authority. The first ocpforum specification and proof of concept was published in 2009 in a cryptography mailing list by Satoshi Nakamoto. Satoshi left the project in late 2010 without revealing much about himself. The community has since grown exponentially with <a href="page/development">many developers</a> working on ocpforum.</p>
   <p>Satoshi's anonymity often raised unjustified concerns, many of which are linked to misunderstanding of the open-source nature of ocpforum. The ocpforum protocol and software are published openly and any developer around the world can review the code or make their own modified version of the ocpforum software. Just like current developers, Satoshi's influence was limited to the changes he made being adopted by others and therefore he did not control ocpforum. As such, the identity of ocpforum's inventor is probably as relevant today as the identity of the person who invented paper.</p>
   </div>
 </div>
@@ -510,11 +510,11 @@ font-size: 80%;
 <div>
   <a href="javaScript:" onclick="faqShow(event);">Is ocpforum anonymous?</a>
   <div>
-  <p>ocpforum is designed to allow its users to send and receive payments with an acceptable level of privacy as well as any other form of money. However, ocpforum is not anonymous and cannot offer the same level of privacy as cash. The use of ocpforum leaves extensive public records. <a href="/en/protect-your-privacy">Various mechanisms</a> exist to protect users' privacy, and more are in development. However, there is still work to be done before these features are used correctly by most ocpforum users.</p>
+  <p>ocpforum is designed to allow its users to send and receive payments with an acceptable level of privacy as well as any other form of money. However, ocpforum is not anonymous and cannot offer the same level of privacy as cash. The use of ocpforum leaves extensive public records. <a href="page/protect-your-privacy">Various mechanisms</a> exist to protect users' privacy, and more are in development. However, there is still work to be done before these features are used correctly by most ocpforum users.</p>
   <p>Some concerns have been raised that private transactions could be used for illegal purposes with ocpforum. However, it is worth noting that ocpforum will undoubtedly be subjected to similar regulations that are already in place inside existing financial systems. ocpforum cannot be more anonymous than cash and it is not likely to prevent criminal investigations from being conducted. Additionally, ocpforum is also designed to prevent a large range of financial crimes.</p>
   </div>
 </div>
-<p>To learn more about ocpforum, please visit the complete <a href="/en/faq">FAQ</a> or the <a href="https://en.ocpforum.it/wiki/FAQ">ocpforum Wiki</a>.</p>
+<p>To learn more about ocpforum, please visit the complete <a href="page/faq">FAQ</a> or the <a href="https://en.ocpforum.it/wiki/FAQ">ocpforum Wiki</a>.</p>
 
 </div>
 

@@ -109,7 +109,7 @@ include(ROOT_DIR . '/include/top_page.inc');
 				Before you start using OCP, there are a few things that you need to know
 				in order to use it securely and avoid common pitfalls.
 			</p>
-			<div class="of_cell_button"><a href="/en/you-need-to-know">Read more</a></div>
+			<div class="of_cell_button"><a href="page/you-need-to-know">Read more</a></div>
 		</div><!--
 		--><div class="of_table_cell">
 			<h2><span>2.</span> Choose your wallet</h2>
@@ -117,7 +117,7 @@ include(ROOT_DIR . '/include/top_page.inc');
 				You can bring a OCP wallet in your everyday life with your mobile or you can have a wallet
 				only for online payments on your computer. In any case, choosing your wallet can be done in a minute.
 			</p>
-			<div class="of_cell_button"><a href="/en/choose-your-wallet">Choose your wallet</a></div>
+			<div class="of_cell_button"><a href="page/choose-your-wallet">Choose your wallet</a></div>
 		</div>
 	</div>
 	<div class="of_table_row">
@@ -148,7 +148,7 @@ include(ROOT_DIR . '/include/top_page.inc');
 				Before you start using OCP, there are a few things that you need to know
 				in order to use it securely and avoid common pitfalls.
 			</p>
-			<div class="of_cell_button"><a href="/en/you-need-to-know">Read more</a></div>
+			<div class="of_cell_button"><a href="page/you-need-to-know">Read more</a></div>
 		</div><!--
 		--><div class="of_table_cell">
 			<h2><span>6.</span> Choose your wallet</h2>
@@ -156,7 +156,7 @@ include(ROOT_DIR . '/include/top_page.inc');
 				You can bring a OCP wallet in your everyday life with your mobile or you can have a wallet
 				only for online payments on your computer. In any case, choosing your wallet can be done in a minute.
 			</p>
-			<div class="of_cell_button"><a href="/en/choose-your-wallet">Choose your wallet</a></div>
+			<div class="of_cell_button"><a href="page/choose-your-wallet">Choose your wallet</a></div>
 		</div>
 	</div>
 </div>
@@ -173,7 +173,7 @@ include(ROOT_DIR . '/include/top_page.inc');
 				Before you start using OCP, there are a few things that you need to know
 				in order to use it securely and avoid common pitfalls.
 			</p>
-			<div class="of_cell_button"><a href="/en/you-need-to-know">Read more</a></div>
+			<div class="of_cell_button"><a href="page/you-need-to-know">Read more</a></div>
 		</div><!--
 		--><div class="of_table_cell">
 			<h2><span>2.</span> Processing payments</h2>

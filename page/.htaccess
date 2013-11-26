@@ -1,0 +1,7 @@
+# Activate URL rewriting
+RewriteEngine on
+
+RewriteRule ^(.*\.php)		$1 [L]
+RewriteRule ^(.*)			$1.php [L]
+
+

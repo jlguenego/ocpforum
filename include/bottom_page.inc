@@ -1,7 +1,7 @@
 </div>
 				<div id="of_footer">
-					<a href="/en/alerts">Network Status</a>
-					<a href="/en/alerts">Foundation</a>
+					<a href="page/alerts">Network Status</a>
+					<a href="page/alerts">Foundation</a>
 					<a href="page/legal.php">Legal</a>
 					<a href="page/about-us.php">About ocpforum.org</a>
 					<div id="of_copyright">

@@ -21,7 +21,7 @@ include(ROOT_DIR . '/include/top_page.inc');
 <p class="summary">This is a question that often causes confusion. Here's a quick explanation!</p>
 
 <h2>The basics for a new user</h2>
-<p>As a new user, you can <a href="/en/getting-started">get started</a> with OCP
+<p>As a new user, you can <a href="page/getting-started">get started</a> with OCP
 	without understanding the technical details. Once you have installed an OCP Client
 	on your computer or mobile phone, you can create an OCP user account.
 	The space will be empty, and in order to store content, you can buy OCP storage resources
@@ -29,7 +29,7 @@ include(ROOT_DIR . '/include/top_page.inc');
 	let you choose the best deal to start.</p>
 
 <h2>The basics for a new provider</h2>
-<p>As a new provider, you can <a href="/en/getting-started">get started</a> with OCP
+<p>As a new provider, you can <a href="page/getting-started">get started</a> with OCP
 	without understanding the technical details. Once you have installed an OCP Storage Node
 	on your computer, you can create an OCP user account.
 	You can then start your OCP storage node and wait that it is accepted on the network.
