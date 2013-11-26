@@ -189,7 +189,7 @@ include(ROOT_DIR . '/include/top_page.inc');
 	<b>OCP is open-source; its design is public, nobody owns or controls OCP and everyone can take part</b>.
 	Through many of its unique properties, OCP allows exciting uses that could not be covered by any previous storage system.
 </p>
-<div class="mainbutton"><a href="/en/getting-started">
+<div class="mainbutton"><a href="page/getting-started.php">
 	<img src="image/logo_shadow.png" alt="icon">Get started with OCP
 </a></div>
 <div class="mainoverview">Or get a quick overview for</div>

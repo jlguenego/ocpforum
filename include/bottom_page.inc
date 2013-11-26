@@ -16,7 +16,7 @@
 				<a href="page/individual.php" class="of_menu_item">Individuals</a>
 				<a href="page/business.php" class="of_menu_item">Businesses</a>
 				<a href="page/developer.php" class="of_menu_item">Developers</a>
-				<a href="page/getting_started.php" class="of_menu_item">Getting started</a>
+				<a href="page/getting-started.php" class="of_menu_item">Getting started</a>
 				<a href="page/how-it-works.php" class="of_menu_item">How it works</a>
 				<a href="page/you-need-to-know.php" class="menuof_menu_item_item">You need to know</a>
 			</div>
