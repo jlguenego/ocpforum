@@ -22,11 +22,12 @@
 			</div>
 
 			<div id="menu2_body" class="of_menu_body">
-				<a href="layout/simple.php" class="of_menu_item">Simple</a>
-				<a href="layout/table_content.php" class="of_menu_item">Table content</a>
-				<a href="layout/two_columns.php" class="of_menu_item">Two columns</a>
-				<a href="layout/two_columns_numbered.php" class="of_menu_item">Two columns numbered</a>
-				<a href="layout/press.php" class="of_menu_item">Press</a>
+				<a href="page/resources.php" class="of_menu_item">Resources</a>
+				<a href="page/community.php" class="of_menu_item">Community</a>
+				<a href="page/development.php" class="of_menu_item">Development</a>
+				<a href="page/vocabulary.php" class="of_menu_item">Vocabulary</a>
+				<a href="page/events.php" class="of_menu_item">Events</a>
+				<a href="page/press.php" class="of_menu_item">Press</a>
 			</div>
 		</div>
 

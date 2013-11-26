@@ -194,9 +194,9 @@ include(ROOT_DIR . '/include/top_page.inc');
 </a></div>
 <div class="mainoverview">Or get a quick overview for</div>
 <div class="mainoverviews">
-	<a href="simple.html">Individuals</a>
-	<a href="/en/bitcoin-for-businesses">Businesses</a>
-	<a href="/en/bitcoin-for-developers">Developers</a>
+	<a href="page/individual.php">Individuals</a>
+	<a href="page/business.php">Businesses</a>
+	<a href="page/developer.php">Developers</a>
 </div>
 
 <script>
