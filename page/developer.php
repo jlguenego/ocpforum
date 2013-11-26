@@ -55,18 +55,18 @@ include(ROOT_DIR . '/include/top_page.inc');
 
 <div class="introlink">
 	Visit the
-	<a href="http://ocpforum.org/wiki/How_to_accept_Bitcoin,_for_small_businesses#Merchant_Services">OCP services list</a>
+	<a href="http://ocpforum.org/wiki/OCP_Service_List">OCP service list</a>
 	on the wiki.
 </div>
 
 <div class="introlink">
 	Or read OCP's
 	<a href="http://ocpforum.org/wiki/API_reference_(JSON-RPC)">API reference</a> and
-	<a href="http://ocpforum.org/wiki/Original_Bitcoin_client/API_Calls_list">API calls list</a>.
+	<a href="http://ocpforum.org/wiki/Original_OCP_client/API_Calls_list">API calls list</a>.
 </div>
 
 <div class="mainbutton">
-	<a href="page/getting_started.php"><img src="image/logo_shadow.png" alt="icon">Get started with Bitcoin</a>
+	<a href="getting-started"><img src="image/logo_shadow.png" alt="icon">Get started with OCP</a>
 </div>
 
 <?php

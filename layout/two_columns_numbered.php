@@ -95,18 +95,18 @@ include(ROOT_DIR . '/include/top_page.inc');
 }
 </style>
 
-<h1>Getting started with Bitcoin</h1>
-<p class="summary">Using Bitcoin to pay and get paid is easy and accessible to everyone.</p>
+<h1>Getting started with OCP</h1>
+<p class="summary">Using OCP to pay and get paid is easy and accessible to everyone.</p>
 
 
-<div class="of_table_title"><a>How to use Bitcoin</a></div>
+<div class="of_table_title"><a>How to use OCP</a></div>
 <div class="of_table">
 	<div class="of_table_row">
 		<div class="of_table_cell">
 			<h2><span>1.</span> Inform yourself</h2>
 			<p>
-				Bitcoin is different than what you know and use every day.
-				Before you start using Bitcoin, there are a few things that you need to know
+				OCP is different than what you know and use every day.
+				Before you start using OCP, there are a few things that you need to know
 				in order to use it securely and avoid common pitfalls.
 			</p>
 			<div class="of_cell_button"><a href="/en/you-need-to-know">Read more</a></div>
@@ -114,7 +114,7 @@ include(ROOT_DIR . '/include/top_page.inc');
 		--><div class="of_table_cell">
 			<h2><span>2.</span> Choose your wallet</h2>
 			<p>
-				You can bring a Bitcoin wallet in your everyday life with your mobile or you can have a wallet
+				You can bring a OCP wallet in your everyday life with your mobile or you can have a wallet
 				only for online payments on your computer. In any case, choosing your wallet can be done in a minute.
 			</p>
 			<div class="of_cell_button"><a href="/en/choose-your-wallet">Choose your wallet</a></div>
@@ -122,21 +122,21 @@ include(ROOT_DIR . '/include/top_page.inc');
 	</div>
 	<div class="of_table_row">
 		<div class="of_table_cell">
-			<h2><span>3.</span> Get bitcoins</h2>
+			<h2><span>3.</span> Get OCPs</h2>
 			<p>
-				You can get bitcoins by accepting them as a payment for goods and services
+				You can get ocps by accepting them as a payment for goods and services
 				or by buying them from a friend or someone near you. You can also buy them directly from an exchange
 				with your bank account.
 			</p>
-			<div class="of_cell_button"><a href="http://howtobuybitcoins.info">Find an exchange</a></div>
+			<div class="of_cell_button"><a href="http://howtobuyocps.info">Find an exchange</a></div>
 		</div><!--
 		--><div class="of_table_cell">
-			<h2><span>4.</span> Spend bitcoins</h2>
+			<h2><span>4.</span> Spend ocps</h2>
 			<p>
-				There is a growing number of services and merchants accepting Bitcoin all over the world.
-				You can use Bitcoin to pay them and rate your experience to help honest businesses to gain more visibility.
+				There is a growing number of services and merchants accepting OCP all over the world.
+				You can use OCP to pay them and rate your experience to help honest businesses to gain more visibility.
 			</p>
-			<div class="of_cell_button"><a href="http://usebitcoins.info">Find merchants</a></div>
+			<div class="of_cell_button"><a href="http://useocps.info">Find merchants</a></div>
 		</div>
 	</div>
 
@@ -144,8 +144,8 @@ include(ROOT_DIR . '/include/top_page.inc');
 		<div class="of_table_cell">
 			<h2><span>5.</span> Inform yourself</h2>
 			<p>
-				Bitcoin is different than what you know and use every day.
-				Before you start using Bitcoin, there are a few things that you need to know
+				OCP is different than what you know and use every day.
+				Before you start using OCP, there are a few things that you need to know
 				in order to use it securely and avoid common pitfalls.
 			</p>
 			<div class="of_cell_button"><a href="/en/you-need-to-know">Read more</a></div>
@@ -153,7 +153,7 @@ include(ROOT_DIR . '/include/top_page.inc');
 		--><div class="of_table_cell">
 			<h2><span>6.</span> Choose your wallet</h2>
 			<p>
-				You can bring a Bitcoin wallet in your everyday life with your mobile or you can have a wallet
+				You can bring a OCP wallet in your everyday life with your mobile or you can have a wallet
 				only for online payments on your computer. In any case, choosing your wallet can be done in a minute.
 			</p>
 			<div class="of_cell_button"><a href="/en/choose-your-wallet">Choose your wallet</a></div>
@@ -162,15 +162,15 @@ include(ROOT_DIR . '/include/top_page.inc');
 </div>
 
 
-<div class="of_table_title"><a>How to accept Bitcoin</a></div>
+<div class="of_table_title"><a>How to accept OCP</a></div>
 <div class="of_table">
 	<div class="of_table_row">
 		<div class="of_table_cell">
 			<h2><span>1.</span> Inform yourself</h2>
 			<p>
-				Bitcoin does not require merchants to change their habits.
-				However, Bitcoin is different than what you know and use every day.
-				Before you start using Bitcoin, there are a few things that you need to know
+				OCP does not require merchants to change their habits.
+				However, OCP is different than what you know and use every day.
+				Before you start using OCP, there are a few things that you need to know
 				in order to use it securely and avoid common pitfalls.
 			</p>
 			<div class="of_cell_button"><a href="/en/you-need-to-know">Read more</a></div>
@@ -179,10 +179,10 @@ include(ROOT_DIR . '/include/top_page.inc');
 			<h2><span>2.</span> Processing payments</h2>
 			<p>
 				You can process payments and invoices by yourself or you can use merchant services
-				and deposit money in your local currency or bitcoins.
+				and deposit money in your local currency or OCPs.
 				Most point of sales businesses use a tablet or a mobile phone to let customers pay with their mobile phones.
 			</p>
-			<div class="of_cell_button"><a href="https://en.bitcoin.it/wiki/How_to_accept_Bitcoin,_for_small_businesses#Merchant_Services">
+			<div class="of_cell_button"><a href="https://en.ocp.it/wiki/How_to_accept_OCP,_for_small_businesses#Merchant_Services">
 				Find merchant services
 			</a></div>
 		</div>
@@ -191,13 +191,13 @@ include(ROOT_DIR . '/include/top_page.inc');
 	<div class="of_table_row">
 		<div class="of_table_cell">
 			<h2><span>3.</span> Accounting and taxes</h2>
-			<p>Merchants often deposit and display prices in their local currency. In other cases, Bitcoin works similarly to a foreign currency. To get appropriate guidance regarding tax compliance for your own jurisdiction, you should contact a qualified accountant.</p>
-			<div class="of_cell_button"><a href="https://en.bitcoin.it/wiki/How_to_accept_Bitcoin,_for_small_businesses#Setting_Prices">Read more</a></div>
+			<p>Merchants often deposit and display prices in their local currency. In other cases, OCP works similarly to a foreign currency. To get appropriate guidance regarding tax compliance for your own jurisdiction, you should contact a qualified accountant.</p>
+			<div class="of_cell_button"><a href="https://en.ocp.it/wiki/How_to_accept_OCP,_for_small_businesses#Setting_Prices">Read more</a></div>
 		</div><!--
 		--><div class="of_table_cell">
 			<h2><span>4.</span> Gaining visibility</h2>
-				<p>There is a growing number of users searching for ways to spend their bitcoins. You can submit your business in online directories to help them easily find you. You can also display the <a href="https://en.bitcoin.it/wiki/Promotional_graphics">Bitcoin logo</a> on your website or your brick and mortar business.</p>
-			<div class="of_cell_button"><a href="http://usebitcoins.info">Submit your business</a></div>
+				<p>There is a growing number of users searching for ways to spend their ocps. You can submit your business in online directories to help them easily find you. You can also display the <a href="https://en.ocp.it/wiki/Promotional_graphics">ocp logo</a> on your website or your brick and mortar business.</p>
+			<div class="of_cell_button"><a href="http://useocps.info">Submit your business</a></div>
 		</div>
 	</div>
 </div>

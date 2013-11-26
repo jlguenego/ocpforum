@@ -38,19 +38,75 @@ include(ROOT_DIR . '/include/top_page.inc');
 	If you want to receive the money as expected, do not turn off your OCP Storage Node and let it
 	connected to the network.</p>
 
-<p><br><img src="/img/bitcoin-how-it-works.svg" alt="Bitcoin" /></p>
+<p><br><img src="image/ocp_presentation_2.png" width="400" alt="Buy and sell storage on OCP" /></p>
 
-<h2>Balances<a class="titlelight"> - block chain</a></h2>
-<p>The block chain is a <b>shared public ledger</b> on which the entire Bitcoin network relies. All confirmed transactions are included in the block chain. This way, Bitcoin wallets can calculate their spendable balance and new transactions can be verified to be spending bitcoins that are actually owned by the spender. The integrity and the chronological order of the block chain are enforced with <a href="/en/vocabulary#cryptography">cryptography</a>.</p>
+<h2>Storing data</a></h2>
+<p>When storing data on an OCP network, the data is splitted into small
+	blocks and encrypted. All blocks are sent to the OCP network,
+	a hat block that contains addresses of the other blocks is also sent to the network.
+	The user account is locally updated with the reference on the hat block</p>
 
-<h2>Transactions<a class="titlelight"> - private keys</a></h2>
-<p>A transaction is <b>a transfer of value between Bitcoin wallets</b> that gets included in the block chain. Bitcoin wallets keep a secret piece of data called a <a href="/en/vocabulary#private-key"><i>private key</i></a> or seed, which is used to sign transactions, providing a mathematical proof that they have come from the owner of the wallet. The <a href="/en/vocabulary#signature"><i>signature</i></a> also prevents the transaction from being altered by anybody once it has been issued. All transactions are broadcast between users and usually begin to be confirmed by the network in the following 10 minutes, through a process called <a href="/en/vocabulary#mining"><i>mining</i></a>.</p>
+<h2>Retrieving data</a></h2>
+<p>When retrieving a file on an OCP network, the hat block of the file is first retrieved.
+	Then all blocks indicated in that file is also retrieved from the OCP network.
+	The block are all decrypted and join to rebuild the file.</p>
 
-<h2>Processing<a class="titlelight"> - mining</a></h2>
-<p>Mining is a <b>distributed consensus system</b> that is used to <a href="/en/vocabulary#confirmation"><i>confirm</i></a> waiting transactions by including them in the block chain. It enforces a chronological order in the block chain, protects the neutrality of the network, and allows different computers to agree on the state of the system. To be confirmed, transactions must be packed in a <a href="/en/vocabulary#block"><i>block</i></a> that fits very strict cryptographic rules that will be verified by the network. These rules prevent previous blocks from being modified because doing so would invalidate all following blocks. Mining also creates the equivalent of a competitive lottery that prevents any individual from easily adding new blocks consecutively in the block chain. This way, no individuals can control what is included in the block chain or replace parts of the block chain to roll back their own spends.</p>
+<p><br><img src="image/ocp_presentation_1.png" width="400" alt="Storing and retrieving data with OCP" /></p>
 
-<h2>Going down the rabbit hole</h2>
-<p>This is only a very short and concise summary of the system. If you want to get into the details, you can <a href="/bitcoin.pdf">read the original paper</a> that describes the system's design, and explore the <a href="https://en.bitcoin.it/wiki/Main_Page">Bitcoin wiki</a>.</p>
+<h2>Immutable objects</h2>
+<p>
+	All objects stored in the OCP network are immutable, except connection objects.
+	Immutable objects are object which address is linked to their content.
+	In other words: <code>address = f(content)</code> where f is a global function chosen
+	by the OCP network before initialization. The function f should be homogeneous in order to use
+	the whole address range. The function f should not be reversible, it should not be easy to guess the content
+	with a given address. The function f should be quasi-injective (or anti-collusive) to avoid two different
+	content to be stored at the same address. The good candidate for f
+	is therefore a hash function (like SHA1, SHA256, etc.).
+	Immutable object has two interesting properties: when getting an immutable object, its integrity can be easily checked. And an immutable object can be cached anywhere. There is no expiration date.
+</p>
+
+<h2>Data Structure Model</h2>
+<p>
+	Immutable objects content can store addresses of other immutable objects. So it is possible to make graph with only immutable objects. Such graph are necessarely directed acyclic graph (DAG). Fortunately, most current used data struture such file system can be represented as a DAG. It is better if the DAG has only one root object. In this case, to retrieve all objects, it is necessary to know only one object which is the root object of the DAG.
+	A <b>data structure model</b> represents the type of DAG used: file system, versioning system, relational database, etc.
+</p>
+
+<h2>Connection objects</h2>
+<p>
+	Connection objects are used to allow user to get the address of its root object. The principle is to get the connection object address from some information that the user knows: login, password. Thus we have address = <code>f(login, password)</code>. Connection object can be stored on decentralized system the same way cryptocurrencies do for storing money transactions.
+</p>
+
+<h2>Address topology</h2>
+<p>
+	In a distributed storage system, when retrieving an object from its address, the system must indicate which node must have a copy of it. The way it is done depends of the address topology. On a mathematical point of view, an address topology can be defined by a triplet (S, U, D) where S is a distributed system with a set of node N and a set of oriented connections between these nodes L, where U is a set of all possible addresses, and D is a function that attribute the address responsabilities. D is a function that associate foreach address at every instant, the set of nodes that are responsible for this address. The topology term is used because generally, it is possible to represent U as a shape (ring, rectangle, etc.) and represent the node responsabilities area as part of the U set.
+</p>
+
+<h2>Multi-ring address topology</h2>
+<p>
+	The set of address U is represented many times as a counter-clockwise directed ring. Each node N is represented as point located on rings at different angles. The successor of a node is a node represented on the same ring and located just after the node. For a given node, the addresses under its responsability are the ones located between the node and its succeessor. The function D (called find in the figure below) indicates foreach address the set of currently responsible nodes.
+</p>
+
+<p><br><img src="image/ocp_presentation_4.png" width="600" alt="Multi-ring topology address" /></p>
+
+<h2>Caching on the road</h2>
+<p>
+	Each OCP node has two repositories: one for storing the data which the node is responsible for (the <b>storage repository</b>), and another one for caching the data that pass through the node (the <b>caching repository</b>). All immutable object passing through a node is potentially stored in its cache. The advantage is to reduce the trajectory of object on the network.
+</p>
+<p>
+	From a client node, when retrieving data, the OCP node checks if the data is already in its cache. If the data is already in the cache, then it is taken as is and no network connection is needed. If no data is in the cache, the node connects to its closed nodes, and request the data. This is done recursively until a responsible node is found.
+</p>
+
+<p><br><img src="image/ocp_presentation_5.png" width="600" alt="Cache on the road mechanism" /></p>
+
+<h2>Want to know more ?</h2>
+
+<p>There are some interesting links:</p>
+<ul>
+	<li><a href="http://ocpforum.org/publications/BastugEtAl-CloudNet2012.pdf">Cloud Storage for Small Cell Networks</a></li>
+	<li><a href="http://ocpforum.org/publications/BastugEtAl-ICT2013-PropCaching.pdf">Proactive Small Cell Networks</a></li>
+</ul>
+
 <?php
 
 include(ROOT_DIR . '/include/bottom_page.inc');

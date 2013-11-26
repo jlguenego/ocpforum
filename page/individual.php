@@ -25,7 +25,7 @@ include(ROOT_DIR . '/include/top_page.inc');
 	OCP cloud storage can be bought using an OCP Market Place site
 	(like for instance <a href="http://ocpforum.org/webocp/client/#market_place">OCPForum market place</a>).
 	Just select an existing offer (which can be eventually free of charge in some cases).
-	When selected, click on 'Buy' and pay in your preferred currency (Bitcoin, USD, EUR, etc.)
+	When selected, click on 'Buy' and pay in your preferred currency (BTC, USD, EUR, etc.)
 	by following the indications.
 </p>
 
@@ -65,14 +65,14 @@ include(ROOT_DIR . '/include/top_page.inc');
 
 <div class="introlink">
 	Visit the
-	<a href="http://ocpforum.org/wiki/How_to_accept_Bitcoin,_for_small_businesses#Merchant_Services">OCP services list</a>
+	<a href="http://ocpforum.org/wiki/OCP_Service_List">OCP service list</a>
 	on the wiki.
 </div>
 
 <div class="introlink">
 	Or read OCP's
 	<a href="http://ocpforum.org/wiki/API_reference_(JSON-RPC)">API reference</a> and
-	<a href="http://ocpforum.org/wiki/Original_Bitcoin_client/API_Calls_list">API calls list</a>.
+	<a href="http://ocpforum.org/wiki/Original_OCP_client/API_Calls_list">API calls list</a>.
 </div>
 
 <div class="mainbutton">
