@@ -1,15 +1,15 @@
 <?php
 define('ROOT_DIR', dirname(__FILE__));
-define('BASE_DIR', dirname($_SERVER['SCRIPT_NAME']));
-
+$base_dir = dirname($_SERVER['SCRIPT_NAME']);
+if ($base_dir == '/') {
+	$base_dir = '';
+}
 
 if (file_exists('.htaccess')) {
-	header('Location: ' . BASE_DIR);
+	header('Location: ' . $base_dir.'/');
 	header('Cache-Control: no-cache');
 	exit(0);
 }
-
-$base_dir = BASE_DIR;
 
 $content = <<<EOF
 Options +Includes
@@ -20,7 +20,15 @@ EOF;
 
 file_put_contents('.htaccess', $content);
 
-header('Location: ' . BASE_DIR);
+$content = <<<EOF
+<?php
+	define('BASE_DIR', '${base_dir}');
+?>
+EOF;
+
+file_put_contents('include/constant.inc', $content);
+
+header('Location: ' . $base_dir);
 header('Cache-Control: no-cache');
 exit(0);
 ?>
