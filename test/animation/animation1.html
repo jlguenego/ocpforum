@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<base href="../../" />
+		<meta charset="utf-8" />
+
+		<script src="_ext/d3.v3.min.js"></script>
+
+		<style>
+html, body {
+	width: 100%;
+	height: 100%;
+	margin: 0px;
+	padding: 0px;
+}
+#frame {
+	width: 90%;
+	height: 90%;
+	margin: auto;
+
+	border: 1px solid black;
+}
+
+rect {
+	fill: red;
+}
+		</style>
+	</head>
+
+	<body>
+		<div id="frame"></div>
+		<script>
+var svg = d3.select('#frame').append('svg');
+
+var path = svg.append('path')
+	.attr('d', 'M100,100 C10,500 1000,500 1000,10')
+	.attr('id', 'pathToFollow')
+	.attr('fill', 'none')
+	.attr('stroke', 'black');
+
+var object = svg.append('image')
+	.attr('xlink:href', 'image/ball.png')
+	.attr('x', -25)
+	.attr('y', -25)
+	.attr('width', 50)
+	.attr('height', 50);
+object.transition()
+	.duration(1000)
+	.remove();
+
+object.append('animateMotion')
+	.attr('dur', '1s')
+	.attr('repeatCount', '1')
+	.append('mpath')
+		.attr('xlink:href', '#pathToFollow');
+		</script>
+	</body>
+</html>
