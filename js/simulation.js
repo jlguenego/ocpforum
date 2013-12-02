@@ -12,31 +12,61 @@ var sim = new Simulation();
 		this.nodes = [];
 		this.links = [];
 		this.svg = svg;
+		this.svgbox = {
+			x: svg.attr('width'),
+			y: svg.attr('height')
+		};
 		this.defs = this.svg.append('defs');
 		this.isVisible = false;
 
 		this.objects = {};
+		this.locator = {};
+		this.quick = false;
+
+		this.computeDuration = function(value) {
+			if (this.quick) {
+				return 0;
+			}
+			return value;
+		};
 
 		this.start = function() {
 			this._next();
 		};
 
 		this._next = function() {
-			console.log(this);
-			console.log(self.orders);
-			var order = self.orders.shift();
+			console.log('remaining orders');
+			console.log(this.orders.map(function(d) { return d.name; }));
+			var order = this.orders.shift();
 			if (order) {
-				order.function.apply(self, order.args);
+				order.function.apply(this, order.args);
 			} else {
 				console.log('no order anymore.');
 			}
+		};
+
+		this.updateLocator = function(obj, node) {
+			this.objects[obj.name] = obj;
+			if (!(obj.name in this.locator)) {
+				this.locator[obj.name] = [];
+			}
+
+			for (var i = 0; i < self.locator[obj.name].length; i++) {
+				if (self.locator[obj.name][i] == node) {
+					return;
+				}
+			}
+
+			console.log(node);
+			this.locator[obj.name].push(node);
 		};
 
 		this.addNode = function(node) {
 			node.parent = self;
 			this.orders.push({
 				function: self._addNode,
-				args: arguments
+				args: arguments,
+				name: 'addNode'
 			});
 		};
 
@@ -49,7 +79,8 @@ var sim = new Simulation();
 		this.addLink = function(source, target) {
 			this.orders.push({
 				function: self._addLink,
-				args: arguments
+				args: arguments,
+				name: 'addLink'
 			});
 		};
 
@@ -59,57 +90,125 @@ var sim = new Simulation();
 				target: target,
 				id: source.name + '_' + target.name
 			});
+			target.links.push(source);
 			this.refreshLinks();
 		};
 
-		this.addObject = function(obj, duration, doItNow) {
+		this.addObject = function(obj, node, duration, doItNow) {
 			if (doItNow) {
-				this._addObject(obj, duration);
+				this._addObject(obj, node, duration);
 				return;
 			}
 			this.orders.push({
 				function: self._addObject,
-				args: [ obj, duration ]
+				args: [ obj, node, duration ],
+				name: 'addObject'
 			});
 		};
 
-		this._addObject = function(obj, duration) {
-			this.objects[obj.name] = obj;
+		this._addObject = function(obj, node, duration) {
+			node.objects.push(obj);
+			this.updateLocator(obj, node);
 			this.refreshObjects(duration);
 		};
 
 		this.addRequest = function(objectName, target) {
 			this.orders.push({
 				function: self._addRequest,
-				args: arguments
+				args: arguments,
+				name: 'addRequest'
 			});
 		};
 
 		this._addRequest = function(objectName, target) {
-			var transfer = null;
-			for (var i in this.nodes) {
-				var node = this.nodes[i];
+			console.log(this.objects);
+			console.log('objectName=' + objectName);
+			if (!(objectName in this.objects)) {
+				throw new Error('Object not found.');
+			}
 
-				for (var j in node.objects) {
-					var obj = node.objects[j];
+			console.log(this.locator[objectName]);
+			var nodeRoute = this.getCloserNodeRoute(objectName, target);
+			console.log(nodeRoute);
 
-					if (obj.name == objectName) {
-						transfer = {
-							source: node,
-							target: target,
-							object: obj
-						};
-						break;
-					}
+			if (nodeRoute.length == 0) {
+				throw new Error('No node found.');
+			} else if (nodeRoute.length == 1) {
+				this.doTransfer(nodeRoute[0], target, objectName);
+			} else {
+				for (var i = nodeRoute.length - 2; i >= 0 ; i--) {
+					this.doTransfer(nodeRoute[i], nodeRoute[i + 1], objectName);
 				}
 			}
+			this.start();
+		};
+
+		this.getCloserNodeRoute = function(objectName, target) {
+			for (var i = 0; i < target.objects.length; i++) {
+				if (target.objects[i].name == objectName) {
+					return [ target ];
+				}
+			}
+
+			// Target does not have the object.
+
+			var routes = [];
+			for (var i = 0; i < target.links.length; i++) {
+				var route = this.getCloserNodeRoute(objectName, target.links[i]);;
+				routes.push(route);
+			}
+
+			var smallerSize = 0;
+			var result = [];
+			for (var i = 0; i < routes.length; i++) {
+				var routeSize = routes[i].length;
+				if (smallerSize == 0 || routeSize < smallerSize) {
+					result = routes[i];
+					smallerSize = routeSize;
+				}
+			}
+			result.push(target);
+			return result;
+		};
+
+		this.doTransfer = function(source, target, objectName) {
+			this.orders.unshift({
+				function: self._doTransfer,
+				args: arguments,
+				name: 'doTransfer'
+			});
+		};
+
+		this._doTransfer = function(source, target, objectName) {
+			var transfer = {
+				source: source,
+				target: target,
+				object: this.objects[objectName]
+			};
 
 			this.performTransfer(transfer);
 		};
 
+		this.getNodeCoord = function(node) {
+			var hash = CryptoJS.SHA1(CryptoJS.SHA1(node.name)).toString();
+			console.log('hash=' + hash);
+			var angle = (parseInt(hash.substr(15, 4), 16) / 0xffff) * 2 * Math.PI;
+			console.log('angle=' + angle);
+			var x = (self.svg.attr('width') / 2) * (1 + 0.9 * Math.cos(angle));
+			var y = (self.svg.attr('height') / 2) * (1 + 0.9 * Math.sin(angle));
+			var result = {
+				x: x,
+				y: y
+			};
+			console.log(result);
+			node.x = x;
+			node.y = y;
+			return result;
+		};
+
 		this.refreshNodes = function() {
 			console.log(self);
-			var duration = 1000;
+			var duration = self.computeDuration(1000);
 
 			// Join data
 			var nodes = this.svg.selectAll('g.node')
@@ -122,8 +221,8 @@ var sim = new Simulation();
 
 			g.append('image')
 				.attr('xlink:href', function(d) { return d.image; })
-				.attr('x', function(d) { return d.x; })
-				.attr('y', function(d) { return d.y; })
+				.attr('x', function(d) { return self.getNodeCoord(d).x;})
+				.attr('y', function(d) { return self.getNodeCoord(d).y;})
 				.attr('transform', 'translate(-25, -25)')
 				.attr('width', 50)
 				.attr('height', 50);
@@ -131,7 +230,9 @@ var sim = new Simulation();
 			g.transition()
 				.duration(duration)
 				.style('opacity', 1)
-				.each('end', self._next);
+				.each('end', function() {
+					self._next();
+				});
 
 			// Update
 			// nodes.attr()...
@@ -141,10 +242,15 @@ var sim = new Simulation();
 		};
 
 		this.refreshLinks = function() {
-			var duration = 1000;
+			var duration = self.computeDuration(1000);
 
 			var links = self.svg.selectAll('path.link')
 				.data(self.links);
+
+			var center = {
+				x: this.svgbox.x / 2,
+				y: this.svgbox.y / 2,
+			};
 
 			var path = links.enter().insert('path', ":first-child");
 			path.classed('link', true)
@@ -152,7 +258,17 @@ var sim = new Simulation();
 				.attr('fill', 'none')
 				.attr('id', function(d) { return d.id; })
 				.attr('d', function(d) {
-					return 'M' + d.source.x + ',' + d.source.y + ' C500,100 500,100 ' + d.target.x + ',' + d.target.y;
+					var p1 = {
+						x: (d.source.x + center.x) / 2,
+						y: (d.source.y + center.y) / 2,
+					};
+					var p2 = {
+						x: (d.target.x + center.x) / 2,
+						y: (d.target.y + center.y) / 2,
+					};
+					return 'M' + d.source.x + ',' + d.source.y
+						+ ' C' + p1.x + ',' + p1.y + ' ' + p2.x + ',' + p2.y
+						+ ' ' + d.target.x + ',' + d.target.y;
 				})
 				.attr('stroke-dasharray', function(d) {
 					var my_path = d3.select('#' + d.id).node();
@@ -167,12 +283,14 @@ var sim = new Simulation();
 				.transition()
 					.duration(duration)
 					.attr('stroke-dashoffset', 0)
-					.each('end', self._next);
+					.each('end', function() {
+						self._next();
+					});
 		};
 
 		this.refreshObjects = function(duration) {
 			if (duration === undefined) {
-				duration = 1000;
+				duration = self.computeDuration(1000);
 			}
 
 			var symbols = self.defs.selectAll('symbol').data(d3.values(self.objects));
@@ -209,12 +327,14 @@ var sim = new Simulation();
 				.transition()
 					.duration(duration)
 					.style('opacity', 1)
-					.each('end', self._next);
+					.each('end', function() {
+						self._next();
+					});
 			objects.exit().remove();
 		};
 
 		this.performTransfer = function(transfer) {
-			var duration = 1000;
+			var duration = self.computeDuration(1000);
 
 			var pathNode = d3.select('#' + transfer.source.name + '_' + transfer.target.name).node();
 			var pathLength = pathNode.getTotalLength();
@@ -248,9 +368,9 @@ var sim = new Simulation();
 	sim.Node = function(n) {
 		this.name = n.name;
 		this.image = n.image;
-		this.x = n.x;
-		this.y = n.y;
 		this.parent = null;
+
+		this.links = [];
 
 		this.objects = [];
 
@@ -263,8 +383,7 @@ var sim = new Simulation();
 				name: name,
 				source: source
 			};
-			this.objects.push(obj);
-			this.parent.addObject(obj, duration, doItNow);
+			this.parent.addObject(obj, this, duration, doItNow);
 		};
 
 		this.requestObject = function(name) {

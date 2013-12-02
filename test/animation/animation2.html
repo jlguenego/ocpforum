@@ -6,6 +6,7 @@
 
 		<script src="_ext/d3.v3.min.js"></script>
 		<script src="_ext/jquery-1.10.2.min.js"></script>
+		<script src="_ext/sha1.js"></script>
 		<script src="js/simulation.js"></script>
 
 		<style>
@@ -32,40 +33,42 @@ rect {
 	<body>
 		<div id="frame"></div>
 		<script>
-var svg = d3.select('#frame').append('svg');
+var svg = d3.select('#frame').append('svg')
+	.attr('width', 800)
+	.attr('height', 600);
 
 
 var ds = new sim.DistributedSystem(svg);
 
 var n1 = new sim.Node({
 	name: 'n1',
-	image: 'image/neufbox.png',
-	x: 50,
-	y: 100
+	image: 'image/neufbox.png'
 });
 var n2 = new sim.Node({
 	name: 'n2',
-	image: 'image/neufbox.png',
-	x: 800,
-	y: 300
+	image: 'image/neufbox.png'
 });
 var n3 = new sim.Node({
 	name: 'n3',
-	image: 'image/neufbox.png',
-	x: 1200,
-	y: 100
+	image: 'image/neufbox.png'
+});
+
+var n4 = new sim.Node({
+	name: 'n4',
+	image: 'image/neufbox.png'
 });
 ds.addNode(n1);
 ds.addNode(n2);
+ds.addNode(n3);
+ds.addNode(n4);
 
 ds.addLink(n1, n2);
+ds.addLink(n2, n3);
+ds.addLink(n3, n4);
 
 n1.addObject('flower', 'image/test/flower.jpg');
-n2.requestObject('flower');
-
-ds.addNode(n3);
-ds.addLink(n2, n3);
-n3.requestObject('flower');
+//ds.quick = true;
+n4.requestObject('flower');
 
 ds.start();
 		</script>
