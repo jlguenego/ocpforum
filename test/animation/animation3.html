@@ -42,17 +42,27 @@ var ds = new sim.DistributedSystem(svg);
 
 var nbr = 10;
 for (var i = 0; i < nbr; i++) {
-	ds.addNode({
+	ds.addNode(new sim.Node({
 		name: 'n' + i,
 		image: 'image/neufbox.png'
-	});
+	}));
 }
 
-//ds.addLink(n1, n2);
-//ds.addLink(n2, n3);
-//ds.addLink(n3, n4);
-//
-//n1.addObject('flower', 'image/test/flower.jpg');
+for (var i = 0; i < nbr; i++) {
+	for (var j = 0; j < nbr; j++) {
+		if (i == j) {
+			continue;
+		}
+		console.log('i=' + i);
+		console.log('j=' + j);
+		ds.addLink('n' + i, 'n' + j);
+	}
+}
+
+ds.addObject('n0', 'flower', 'image/test/flower.jpg');
+for (var i = 1; i < nbr; i++) {
+	ds.requestObject('n' + i, 'flower');
+}
 //ds.quick = true;
 //n4.requestObject('flower');
 

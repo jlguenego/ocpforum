@@ -62,11 +62,11 @@ ds.addNode(n2);
 ds.addNode(n3);
 ds.addNode(n4);
 
-ds.addLink(n1, n2);
-ds.addLink(n2, n3);
-ds.addLink(n3, n4);
+ds.addLink('n1', 'n2');
+ds.addLink('n2', 'n3');
+ds.addLink('n3', 'n4');
 
-n1.addObject('flower', 'image/test/flower.jpg');
+ds.addObject('n1', 'flower', 'image/test/flower.jpg');
 //ds.quick = true;
 n4.requestObject('flower');
 
