@@ -416,4 +416,15 @@ var sim = new Simulation();
 			this.parent.requestObject(this.name, name);
 		};
 	};
+
+	sim.Random = function(seed) {
+		this.seed = seed || '0';
+
+		this.random = function(min, max) {
+			min = min || 0;
+			max = max || 1000;
+			this.seed = CryptoJS.SHA1(this.seed).toString();
+			return (parseInt(this.seed, 16) % (max - min)) + min;
+		};
+	};
 })(sim)
