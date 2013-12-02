@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<base href="../../" />
+		<meta charset="utf-8" />
+
+		<script src="_ext/d3.v3.min.js"></script>
+		<script src="_ext/jquery-1.10.2.min.js"></script>
+		<script src="_ext/sha1.js"></script>
+		<script src="js/simulation.js"></script>
+
+		<style>
+html, body {
+	width: 100%;
+	height: 100%;
+	margin: 0px;
+	padding: 0px;
+}
+#frame {
+	width: 90%;
+	height: 90%;
+	margin: auto;
+
+	border: 1px solid black;
+}
+
+rect {
+	fill: red;
+}
+		</style>
+	</head>
+
+	<body>
+		<div id="frame"></div>
+		<script>
+var svg = d3.select('#frame').append('svg')
+	.attr('width', 800)
+	.attr('height', 600);
+
+
+var ds = new sim.DistributedSystem(svg);
+
+var nbr = 10;
+for (var i = 0; i < nbr; i++) {
+	ds.addNode({
+		name: 'n' + i,
+		image: 'image/neufbox.png'
+	});
+}
+
+//ds.addLink(n1, n2);
+//ds.addLink(n2, n3);
+//ds.addLink(n3, n4);
+//
+//n1.addObject('flower', 'image/test/flower.jpg');
+//ds.quick = true;
+//n4.requestObject('flower');
+
+ds.start();
+		</script>
+	</body>
+</html>

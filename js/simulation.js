@@ -7,6 +7,15 @@ var sim = new Simulation();
 	sim.DistributedSystem = function(svg) {
 		var self = this;
 
+		this.options = {
+			duration: {
+				addNode: 100,
+				addLink: 100,
+				addObject: 100,
+				doTransfer: 1000
+			}
+		};
+
 		this.orders = [];
 
 		this.nodes = [];
@@ -202,7 +211,7 @@ var sim = new Simulation();
 
 		this.refreshNodes = function() {
 			console.log(self);
-			var duration = self.computeDuration(1000);
+			var duration = self.computeDuration(this.options.duration.addNode);
 
 			// Join data
 			var nodes = this.svg.selectAll('g.node')
@@ -236,7 +245,7 @@ var sim = new Simulation();
 		};
 
 		this.refreshLinks = function() {
-			var duration = self.computeDuration(1000);
+			var duration = self.computeDuration(this.options.duration.addLink);
 
 			var links = self.svg.selectAll('path.link')
 				.data(self.links);
@@ -284,7 +293,7 @@ var sim = new Simulation();
 
 		this.refreshObjects = function(duration) {
 			if (duration === undefined) {
-				duration = self.computeDuration(1000);
+				duration = self.computeDuration(this.options.duration.addObject);
 			}
 
 			var symbols = self.defs.selectAll('symbol').data(d3.values(self.objects));
@@ -328,7 +337,7 @@ var sim = new Simulation();
 		};
 
 		this.performTransfer = function(transfer) {
-			var duration = self.computeDuration(1000);
+			var duration = self.computeDuration(this.options.duration.doTransfer);
 
 			var pathNode = d3.select('#' + transfer.source.name + '_' + transfer.target.name).node();
 			var pathLength = pathNode.getTotalLength();
