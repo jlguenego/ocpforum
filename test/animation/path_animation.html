@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+	<head></head>
+	<body>
+		<svg xml:space="preserve" viewBox="480000 0 360000 240000" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+			<defs>
+				<symbol id="airplane" overflow="visible">
+					<path stroke="blue" stroke-width="100" fill="lightgray" d="M-4000,0 a1000,300 0 0,1 1000,-300 H-1000 L1500,-3000 h400 L0,-300 h2000 L3000,-1500 h500 L2500,-50 V100 L3500,1500 h-500 L2000,300 h-2000 L1900,3000 h-400 L-1000,300 H-3000 a1000,300 0 0,1 -1000,-300" />
+				</symbol>
+			</defs>
+			<g id="AnimationPaths">
+				<path id="Zuerich_Geneva" stroke="orange" stroke-width="2000" fill="none" d="M682500,53500 C632500,53500 549500,80000 499500,181000" />
+				<use id="AirplaneZurichGeneva" xlink:href="#airplane">
+					<animateMotion id="animMotionZurGen" dur="&animDuration;" repeatCount="indefinite" rotate="auto-reverse">
+						<mpath xlink:href="#Zuerich_Geneva"/>
+					</animateMotion>
+					<animateTransform id="animTransZurGen" attributeName="transform" type="scale" keyTimes="0;0.2;0.8;1" values="1.5;4;4;1.5" dur="&animDuration;" additive="replace" fill="freeze" repeatCount="indefinite"/>
+				</use>
+			</g>
+		</svg>
+
+	</body>
+</html>

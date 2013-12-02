@@ -40,23 +40,34 @@ var ds = new sim.DistributedSystem(svg);
 var n1 = new sim.Node({
 	name: 'n1',
 	image: 'image/neufbox.png',
-	lat: 50,
-	lng: 100
+	x: 50,
+	y: 100
 });
 var n2 = new sim.Node({
 	name: 'n2',
 	image: 'image/neufbox.png',
-	lat: 800,
-	lng: 300
+	x: 800,
+	y: 300
+});
+var n3 = new sim.Node({
+	name: 'n3',
+	image: 'image/neufbox.png',
+	x: 1200,
+	y: 100
 });
 ds.addNode(n1);
 ds.addNode(n2);
+
 ds.addLink(n1, n2);
 
 n1.addObject('flower', 'image/test/flower.jpg');
 n2.requestObject('flower');
-//n2.requestObject('flower');
-//n2.requestObject('flower');
+
+ds.addNode(n3);
+ds.addLink(n2, n3);
+n3.requestObject('flower');
+
+ds.start();
 		</script>
 	</body>
 </html>

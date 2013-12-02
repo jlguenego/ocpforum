@@ -7,33 +7,85 @@ var sim = new Simulation();
 	sim.DistributedSystem = function(svg) {
 		var self = this;
 
+		this.orders = [];
+
 		this.nodes = [];
 		this.links = [];
-		this.requests = [];
 		this.svg = svg;
 		this.defs = this.svg.append('defs');
 		this.isVisible = false;
 
-		this.transfer_duration = 1000;
+		this.objects = {};
 
-		this.delay = 0;
+		this.start = function() {
+			this._next();
+		};
+
+		this._next = function() {
+			console.log(this);
+			console.log(self.orders);
+			var order = self.orders.shift();
+			if (order) {
+				order.function.apply(self, order.args);
+			} else {
+				console.log('no order anymore.');
+			}
+		};
 
 		this.addNode = function(node) {
-			this.nodes.push(node);
-			node.parent = this;
-			this.refresh();
+			node.parent = self;
+			this.orders.push({
+				function: self._addNode,
+				args: arguments
+			});
+		};
+
+		this._addNode = function(node) {
+			self.nodes.push(node);
+			self.refreshNodes();
+			console.log(node);
 		};
 
 		this.addLink = function(source, target) {
+			this.orders.push({
+				function: self._addLink,
+				args: arguments
+			});
+		};
+
+		this._addLink = function(source, target) {
 			this.links.push({
 				source: source,
 				target: target,
 				id: source.name + '_' + target.name
 			});
-			this.refresh();
+			this.refreshLinks();
+		};
+
+		this.addObject = function(obj, duration, notOrder) {
+			if (notOrder === false) {
+				this._addObject(obj, duration, notOrder)
+				return;
+			}
+			this.orders.push({
+				function: self._addObject,
+				args: arguments
+			});
+		};
+
+		this._addObject = function(obj, duration) {
+			this.objects[obj.name] = obj;
+			this.refreshObjects(duration);
 		};
 
 		this.addRequest = function(objectName, target) {
+			this.orders.push({
+				function: self._addRequest,
+				args: arguments
+			});
+		};
+
+		this._addRequest = function(objectName, target) {
 			var transfer = null;
 			for (var i in this.nodes) {
 				var node = this.nodes[i];
@@ -52,18 +104,11 @@ var sim = new Simulation();
 				}
 			}
 
-			this.requests.push(transfer);
-			this.refresh();
-		};
-
-		this.refresh = function() {
-			this.refreshNodes();
-			this.refreshLinks();
-			this.refreshObjects();
-			this.refreshObjectsSend();
+			this.performTransfer(transfer);
 		};
 
 		this.refreshNodes = function() {
+			console.log(self);
 			var duration = 1000;
 
 			// Join data
@@ -77,20 +122,16 @@ var sim = new Simulation();
 
 			g.append('image')
 				.attr('xlink:href', function(d) { return d.image; })
-				.attr('x', function(d) { return d.lat; })
-				.attr('y', function(d) { return d.lng; })
+				.attr('x', function(d) { return d.x; })
+				.attr('y', function(d) { return d.y; })
 				.attr('transform', 'translate(-25, -25)')
 				.attr('width', 50)
 				.attr('height', 50);
 
 			g.transition()
-				.delay(function(d) {
-					var delay = self.delay;
-					self.delay += duration;
-					return delay;
-				})
 				.duration(duration)
-				.style('opacity', 1);
+				.style('opacity', 1)
+				.each('end', self._next);
 
 			// Update
 			// nodes.attr()...
@@ -102,8 +143,8 @@ var sim = new Simulation();
 		this.refreshLinks = function() {
 			var duration = 1000;
 
-			var links = this.svg.selectAll('path.link')
-				.data(this.links);
+			var links = self.svg.selectAll('path.link')
+				.data(self.links);
 
 			var path = links.enter().insert('path', ":first-child");
 			path.classed('link', true)
@@ -111,7 +152,7 @@ var sim = new Simulation();
 				.attr('fill', 'none')
 				.attr('id', function(d) { return d.id; })
 				.attr('d', function(d) {
-					return 'M' + d.source.lat + ',' + d.source.lng + ' C500,100 500,100 ' + d.target.lat + ',' + d.target.lng;
+					return 'M' + d.source.x + ',' + d.source.y + ' C500,100 500,100 ' + d.target.x + ',' + d.target.y;
 				})
 				.attr('stroke-dasharray', function(d) {
 					var my_path = d3.select('#' + d.id).node();
@@ -124,106 +165,88 @@ var sim = new Simulation();
 					return length;
 				})
 				.transition()
-					.delay(function(d) {
-						var delay = self.delay;
-						self.delay += duration;
-						return delay;
-					})
 					.duration(duration)
-					.attr('stroke-dashoffset', 0);
+					.attr('stroke-dashoffset', 0)
+					.each('end', self._next);
 		};
 
-		this.refreshObjects = function() {
-			var duration = 1000;
+		this.refreshObjects = function(duration) {
+			duration = duration || 1000;
 
-			var objects = this.svg.selectAll('g.node')
-				.selectAll('image.object')
-				.data(function(d) {
-					var objects = [];
-					for (var i in d.objects) {
-						objects[i] = d.objects[i];
-						objects[i].lat = d.lat;
-						objects[i].lng = d.lng;
-					}
-					return d.objects;
-				});
-			objects.enter().append('image')
+			var symbols = self.defs.selectAll('symbol').data(d3.values(self.objects));
+			symbols.enter().append('symbol')
+				.attr('id', function(d) {
+					return d.name;
+				})
+				.append('image')
+					.attr('xlink:href', function(d) { return d.source; })
+					.attr('width', 25)
+					.attr('height', 25);
+			symbols.exit().remove();
+
+
+
+			var nodes = self.svg.selectAll('g.node').data(self.nodes);
+			var objects = nodes.selectAll('use.object').data(function(d) {
+				var objects = [];
+				for (var i = 0; i < d.objects.length; i++) {
+					objects.push({
+						object: d.objects[i],
+						x: d.x,
+						y: d.y
+					});
+				}
+				return objects;
+			});
+			objects.enter().append('use')
 				.classed('object', true)
-				.attr('xlink:href', function(d) { return d.source; })
-				.attr('x', function(d) { return d.lat; })
-				.attr('y', function(d) { return d.lng; })
-				.attr('width', 25)
-				.attr('height', 25)
+				.attr('xlink:href', function(d) { return '#' + d.object.name; })
+				.attr('x', function(d) { return d.x; })
+				.attr('y', function(d) { return d.y; })
 				.style('opacity', 0)
 				.transition()
-					.delay(function(d) {
-						var delay = self.delay;
-						self.delay += duration;
-						return delay;
-					})
 					.duration(duration)
-					.style('opacity', 1);
+					.style('opacity', 1)
+					.each('end', self._next);
 			objects.exit().remove();
 		};
 
-		this.refreshObjectsSend = function() {
+		this.performTransfer = function(transfer) {
 			var duration = 1000;
 
-			var tranfers = this.svg.selectAll('g.transfer')
-				.data(this.requests);
-
-			tranfers.exit().remove();
-
-			var g_obj = tranfers.enter().append('g');
-
-			var transition = g_obj.style('opacity', 0)
+			var pathNode = d3.select('#' + transfer.source.name + '_' + transfer.target.name).node();
+			var pathLength = pathNode.getTotalLength();
+			console.log(transfer);
+			var g_obj = this.svg.append('g')
 				.classed('transfer', true)
-				.transition()
-				.delay(function(d) {
-					var delay = self.delay;
-					self.delay += duration;
-					return delay;
+				.attr('transform', 'translate(-12, -12)');
+			g_obj.append('use')
+				.attr('transform', function(d) {
+					var p = pathNode.getPointAtLength(0)
+					return "translate(" + [p.x, p.y] + ")";
 				})
-				.style('opacity', 1);
-
-			var delay = self.delay - duration;
-			transition.each('end', function() {
-					console.log('on end');
-					g_obj.append('image')
-						.attr('xlink:href', function(d) { return d.object.source; })
-						.attr('transform', 'translate(-12, -12)')
-						.attr('width', 25)
-						.attr('height', 25)
-						.append('animateMotion')
-							.attr('begin', delay + 'ms')
-							.attr('dur', duration + 'ms')
-							.attr('repeatCount', 1)
-							.append('mpath')
-								.attr('xlink:href', function(d) {
-									console.log(d);
-									return '#' + d.source.name + '_' + d.target.name;
-								});
-				})
+				.attr('xlink:href', '#' + transfer.object.name)
 				.transition()
-					.delay(function(d) {
-						var delay = self.delay;
-						self.delay += duration;
-						return delay;
+					.duration(duration)
+					.ease("linear")
+					.attrTween("transform", function (d, i) {
+						return function (t) {
+							var p = pathNode.getPointAtLength(pathLength*t);
+							return "translate(" + [p.x, p.y] + ")";
+						}
 					})
-					.remove()
-					.each('end', function(d) {
-						var index = self.requests.indexOf(d);
-						console.log('index=' + index);
-						self.requests.splice(index, 1);
-					});
+				.each('end', function() {
+					g_obj.remove();
+					transfer.target.addObject(transfer.object.name, transfer.object.source, 0, false);
+				});
 		};
 	};
 
 	sim.Node = function(n) {
 		this.name = n.name;
 		this.image = n.image;
-		this.lat = n.lat;
-		this.lng = n.lng;
+		this.x = n.x;
+		this.y = n.y;
 		this.parent = null;
 
 		this.objects = [];
@@ -232,12 +255,13 @@ var sim = new Simulation();
 			this.selector = selector;
 		};
 
-		this.addObject = function(name, source) {
-			this.objects.push({
+		this.addObject = function(name, source, duration, notOrder) {
+			var obj = {
 				name: name,
 				source: source
-			});
-			this.parent.refreshObjects();
+			};
+			this.objects.push(obj);
+			this.parent.addObject(obj, duration, notOrder);
 		};
 
 		this.requestObject = function(name) {

@@ -1,0 +1,58 @@
+<!doctype html>
+<html>
+	<head>
+		<base href="../../" />
+		<meta charset="utf-8" />
+		<style>
+html, body {
+	height: 90%;
+	width: 90%;
+	padding: 0;
+	margin: 0;
+}
+#box {
+	position: relative;
+	height: 100%;
+	width: 100%;
+	border: 1px solid black;
+}
+
+#box .cache {
+	position: absolute;
+	top: 0px;
+	left: 0px;
+	width: 20px;
+	height: 20px;
+
+	background-color: white;
+}
+		</style>
+	</head>
+	<body>
+		<div id="box">
+			<svg>
+				<defs>
+					<symbol id="flower" overflow="visible" transform="translate(-50, -50)">
+						<image class="invisible" xlink:href="image/test/flower.jpg" width="25" height="25" transform="translate(-12, -12)"></image>
+					</symbol>
+				</defs>
+				<g id="transfer">
+					<path class="link" stroke="red" fill="none" id="transfer_n1_n2" d="M50,100 C500,100 500,100 800,300"></path>
+					<use id="AirplaneZurichGeneva2" xlink:href="#flower">
+						<animateMotion begin="1s" dur="10000ms" repeatCount="1">
+							<mpath xlink:href="#transfer_n1_n2"></mpath>
+						</animateMotion>
+					</use>
+				</g>
+				<g id="transfer">
+					<path class="link" stroke="red" fill="none" id="transfer_n3_n2" d="M250,100 C500,100 500,100 800,300"></path>
+					<use id="AirplaneZurichGeneva2" xlink:href="#flower" class="t2">
+						<animateMotion begin="1s" dur="2s" repeatCount="1" fill="freeze">
+							<mpath xlink:href="#transfer_n3_n2"></mpath>
+						</animateMotion>
+					</use>
+				</g>
+			</svg>
+		</div>
+	</body>
+</html>
