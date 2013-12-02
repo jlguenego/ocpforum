@@ -62,14 +62,14 @@ var sim = new Simulation();
 			this.refreshLinks();
 		};
 
-		this.addObject = function(obj, duration, notOrder) {
-			if (notOrder === false) {
-				this._addObject(obj, duration, notOrder)
+		this.addObject = function(obj, duration, doItNow) {
+			if (doItNow) {
+				this._addObject(obj, duration);
 				return;
 			}
 			this.orders.push({
 				function: self._addObject,
-				args: arguments
+				args: [ obj, duration ]
 			});
 		};
 
@@ -171,7 +171,9 @@ var sim = new Simulation();
 		};
 
 		this.refreshObjects = function(duration) {
-			duration = duration || 1000;
+			if (duration === undefined) {
+				duration = 1000;
+			}
 
 			var symbols = self.defs.selectAll('symbol').data(d3.values(self.objects));
 			symbols.enter().append('symbol')
@@ -237,7 +239,8 @@ var sim = new Simulation();
 					})
 				.each('end', function() {
 					g_obj.remove();
-					transfer.target.addObject(transfer.object.name, transfer.object.source, 0, false);
+					var doItNow = true;
+					transfer.target.addObject(transfer.object.name, transfer.object.source, 0, doItNow);
 				});
 		};
 	};
@@ -255,13 +258,13 @@ var sim = new Simulation();
 			this.selector = selector;
 		};
 
-		this.addObject = function(name, source, duration, notOrder) {
+		this.addObject = function(name, source, duration, doItNow) {
 			var obj = {
 				name: name,
 				source: source
 			};
 			this.objects.push(obj);
-			this.parent.addObject(obj, duration, notOrder);
+			this.parent.addObject(obj, duration, doItNow);
 		};
 
 		this.requestObject = function(name) {
