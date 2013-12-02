@@ -16,6 +16,7 @@ var sim = new Simulation();
 			x: svg.attr('width'),
 			y: svg.attr('height')
 		};
+		this.stack = d3.layout.stack();
 		this.defs = this.svg.append('defs');
 		this.isVisible = false;
 
@@ -71,6 +72,7 @@ var sim = new Simulation();
 		};
 
 		this._addNode = function(node) {
+			this.getNodeCoord(node);
 			self.nodes.push(node);
 			self.refreshNodes();
 			console.log(node);
@@ -194,16 +196,8 @@ var sim = new Simulation();
 			console.log('hash=' + hash);
 			var angle = (parseInt(hash.substr(15, 4), 16) / 0xffff) * 2 * Math.PI;
 			console.log('angle=' + angle);
-			var x = (self.svg.attr('width') / 2) * (1 + 0.9 * Math.cos(angle));
-			var y = (self.svg.attr('height') / 2) * (1 + 0.9 * Math.sin(angle));
-			var result = {
-				x: x,
-				y: y
-			};
-			console.log(result);
-			node.x = x;
-			node.y = y;
-			return result;
+			node.x = (self.svg.attr('width') / 2) * (1 + 0.8 * Math.cos(angle));
+			node.y = (self.svg.attr('height') / 2) * (1 + 0.8 * Math.sin(angle));
 		};
 
 		this.refreshNodes = function() {
@@ -221,8 +215,8 @@ var sim = new Simulation();
 
 			g.append('image')
 				.attr('xlink:href', function(d) { return d.image; })
-				.attr('x', function(d) { return self.getNodeCoord(d).x;})
-				.attr('y', function(d) { return self.getNodeCoord(d).y;})
+				.attr('x', this.stack.x())
+				.attr('y', this.stack.y())
 				.attr('transform', 'translate(-25, -25)')
 				.attr('width', 50)
 				.attr('height', 50);
