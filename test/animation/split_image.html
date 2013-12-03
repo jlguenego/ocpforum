@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<base href="../../" />
+		<meta charset="utf-8" />
+
+		<script src="_ext/d3.v3.min.js"></script>
+		<script src="_ext/jquery-1.10.2.min.js"></script>
+		<script src="_ext/sha1.js"></script>
+		<script src="js/animation.js"></script>
+
+		<style>
+html, body {
+	width: 100%;
+	height: 100%;
+	margin: 0px;
+	padding: 0px;
+}
+#frame {
+	width: 90%;
+	height: 90%;
+	margin: auto;
+}
+
+svg {
+	border: 1px solid black;
+}
+		</style>
+	</head>
+
+	<body>
+		<div id="frame"></div>
+		<script>
+$(document).ready(function() {
+	var svg = d3.select('#frame').append('svg');
+
+	var obj = new anim.Object(svg, 'image/test/flower.jpg', { x: 200, y: 200 });
+
+	obj.show();
+
+	obj.split(3, 5);
+
+	obj.start();
+});
+
+//var image = svg.append('image')
+//	.attr('xlink:href', 'image/test/flower.jpg')
+//	.attr('width', 200)
+//	.attr('height', 200)
+//	.attr('x', 100)
+//	.attr('y', 100)
+//	.attr('transform', 'translate(-100, -100)');
+//
+//split(image, 5, 4);
+
+function split(element, col, row) {
+	var parent = element.node().parentNode;
+
+
+	var image_src = element.attr('xlink:href');
+	var bbox = element.node().getBBox();
+
+	var cell_amount = col * row;
+	var cell_width = bbox.width / col;
+	var cell_height = bbox.height / row;
+
+	var g = d3.select(parent).append('g');
+
+	for (var i = 0; i < cell_amount; i++) {
+		var x = (i % col) * cell_width;
+		var y = Math.floor(i / row) * cell_height;
+		g.append('svg')
+			.attr('x', bbox.x + x + (i % col) * 10)
+			.attr('y', bbox.y + y + Math.floor(i / row) * 10)
+			.attr('height', cell_height)
+			.attr('width', cell_width)
+			.attr('overflow', 'hidden')
+			.append('image')
+				.attr('xlink:href', image_src)
+				.attr('x', -x)
+				.attr('y', -y)
+				.attr('height', bbox.height)
+				.attr('width', bbox.width);
+	}
+
+	element.remove();
+}
+		</script>
+	</body>
+</html>
