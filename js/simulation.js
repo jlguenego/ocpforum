@@ -45,8 +45,6 @@ var sim = new Simulation();
 		};
 
 		this._next = function() {
-			console.log('remaining orders');
-			console.log(this.orders.map(function(d) { return d.name; }));
 			var order = this.orders.shift();
 			if (order) {
 				order.function.apply(this, order.args);
@@ -66,8 +64,6 @@ var sim = new Simulation();
 					return;
 				}
 			}
-
-			console.log(node);
 			this.locator[obj.name].push(node);
 		};
 
@@ -84,7 +80,6 @@ var sim = new Simulation();
 			this.getNodeCoord(node);
 			this.nodes[node.name] = node;
 			this.refreshNodes();
-			console.log(node);
 		};
 
 		this.addLink = function(sourceName, targetName) {
@@ -98,8 +93,6 @@ var sim = new Simulation();
 		this._addLink = function(sourceName, targetName) {
 			var source = this.nodes[sourceName];
 			var target = this.nodes[targetName];
-			console.log(source);
-			console.log(target);
 			this.links.push({
 				source: source,
 				target: target,
@@ -122,9 +115,7 @@ var sim = new Simulation();
 		};
 
 		this._addObject = function(nodeName, name, source, duration) {
-			console.log('nodeName=' + nodeName);
 			var node = this.nodes[nodeName];
-			console.log(node);
 			var obj = {
 				name: name,
 				source: source
@@ -144,15 +135,11 @@ var sim = new Simulation();
 
 		this._requestObject = function(nodeName, objectName) {
 			var target = this.nodes[nodeName];
-			console.log(this.objects);
-			console.log('objectName=' + objectName);
 			if (!(objectName in this.objects)) {
 				throw new Error('Object not found.');
 			}
 
-			console.log(this.locator[objectName]);
 			var nodeRoute = this.getCloserNodeRoute(objectName, target);
-			console.log(nodeRoute);
 
 			if (nodeRoute.length == 0) {
 				throw new Error('No node found.');
@@ -165,9 +152,6 @@ var sim = new Simulation();
 		};
 
 		this.getCloserNodeRoute = function(objectName, target, explored) {
-			console.log('getCloserNodeRoute start');
-			console.log('objectName=' + objectName);
-			console.log('target=' + target.name);
 			explored = explored || {};
 			for (var i = 0; i < target.objects.length; i++) {
 				if (target.objects[i].name == objectName) {
@@ -200,8 +184,6 @@ var sim = new Simulation();
 			}
 			result.push(target);
 
-			console.log('getCloserNodeRoute result:');
-			console.log(result);
 			return result;
 		};
 
@@ -225,15 +207,12 @@ var sim = new Simulation();
 
 		this.getNodeCoord = function(node) {
 			var hash = CryptoJS.SHA1(CryptoJS.SHA1(node.name)).toString();
-			console.log('hash=' + hash);
 			var angle = (parseInt(hash.substr(15, 4), 16) / 0xffff) * 2 * Math.PI;
-			console.log('angle=' + angle);
 			node.x = (self.svg.attr('width') / 2) * (1 + 0.8 * Math.cos(angle));
 			node.y = (self.svg.attr('height') / 2) * (1 + 0.8 * Math.sin(angle));
 		};
 
 		this.refreshNodes = function() {
-			console.log(self);
 			var duration = self.computeDuration(this.options.duration.addNode);
 
 			// Join data
@@ -364,7 +343,6 @@ var sim = new Simulation();
 
 			var pathNode = d3.select('#' + transfer.source.name + '_' + transfer.target.name).node();
 			var pathLength = pathNode.getTotalLength();
-			console.log(transfer);
 			var g_obj = this.svg.append('g')
 				.classed('transfer', true)
 				.attr('transform', 'translate(-12, -12)');
