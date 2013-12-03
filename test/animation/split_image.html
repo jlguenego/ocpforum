@@ -37,10 +37,10 @@ $(document).ready(function() {
 	var obj = new anim.Object(svg, 'image/test/flower.jpg', { x: 200, y: 200 });
 
 	obj.show();
-
 	obj.split(3, 5);
-
 	obj.crypt();
+	obj.minimize();
+	obj.sendBlocks({ x: 1500 , y: 500 })
 
 	obj.start();
 });

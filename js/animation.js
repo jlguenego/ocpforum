@@ -26,7 +26,9 @@ var anim = new Animation();
 			duration: {
 				show: 500,
 				split: 1000,
-				crypt: 500
+				crypt: 500,
+				minimize: 1000,
+				sendBlocks: 1000
 			},
 			h: 1.5
 		};
@@ -106,7 +108,7 @@ var anim = new Animation();
 			var cell_height = this.height / row;
 
 			this.group = this.svg.append('g')
-				.attr('id', this.source);
+				.attr('id', 'g');
 
 			var svg = this.group.selectAll('svg').data(dataset);
 
@@ -156,8 +158,10 @@ var anim = new Animation();
 					var y = (self.center.y - (self.options.h * self.height) / 2) + offset_y;
 					return y;
 				})
-				.each('end', function() {
-					self._next();
+				.each('end', function(d) {
+					if (d.i == 0 && d.j == 0) {
+						self._next();
+					}
 				});
 		};
 
@@ -179,25 +183,67 @@ var anim = new Animation();
 				});
 			this.group.selectAll('svg')
 				.transition()
-				.duration(self.options.duration.crypt)
-				.attr('width', 0)
-				.attr('x', function(d) {
-					var r = d.x + d.width / 2;
-					console.log(d);
-					console.log(r);
-					return r;
-				})
-				.each('end', function() {
-					d3.select(this).select('image')
-							.attr('xlink:href', self.crypted.src);
-				})
+					.duration(self.options.duration.crypt)
+					.attr('width', 0)
+					.attr('x', function(d) {
+						var r = d.x + d.width / 2;
+						console.log(d);
+						console.log(r);
+						return r;
+					})
+					.each('end', function() {
+						d3.select(this).select('image')
+								.attr('xlink:href', self.crypted.src);
+					})
+					.transition()
+						.duration(self.options.duration.crypt)
+						.attr('width', function(d) { return d.width; })
+						.attr('x', function(d) { return d.x; })
+						.each('end', function(d) {
+							if (d.i == 0 && d.j == 0) {
+								self._next();
+							}
+						});
+		};
+
+		this.minimize = function() {
+			this.orders.push({
+				function: self._minimize,
+				args: arguments,
+				name: 'minimize'
+			});
+		};
+
+		this._minimize = function() {
+			this.group
+				.attr('transform', 'scale(1)')
 				.transition()
-				.duration(self.options.duration.crypt)
-				.attr('width', function(d) { return d.width; })
-				.attr('x', function(d) { return d.x; })
-				.each('end', function() {
-					self._next();
-				});
+					.duration(self.options.duration.minimize)
+					.attr('transform', 'scale(0.5)')
+					.each('end', function() {
+						self._next();
+					});
+		};
+
+		this.sendBlocks = function(coord) {
+			this.orders.push({
+				function: self._sendBlocks,
+				args: arguments,
+				name: 'sendBlocks'
+			});
+		};
+
+		this._sendBlocks = function(coord) {
+			this.group.selectAll('svg')
+				.transition()
+					.duration(self.options.duration.sendBlocks)
+					.attr('x', coord.x)
+					.attr('y', coord.y)
+					.each('end', function(d) {
+						if (d.i == 0 && d.j == 0) {
+							self._next();
+						}
+					});
 		};
 	};
 })(anim)
