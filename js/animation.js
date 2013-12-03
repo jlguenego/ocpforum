@@ -11,7 +11,12 @@ var anim = new Animation();
 
 		this.source = source;
 		this.svg = svg;
+		this.defs = this.svg.append('defs');
 		this.image = null;
+		this.group = null;
+
+		this.crypted = new Image();
+		this.crypted.src = 'image/test/crypted.jpg';
 
 		this.im = null;
 		this.width = 200;
@@ -19,8 +24,9 @@ var anim = new Animation();
 
 		this.options = {
 			duration: {
-				show: 1000,
-				split: 2000
+				show: 500,
+				split: 1000,
+				crypt: 500
 			},
 			h: 1.5
 		};
@@ -99,9 +105,10 @@ var anim = new Animation();
 			var cell_width = this.width / col;
 			var cell_height = this.height / row;
 
-			var g = this.svg.append('g');
+			this.group = this.svg.append('g')
+				.attr('id', this.source);
 
-			var svg = g.selectAll('svg').data(dataset);
+			var svg = this.group.selectAll('svg').data(dataset);
 
 			var subsvg = svg.enter().append('svg')
 				.attr('x', function(d) {
@@ -148,9 +155,49 @@ var anim = new Animation();
 					var offset_y = self.options.h * d.i * cell_height;
 					var y = (self.center.y - (self.options.h * self.height) / 2) + offset_y;
 					return y;
+				})
+				.each('end', function() {
+					self._next();
 				});
+		};
 
-			this._next();
+		this.crypt = function() {
+			this.orders.push({
+				function: self._crypt,
+				args: arguments,
+				name: 'crypt'
+			});
+		};
+
+		this._crypt = function() {
+			this.group.selectAll('svg')
+				.each(function(d) {
+					d.width = parseInt(d3.select(this).attr('width'));
+					d.x = parseInt(d3.select(this).attr('x'));
+					console.log(this);
+					console.log(d);
+				});
+			this.group.selectAll('svg')
+				.transition()
+				.duration(self.options.duration.crypt)
+				.attr('width', 0)
+				.attr('x', function(d) {
+					var r = d.x + d.width / 2;
+					console.log(d);
+					console.log(r);
+					return r;
+				})
+				.each('end', function() {
+					d3.select(this).select('image')
+							.attr('xlink:href', self.crypted.src);
+				})
+				.transition()
+				.duration(self.options.duration.crypt)
+				.attr('width', function(d) { return d.width; })
+				.attr('x', function(d) { return d.x; })
+				.each('end', function() {
+					self._next();
+				});
 		};
 	};
 })(anim)

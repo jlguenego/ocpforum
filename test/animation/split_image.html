@@ -40,51 +40,10 @@ $(document).ready(function() {
 
 	obj.split(3, 5);
 
+	obj.crypt();
+
 	obj.start();
 });
-
-//var image = svg.append('image')
-//	.attr('xlink:href', 'image/test/flower.jpg')
-//	.attr('width', 200)
-//	.attr('height', 200)
-//	.attr('x', 100)
-//	.attr('y', 100)
-//	.attr('transform', 'translate(-100, -100)');
-//
-//split(image, 5, 4);
-
-function split(element, col, row) {
-	var parent = element.node().parentNode;
-
-
-	var image_src = element.attr('xlink:href');
-	var bbox = element.node().getBBox();
-
-	var cell_amount = col * row;
-	var cell_width = bbox.width / col;
-	var cell_height = bbox.height / row;
-
-	var g = d3.select(parent).append('g');
-
-	for (var i = 0; i < cell_amount; i++) {
-		var x = (i % col) * cell_width;
-		var y = Math.floor(i / row) * cell_height;
-		g.append('svg')
-			.attr('x', bbox.x + x + (i % col) * 10)
-			.attr('y', bbox.y + y + Math.floor(i / row) * 10)
-			.attr('height', cell_height)
-			.attr('width', cell_width)
-			.attr('overflow', 'hidden')
-			.append('image')
-				.attr('xlink:href', image_src)
-				.attr('x', -x)
-				.attr('y', -y)
-				.attr('height', bbox.height)
-				.attr('width', bbox.width);
-	}
-
-	element.remove();
-}
 		</script>
 	</body>
 </html>
