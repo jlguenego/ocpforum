@@ -86,7 +86,6 @@ var anim = new Animation();
 
 		this._split = function(row, col) {
 			console.log('_split');
-			this.image.remove();
 
 			var dataset = [];
 
@@ -132,6 +131,11 @@ var anim = new Animation();
 				})
 				.attr('width', this.width)
 				.attr('height', this.height);
+
+			this.image.transition()
+				.duration(20)
+				.style('opacity', 0)
+				.remove();
 
 			subsvg.transition()
 				.duration(self.options.duration.split)
