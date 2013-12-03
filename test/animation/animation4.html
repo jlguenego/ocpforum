@@ -20,7 +20,9 @@ html, body {
 	width: 90%;
 	height: 90%;
 	margin: auto;
+}
 
+svg {
 	border: 1px solid black;
 }
 
@@ -57,7 +59,7 @@ for (var i = 0; i < nbr; i++) {
 		}
 		console.log('i=' + i);
 		console.log('j=' + j);
-		if (r.random() > 500) {
+		if (r.random() > 260) {
 			continue;
 		}
 		ds.addLink('n' + i, 'n' + j);

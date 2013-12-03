@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<base href="../" />
+		<meta charset="utf-8" />
+
+		<script src="_ext/d3.v3.min.js"></script>
+		<script src="_ext/jquery-1.10.2.min.js"></script>
+		<script src="_ext/sha1.js"></script>
+		<script src="js/animation.js"></script>
+
+		<style>
+html, body {
+	width: 100%;
+	height: 100%;
+	margin: 0px;
+	padding: 0px;
+}
+#frame {
+	width: 90%;
+	height: 90%;
+	margin: auto;
+}
+
+svg {
+	border: 1px solid black;
+}
+		</style>
+	</head>
+
+	<body>
+		<svg width="250" height="250">
+			<svg width="100" height="100" x="10" y="0">
+				<image xlink:href="image/test/flower.jpg" width="200" height="200" x="0" y="0"/>
+			</svg>
+
+			<svg width="100" height="100" x="120" y="0">
+				<image xlink:href="image/test/flower.jpg" width="200" height="200" x="-100" y="0"/>
+			</svg>
+
+			<svg width="100" height="100" x="10" y="110">
+				<image xlink:href="image/test/flower.jpg" width="200" height="200" x="0" y="-100"/>
+			</svg>
+
+			<svg width="100" height="100" x="120" y="110">
+				<image xlink:href="image/test/flower.jpg" width="200" height="200" x="-100" y="-100"/>
+			</svg>
+		</svg>
+	</body>
+</html>
