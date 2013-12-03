@@ -8,6 +8,7 @@
 		<script src="_ext/jquery-1.10.2.min.js"></script>
 		<script src="_ext/sha1.js"></script>
 		<script src="js/animation.js"></script>
+		<script src="js/simulation.js"></script>
 
 		<style>
 html, body {
@@ -32,17 +33,44 @@ svg {
 		<div id="frame"></div>
 		<script>
 $(document).ready(function() {
-	var svg = d3.select('#frame').append('svg');
+	var svg = d3.select('#frame').append('svg')
+		.attr('width', 800)
+		.attr('height', 600);
 
 	var obj = new anim.Object(svg, 'image/test/flower.jpg', { x: 200, y: 200 });
+	var ds = new sim.DistributedSystem(svg);
+
+	var nbr = 5;
+	for (var i = 0; i < nbr; i++) {
+		ds.addNode(new sim.Node({
+			name: 'n' + i,
+			image: 'image/neufbox.png'
+		}));
+	}
+
+	for (var i = 0; i < nbr; i++) {
+		for (var j = 1; j <= nbr; j = j * 2) {
+			var j2 = (i + j) % nbr;
+			ds.addLink('n' + i, 'n' + j2);
+		}
+	}
+
+	ds.transform('translate(500, 350) scale(0.4)');
+	ds.call(obj);
 
 	obj.show();
 	obj.split(3, 5);
 	obj.crypt();
 	obj.minimize();
-	obj.sendBlocks({ x: 1500 , y: 500 })
+	obj.call(ds);
 
-	obj.start();
+	ds.transform('translate(0, 0) scale(1)');
+	ds.call(obj);
+
+	obj.sendBlocks({ x: 350 * 2 , y: 20 * 2 });
+	obj.call(ds);
+
+	ds.start();
 });
 		</script>
 	</body>

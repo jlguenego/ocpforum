@@ -40,8 +40,6 @@ var anim = new Animation();
 		};
 
 		this._next = function() {
-			console.log('remaining orders');
-			console.log(this.orders.map(function(d) { return d.name; }));
 			var order = this.orders.shift();
 			if (order) {
 				order.function.apply(this, order.args);
@@ -61,10 +59,8 @@ var anim = new Animation();
 		this._show = function() {
 			this.im = new Image();
 			this.im.src = this.source;
-			console.log(this.im);
 			this.im.onload = function() {
 				self.height = self.width * (self.im.height / self.im.width);
-				console.log('self.height=' + self.height);
 
 				self.image = self.svg.append('image')
 					.attr('xlink:href', self.source)
@@ -93,8 +89,6 @@ var anim = new Animation();
 		};
 
 		this._split = function(row, col) {
-			console.log('_split');
-
 			var dataset = [];
 
 			for (var i = 0; i < row; i++) {
@@ -102,7 +96,6 @@ var anim = new Animation();
 					dataset.push({ i: i, j: j });
 				}
 			}
-			console.log(dataset);
 
 			var cell_width = this.width / col;
 			var cell_height = this.height / row;
@@ -114,7 +107,6 @@ var anim = new Animation();
 
 			var subsvg = svg.enter().append('svg')
 				.attr('x', function(d) {
-					console.log(d);
 					var offset_x = d.j * cell_width;
 					var x = (self.center.x - self.width / 2) + offset_x;
 					return x;
@@ -178,8 +170,6 @@ var anim = new Animation();
 				.each(function(d) {
 					d.width = parseInt(d3.select(this).attr('width'));
 					d.x = parseInt(d3.select(this).attr('x'));
-					console.log(this);
-					console.log(d);
 				});
 			this.group.selectAll('svg')
 				.transition()
@@ -187,8 +177,6 @@ var anim = new Animation();
 					.attr('width', 0)
 					.attr('x', function(d) {
 						var r = d.x + d.width / 2;
-						console.log(d);
-						console.log(r);
 						return r;
 					})
 					.each('end', function() {
@@ -244,6 +232,18 @@ var anim = new Animation();
 							self._next();
 						}
 					});
+		};
+
+		this.call = function(obj) {
+			this.orders.push({
+				function: self._call,
+				args: arguments,
+				name: 'call'
+			});
+		};
+
+		this._call = function(obj) {
+			obj.start();
 		};
 	};
 })(anim)

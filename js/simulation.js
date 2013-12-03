@@ -12,7 +12,8 @@ var sim = new Simulation();
 				addNode: 100,
 				addLink: 100,
 				addObject: 100,
-				doTransfer: 1000
+				doTransfer: 1000,
+				move: 1000
 			}
 		};
 
@@ -21,6 +22,7 @@ var sim = new Simulation();
 		this.nodes = {};
 		this.links = [];
 		this.svg = svg;
+		this.group = this.svg.append('g');
 		this.svgbox = {
 			x: svg.attr('width'),
 			y: svg.attr('height')
@@ -78,6 +80,7 @@ var sim = new Simulation();
 
 		this._addNode = function(node) {
 			this.getNodeCoord(node);
+			console.log(node);
 			this.nodes[node.name] = node;
 			this.refreshNodes();
 		};
@@ -151,6 +154,41 @@ var sim = new Simulation();
 			this.start();
 		};
 
+		this.transform = function(transform_val) {
+			this.orders.push({
+				function: self._transform,
+				args: arguments,
+				name: 'transform'
+			});
+		};
+
+		this._transform = function(transform_val) {
+			var transform = this.group.attr('transform');
+			if (!transform) {
+				transform = 'translate(0, 0) scale(1)';
+			}
+			console.log('transform=' + transform);
+			this.group.attr('transform', transform)
+				.transition()
+					.duration(this.options.duration.move)
+					.attr('transform', transform_val)
+					.each('end', function() {
+						self._next();
+					});
+		};
+
+		this.call = function(obj) {
+			this.orders.push({
+				function: self._call,
+				args: arguments,
+				name: 'call'
+			});
+		};
+
+		this._call = function(obj) {
+			obj.start();
+		};
+
 		this.getCloserNodeRoute = function(objectName, target, explored) {
 			explored = explored || {};
 			for (var i = 0; i < target.objects.length; i++) {
@@ -216,7 +254,7 @@ var sim = new Simulation();
 			var duration = self.computeDuration(this.options.duration.addNode);
 
 			// Join data
-			var nodes = this.svg.selectAll('g.node')
+			var nodes = this.group.selectAll('g.node')
 				.data(d3.values(this.nodes));
 
 			// Enter
@@ -249,7 +287,7 @@ var sim = new Simulation();
 		this.refreshLinks = function() {
 			var duration = self.computeDuration(this.options.duration.addLink);
 
-			var links = self.svg.selectAll('path.link')
+			var links = self.group.selectAll('path.link')
 				.data(self.links);
 
 			var center = {
@@ -311,7 +349,7 @@ var sim = new Simulation();
 
 
 
-			var nodes = self.svg.selectAll('g.node').data(d3.values(self.nodes));
+			var nodes = self.group.selectAll('g.node').data(d3.values(self.nodes));
 			var objects = nodes.selectAll('use.object').data(function(d) {
 				var objects = [];
 				for (var i = 0; i < d.objects.length; i++) {
@@ -343,7 +381,7 @@ var sim = new Simulation();
 
 			var pathNode = d3.select('#' + transfer.source.name + '_' + transfer.target.name).node();
 			var pathLength = pathNode.getTotalLength();
-			var g_obj = this.svg.append('g')
+			var g_obj = this.group.append('g')
 				.classed('transfer', true)
 				.attr('transform', 'translate(-12, -12)');
 			g_obj.append('use')
