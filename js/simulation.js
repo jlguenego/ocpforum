@@ -58,7 +58,7 @@ var sim = new Simulation();
 
 		this.addNode = function(node) {
 			node.parent = self;
-			this.scenario.orders.push({
+			this.scenario.push({
 				function: this._addNode,
 				args: arguments,
 				name: 'addNode',
@@ -75,7 +75,7 @@ var sim = new Simulation();
 		};
 
 		this.addLink = function(sourceName, targetName) {
-			this.scenario.orders.push({
+			this.scenario.push({
 				function: this._addLink,
 				args: arguments,
 				name: 'addLink',
@@ -100,7 +100,7 @@ var sim = new Simulation();
 				this._addObject(nodeName, name, source, 0);
 				return;
 			}
-			this.scenario.orders.push({
+			this.scenario.push({
 				function: this._addObject,
 				args: [ nodeName, name, source ],
 				name: 'addObject',
@@ -120,7 +120,7 @@ var sim = new Simulation();
 		};
 
 		this.requestObject = function(nodeName, objectName) {
-			this.scenario.orders.push({
+			this.scenario.push({
 				function: this._requestObject,
 				args: arguments,
 				name: 'requestObject',
@@ -149,7 +149,7 @@ var sim = new Simulation();
 		};
 
 		this.transform = function(transform_val) {
-			this.scenario.orders.push({
+			this.scenario.push({
 				function: this._transform,
 				args: arguments,
 				name: 'transform',
@@ -415,7 +415,7 @@ var sim = new Simulation();
 		};
 
 		this.store = function(objectName) {
-			this.scenario.orders.push({
+			this.scenario.push({
 				function: this._store,
 				args: arguments,
 				name: 'store',
@@ -442,19 +442,6 @@ var sim = new Simulation();
 			var node_name = this.addressMap[list[index - 1]];
 			console.log(node_name);
 			this._requestObject(node_name, objectName);
-		};
-
-		this.call = function(obj) {
-			this.scenario.orders.push({
-				function: this._call,
-				args: arguments,
-				name: 'call',
-				object: this
-			});
-		};
-
-		this._call = function(obj) {
-			obj.start();
 		};
 	};
 

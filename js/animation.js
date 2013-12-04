@@ -4,7 +4,7 @@ function Animation() {
 var anim = new Animation();
 
 (function(anim, undefined) {
-	anim.Object = function(svg, source, center) {
+	anim.Object = function(scenario, svg, source, center) {
 		var self = this;
 
 		this.center = center;
@@ -19,6 +19,7 @@ var anim = new Animation();
 		this.crypted.src = 'image/test/crypted.jpg';
 
 		this.blocks = [];
+		this.scenario = scenario;
 
 		this.im = null;
 		this.width = 200;
@@ -38,26 +39,12 @@ var anim = new Animation();
 			h: 1.5
 		};
 
-		this.orders = [];
-
-		this.start = function() {
-			this._next();
-		};
-
-		this._next = function() {
-			var order = this.orders.shift();
-			if (order) {
-				order.function.apply(this, order.args);
-			} else {
-				console.log('no order anymore.');
-			}
-		};
-
 		this.show = function() {
-			this.orders.push({
-				function: self._show,
+			this.scenario.push({
+				function: this._show,
 				args: arguments,
-				name: 'show'
+				name: 'show',
+				object: this
 			});
 		};
 
@@ -80,7 +67,7 @@ var anim = new Animation();
 						.duration(self.options.duration.show)
 						.style('opacity', 1)
 						.each('end', function() {
-							self._next();
+							self.scenario._next();
 						});
 			};
 		};
@@ -93,10 +80,11 @@ var anim = new Animation();
 					});
 				}
 			}
-			this.orders.push({
-				function: self._split,
+			this.scenario.push({
+				function: this._split,
 				args: arguments,
-				name: 'split'
+				name: 'split',
+				object: this
 			});
 		};
 
@@ -171,16 +159,17 @@ var anim = new Animation();
 				})
 				.each('end', function(d) {
 					if (d.i == 0 && d.j == 0) {
-						self._next();
+						self.scenario._next();
 					}
 				});
 		};
 
 		this.crypt = function() {
-			this.orders.push({
-				function: self._crypt,
+			this.scenario.push({
+				function: this._crypt,
 				args: arguments,
-				name: 'crypt'
+				name: 'crypt',
+				object: this
 			});
 		};
 
@@ -208,16 +197,17 @@ var anim = new Animation();
 						.attr('x', function(d) { return d.x; })
 						.each('end', function(d) {
 							if (d.i == 0 && d.j == 0) {
-								self._next();
+								self.scenario._next();
 							}
 						});
 		};
 
 		this.minimize = function() {
-			this.orders.push({
-				function: self._minimize,
+			this.scenario.push({
+				function: this._minimize,
 				args: arguments,
-				name: 'minimize'
+				name: 'minimize',
+				object: this
 			});
 		};
 
@@ -228,15 +218,16 @@ var anim = new Animation();
 					.duration(self.options.duration.minimize)
 					.attr('transform', 'scale(' + self.options.scale.minimize + ')')
 					.each('end', function() {
-						self._next();
+						self.scenario._next();
 					});
 		};
 
 		this.sendBlock = function(block_name, coord) {
-			this.orders.push({
-				function: self._sendBlock,
+			this.scenario.push({
+				function: this._sendBlock,
 				args: arguments,
-				name: 'sendBlock'
+				name: 'sendBlock',
+				object: this
 			});
 		};
 
@@ -247,33 +238,22 @@ var anim = new Animation();
 					.attr('x', coord.x / self.options.scale.minimize)
 					.attr('y', coord.y / self.options.scale.minimize)
 					.each('end', function(d) {
-						self._next();
+						self.scenario._next();
 					});
 		};
 
 		this.remove = function(block_name) {
-			this.orders.push({
-				function: self._remove,
+			this.scenario.push({
+				function: this._remove,
 				args: arguments,
-				name: 'remove'
+				name: 'remove',
+				object: this
 			});
 		};
 
 		this._remove = function(block_name) {
 			this.group.select('svg#' + block_name).remove();
-			this._next();
-		};
-
-		this.call = function(obj) {
-			this.orders.push({
-				function: self._call,
-				args: arguments,
-				name: 'call'
-			});
-		};
-
-		this._call = function(obj) {
-			obj.start();
+			this.scenario._next();
 		};
 	};
 })(anim)

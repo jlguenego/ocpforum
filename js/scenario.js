@@ -1,6 +1,10 @@
 function Scenario() {
 	this.orders = [];
 
+	this.push = function(order) {
+		this.orders.push(order);
+	};
+
 	this.start = function() {
 		this._next();
 	};

@@ -102,7 +102,7 @@ $('#start').click(function() {
 
 	var scenario = new Scenario();
 
-	var obj = new anim.Object(svg, 'image/test/flower.jpg', { x: 200, y: 200 });
+	var obj = new anim.Object(scenario, svg, 'image/test/flower.jpg', { x: 200, y: 200 });
 	obj.options.duration= {
 		show: 100,
 		split: 100,
@@ -137,27 +137,18 @@ $('#start').click(function() {
 
 	ds.transform('translate(500, 350) scale(0.4)');
 
-	ds.call(obj);
 	obj.show();
 	obj.split($('#row').val(), $('#col').val());
 	obj.crypt();
 	obj.minimize();
 
-	obj.call(scenario);
 	ds.transform('translate(0, 0) scale(1)');
 
 	console.log(obj.blocks);
 	for (var i = 0; i < obj.blocks.length; i++) {
-		ds.call(obj);
 		obj.sendBlock(obj.blocks[i].name, { x: 350 , y: 30 });
-
-		obj.call(scenario);
 		ds.addObject('n3', obj.blocks[i].name, 'image/test/crypted.jpg');
-
-		ds.call(obj);
 		obj.remove(obj.blocks[i].name);
-
-		obj.call(scenario);
 		ds.store(obj.blocks[i].name);
 	}
 
