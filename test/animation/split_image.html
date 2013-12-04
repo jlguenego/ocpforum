@@ -9,6 +9,7 @@
 		<script src="_ext/sha1.js"></script>
 		<script src="js/animation.js"></script>
 		<script src="js/simulation.js"></script>
+		<script src="js/scenario.js"></script>
 
 		<style>
 html, body {
@@ -99,6 +100,8 @@ $('#start').click(function() {
 		.attr('width', 800)
 		.attr('height', 600);
 
+	var scenario = new Scenario();
+
 	var obj = new anim.Object(svg, 'image/test/flower.jpg', { x: 200, y: 200 });
 	obj.options.duration= {
 		show: 100,
@@ -108,7 +111,7 @@ $('#start').click(function() {
 		sendBlock: 200
 	};
 
-	var ds = new sim.DistributedSystem(svg);
+	var ds = new sim.DistributedSystem(scenario, svg);
 	ds.options.duration = {
 		addNode: 20,
 		addLink: $('#linkage').val(),
@@ -140,7 +143,7 @@ $('#start').click(function() {
 	obj.crypt();
 	obj.minimize();
 
-	obj.call(ds);
+	obj.call(scenario);
 	ds.transform('translate(0, 0) scale(1)');
 
 	console.log(obj.blocks);
@@ -148,17 +151,17 @@ $('#start').click(function() {
 		ds.call(obj);
 		obj.sendBlock(obj.blocks[i].name, { x: 350 , y: 30 });
 
-		obj.call(ds);
+		obj.call(scenario);
 		ds.addObject('n3', obj.blocks[i].name, 'image/test/crypted.jpg');
 
 		ds.call(obj);
 		obj.remove(obj.blocks[i].name);
 
-		obj.call(ds);
+		obj.call(scenario);
 		ds.store(obj.blocks[i].name);
 	}
 
-	ds.start();
+	scenario.start();
 });
 
 $('#stop').click(function() {

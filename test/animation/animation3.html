@@ -8,6 +8,7 @@
 		<script src="_ext/jquery-1.10.2.min.js"></script>
 		<script src="_ext/sha1.js"></script>
 		<script src="js/simulation.js"></script>
+		<script src="js/scenario.js"></script>
 
 		<style>
 html, body {
@@ -38,7 +39,8 @@ var svg = d3.select('#frame').append('svg')
 	.attr('height', 600);
 
 
-var ds = new sim.DistributedSystem(svg);
+var scenario = new Scenario();
+var ds = new sim.DistributedSystem(scenario, svg);
 
 var nbr = 10;
 for (var i = 0; i < nbr; i++) {
@@ -66,7 +68,7 @@ for (var i = 1; i < nbr; i++) {
 //ds.quick = true;
 //n4.requestObject('flower');
 
-ds.start();
+scenario.start();
 		</script>
 	</body>
 </html>

@@ -8,6 +8,7 @@
 		<script src="_ext/jquery-1.10.2.min.js"></script>
 		<script src="_ext/sha1.js"></script>
 		<script src="js/simulation.js"></script>
+		<script src="js/scenario.js"></script>
 
 		<style>
 html, body {
@@ -37,8 +38,8 @@ var svg = d3.select('#frame').append('svg')
 	.attr('width', 800)
 	.attr('height', 600);
 
-
-var ds = new sim.DistributedSystem(svg);
+var scenario = new Scenario();
+var ds = new sim.DistributedSystem(scenario, svg);
 
 var n1 = new sim.Node({
 	name: 'n1',
@@ -70,7 +71,7 @@ ds.addObject('n1', 'flower', 'image/test/flower.jpg');
 //ds.quick = true;
 n4.requestObject('flower');
 
-ds.start();
+scenario.start();
 		</script>
 	</body>
 </html>
