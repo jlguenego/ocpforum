@@ -146,7 +146,7 @@ var sim = new Simulation();
 				throw new Error('No node found.');
 			} else if (nodeRoute.length > 1) {
 				for (var i = nodeRoute.length - 2; i >= 0 ; i--) {
-					this.doTransfer(nodeRoute[i], nodeRoute[i + 1], objectName);
+					this.doTransfer(scenario, nodeRoute[i], nodeRoute[i + 1], objectName);
 				}
 			}
 			scenario._next();
@@ -212,10 +212,10 @@ var sim = new Simulation();
 			return result;
 		};
 
-		this.doTransfer = function(source, target, objectName) {
-			this.scenario.current.orders.unshift({
+		this.doTransfer = function(scenario, source, target, objectName) {
+			scenario.current.orders.unshift({
 				function: this._doTransfer,
-				args: arguments,
+				args: [ source, target, objectName ],
 				name: 'doTransfer',
 				object: this
 			});
