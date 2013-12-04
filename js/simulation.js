@@ -4,7 +4,7 @@ function Simulation() {
 var sim = new Simulation();
 
 (function(sim, undefined) {
-	sim.DistributedSystem = function(svg) {
+	sim.DistributedSystem = function(scenario, svg) {
 		var self = this;
 
 		this.options = {
@@ -17,10 +17,9 @@ var sim = new Simulation();
 			}
 		};
 
-		this.orders = [];
-
 		this.nodes = {};
 		this.links = [];
+		this.scenario = scenario;
 		this.svg = svg;
 		this.group = this.svg.append('g');
 		this.svgbox = {
@@ -43,19 +42,6 @@ var sim = new Simulation();
 			return value;
 		};
 
-		this.start = function() {
-			this._next();
-		};
-
-		this._next = function() {
-			var order = this.orders.shift();
-			if (order) {
-				order.function.apply(this, order.args);
-			} else {
-				console.log('no order anymore.');
-			}
-		};
-
 		this.updateLocator = function(obj, node) {
 			this.objects[obj.name] = obj;
 			if (!(obj.name in this.locator)) {
@@ -72,10 +58,11 @@ var sim = new Simulation();
 
 		this.addNode = function(node) {
 			node.parent = self;
-			this.orders.push({
-				function: self._addNode,
+			this.scenario.orders.push({
+				function: this._addNode,
 				args: arguments,
-				name: 'addNode'
+				name: 'addNode',
+				object: this
 			});
 		};
 
@@ -88,10 +75,11 @@ var sim = new Simulation();
 		};
 
 		this.addLink = function(sourceName, targetName) {
-			this.orders.push({
-				function: self._addLink,
+			this.scenario.orders.push({
+				function: this._addLink,
 				args: arguments,
-				name: 'addLink'
+				name: 'addLink',
+				object: this
 			});
 		};
 
@@ -112,10 +100,11 @@ var sim = new Simulation();
 				this._addObject(nodeName, name, source, 0);
 				return;
 			}
-			this.orders.push({
-				function: self._addObject,
+			this.scenario.orders.push({
+				function: this._addObject,
 				args: [ nodeName, name, source ],
-				name: 'addObject'
+				name: 'addObject',
+				object: this
 			});
 		};
 
@@ -131,10 +120,11 @@ var sim = new Simulation();
 		};
 
 		this.requestObject = function(nodeName, objectName) {
-			this.orders.push({
-				function: self._requestObject,
+			this.scenario.orders.push({
+				function: this._requestObject,
 				args: arguments,
-				name: 'requestObject'
+				name: 'requestObject',
+				object: this
 			});
 		};
 
@@ -155,14 +145,15 @@ var sim = new Simulation();
 					this.doTransfer(nodeRoute[i], nodeRoute[i + 1], objectName);
 				}
 			}
-			this.start();
+			this.scenario.start();
 		};
 
 		this.transform = function(transform_val) {
-			this.orders.push({
-				function: self._transform,
+			this.scenario.orders.push({
+				function: this._transform,
 				args: arguments,
-				name: 'transform'
+				name: 'transform',
+				object: this
 			});
 		};
 
@@ -177,20 +168,8 @@ var sim = new Simulation();
 					.duration(this.options.duration.move)
 					.attr('transform', transform_val)
 					.each('end', function() {
-						self._next();
+						self.scenario._next();
 					});
-		};
-
-		this.call = function(obj) {
-			this.orders.push({
-				function: self._call,
-				args: arguments,
-				name: 'call'
-			});
-		};
-
-		this._call = function(obj) {
-			obj.start();
 		};
 
 		this.getCloserNodeRoute = function(objectName, target, explored) {
@@ -230,10 +209,11 @@ var sim = new Simulation();
 		};
 
 		this.doTransfer = function(source, target, objectName) {
-			this.orders.unshift({
-				function: self._doTransfer,
+			this.scenario.orders.unshift({
+				function: this._doTransfer,
 				args: arguments,
-				name: 'doTransfer'
+				name: 'doTransfer',
+				object: this
 			});
 		};
 
@@ -302,7 +282,7 @@ var sim = new Simulation();
 				.duration(duration)
 				.style('opacity', 1)
 				.each('end', function() {
-					self._next();
+					self.scenario._next();
 				});
 
 			// Update
@@ -355,7 +335,7 @@ var sim = new Simulation();
 					.duration(duration)
 					.attr('stroke-dashoffset', 0)
 					.each('end', function() {
-						self._next();
+						self.scenario._next();
 					});
 		};
 
@@ -399,7 +379,7 @@ var sim = new Simulation();
 					.duration(duration)
 					.style('opacity', 1)
 					.each('end', function() {
-						self._next();
+						self.scenario._next();
 					});
 			objects.exit().remove();
 		};
@@ -435,10 +415,11 @@ var sim = new Simulation();
 		};
 
 		this.store = function(objectName) {
-			this.orders.push({
-				function: self._store,
+			this.scenario.orders.push({
+				function: this._store,
 				args: arguments,
-				name: 'store'
+				name: 'store',
+				object: this
 			});
 		};
 
@@ -461,6 +442,19 @@ var sim = new Simulation();
 			var node_name = this.addressMap[list[index - 1]];
 			console.log(node_name);
 			this._requestObject(node_name, objectName);
+		};
+
+		this.call = function(obj) {
+			this.scenario.orders.push({
+				function: this._call,
+				args: arguments,
+				name: 'call',
+				object: this
+			});
+		};
+
+		this._call = function(obj) {
+			obj.start();
 		};
 	};
 
