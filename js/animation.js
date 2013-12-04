@@ -18,6 +18,8 @@ var anim = new Animation();
 		this.crypted = new Image();
 		this.crypted.src = 'image/test/crypted.jpg';
 
+		this.blocks = [];
+
 		this.im = null;
 		this.width = 200;
 		this.height = 0;
@@ -28,7 +30,7 @@ var anim = new Animation();
 				split: 1000,
 				crypt: 500,
 				minimize: 1000,
-				sendBlocks: 1000
+				sendBlock: 1000
 			},
 			h: 1.5
 		};
@@ -81,6 +83,13 @@ var anim = new Animation();
 		};
 
 		this.split = function(row, col) {
+			for (var i = 0; i < row; i++) {
+				for (var j = 0; j < col; j++) {
+					this.blocks.push({
+						name: 'flower_' + i + '_' + j
+					});
+				}
+			}
 			this.orders.push({
 				function: self._split,
 				args: arguments,
@@ -93,7 +102,11 @@ var anim = new Animation();
 
 			for (var i = 0; i < row; i++) {
 				for (var j = 0; j < col; j++) {
-					dataset.push({ i: i, j: j });
+					dataset.push({
+						i: i,
+						j: j,
+						name: 'flower_' + i + '_' + j
+					});
 				}
 			}
 
@@ -118,7 +131,10 @@ var anim = new Animation();
 				})
 				.attr('height', cell_height)
 				.attr('width', cell_width)
-				.attr('overflow', 'hidden');
+				.attr('overflow', 'hidden')
+				.attr('id', function(d) {
+					return d.name;
+				});
 
 			subsvg.append('image')
 				.attr('xlink:href', this.source)
@@ -213,25 +229,36 @@ var anim = new Animation();
 					});
 		};
 
-		this.sendBlocks = function(coord) {
+		this.sendBlock = function(block_name, coord) {
 			this.orders.push({
-				function: self._sendBlocks,
+				function: self._sendBlock,
 				args: arguments,
-				name: 'sendBlocks'
+				name: 'sendBlock'
 			});
 		};
 
-		this._sendBlocks = function(coord) {
-			this.group.selectAll('svg')
+		this._sendBlock = function(block_name, coord) {
+			this.group.select('svg#' + block_name)
 				.transition()
-					.duration(self.options.duration.sendBlocks)
+					.duration(self.options.duration.sendBlock)
 					.attr('x', coord.x)
 					.attr('y', coord.y)
 					.each('end', function(d) {
-						if (d.i == 0 && d.j == 0) {
-							self._next();
-						}
+						self._next();
 					});
+		};
+
+		this.remove = function(block_name) {
+			this.orders.push({
+				function: self._remove,
+				args: arguments,
+				name: 'remove'
+			});
+		};
+
+		this._remove = function(block_name) {
+			this.group.select('svg#' + block_name).remove();
+			this._next();
 		};
 
 		this.call = function(obj) {

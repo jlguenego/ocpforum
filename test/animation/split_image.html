@@ -40,7 +40,7 @@ $(document).ready(function() {
 	var obj = new anim.Object(svg, 'image/test/flower.jpg', { x: 200, y: 200 });
 	var ds = new sim.DistributedSystem(svg);
 
-	var nbr = 5;
+	var nbr = 6;
 	for (var i = 0; i < nbr; i++) {
 		ds.addNode(new sim.Node({
 			name: 'n' + i,
@@ -56,19 +56,30 @@ $(document).ready(function() {
 	}
 
 	ds.transform('translate(500, 350) scale(0.4)');
-	ds.call(obj);
 
+	ds.call(obj);
 	obj.show();
 	obj.split(3, 5);
 	obj.crypt();
 	obj.minimize();
-	obj.call(ds);
 
+	obj.call(ds);
 	ds.transform('translate(0, 0) scale(1)');
-	ds.call(obj);
 
-	obj.sendBlocks({ x: 350 * 2 , y: 20 * 2 });
-	obj.call(ds);
+	console.log(obj.blocks);
+	for (var i = 0; i < obj.blocks.length; i++) {
+		ds.call(obj);
+		obj.sendBlock(obj.blocks[i].name, { x: 350 * 2 , y: 20 * 2 });
+
+		obj.call(ds);
+		ds.addObject('n3', obj.blocks[i].name, 'image/test/crypted.jpg');
+
+		ds.call(obj);
+		obj.remove(obj.blocks[i].name);
+
+		obj.call(ds);
+		ds.store(obj.blocks[i].name);
+	}
 
 	ds.start();
 });

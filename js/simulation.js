@@ -33,6 +33,7 @@ var sim = new Simulation();
 
 		this.objects = {};
 		this.locator = {};
+		this.addressMap = {};
 		this.quick = false;
 
 		this.computeDuration = function(value) {
@@ -82,6 +83,7 @@ var sim = new Simulation();
 			this.getNodeCoord(node);
 			console.log(node);
 			this.nodes[node.name] = node;
+			this.addressMap[node.start_address] = node.name;
 			this.refreshNodes();
 		};
 
@@ -138,6 +140,8 @@ var sim = new Simulation();
 
 		this._requestObject = function(nodeName, objectName) {
 			var target = this.nodes[nodeName];
+
+			console.log(this.objects);
 			if (!(objectName in this.objects)) {
 				throw new Error('Object not found.');
 			}
@@ -244,8 +248,8 @@ var sim = new Simulation();
 		};
 
 		this.getNodeCoord = function(node) {
-			var hash = CryptoJS.SHA1(CryptoJS.SHA1(node.name)).toString();
-			var angle = (parseInt(hash.substr(15, 4), 16) / 0xffff) * 2 * Math.PI;
+			node.start_address = CryptoJS.SHA1(CryptoJS.SHA1(node.name)).toString();
+			var angle = (parseInt(node.start_address.substr(15, 4), 16) / 0xffff) * 2 * Math.PI;
 			node.x = (self.svg.attr('width') / 2) * (1 + 0.8 * Math.cos(angle));
 			node.y = (self.svg.attr('height') / 2) * (1 + 0.8 * Math.sin(angle));
 		};
@@ -261,6 +265,30 @@ var sim = new Simulation();
 			var g = nodes.enter().append('g');
 			g.classed('node', true)
 				.style('opacity', 0);
+
+			var text = g.append('text')
+				.attr('x', function(d) {
+					return d.x + 25;
+				})
+				.attr('y', function(d) {
+					return d.y;
+				})
+				.style('opacity', 0);
+			text.append('tspan')
+				.text(function(d) { return d.name; });
+
+			g.on('mouseover', function() {
+					d3.select(this).select('text')
+						.transition()
+							.duration(200)
+							.style('opacity', 1);
+				})
+				.on('mouseout', function() {
+					d3.select(this).select('text')
+						.transition()
+							.duration(200)
+							.style('opacity', 0);
+				});
 
 			g.append('image')
 				.attr('xlink:href', function(d) { return d.image; })
@@ -404,6 +432,35 @@ var sim = new Simulation();
 					var doItNow = true;
 					transfer.target.addObject(transfer.object.name, transfer.object.source, doItNow);
 				});
+		};
+
+		this.store = function(objectName) {
+			this.orders.push({
+				function: self._store,
+				args: arguments,
+				name: 'store'
+			});
+		};
+
+		this._store = function(objectName) {
+			var object_address = CryptoJS.SHA1(CryptoJS.SHA1(objectName)).toString();
+
+			var list = [];
+			for (nodeName in this.nodes) {
+				var node = this.nodes[nodeName];
+				list.push(node.start_address);
+			}
+			console.log(list);
+
+			list.push(object_address);
+			list.sort();
+			var index = list.indexOf(object_address);
+			if (index == 0) {
+				index = list.length;
+			}
+			var node_name = this.addressMap[list[index - 1]];
+			console.log(node_name);
+			this._requestObject(node_name, objectName);
 		};
 	};
 
