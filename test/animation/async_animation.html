@@ -17,30 +17,107 @@ html, body {
 	margin: 0px;
 	padding: 0px;
 }
-#frame {
-	width: 90%;
-	height: 90%;
-	margin: auto;
+
+#param {
+	float: left;
+	padding: 5px;
+
+	background-color: #E6F2FF;
 }
 
 svg {
 	border: 1px solid black;
 }
+
+table {
+	width: 200px;
+}
+
+table th, table td {
+	vertical-align: middle;
+	text-align: center;
+}
+
+th {
+	width: 100px;
+	font-size: 14px;
+	font-weight: 400;
+}
+
+input {
+	width: 100%;
+	font-size: 14px;
+	font-weight: 400;
+
+	box-sizing: border-box;
+}
+
+#row, #col {
+	width: 30px;
+}
+
+#row {
+	float: left;
+}
+
+#col {
+	float: right;
+}
 		</style>
 	</head>
 
 	<body>
-		<div id="frame"></div>
+		<div>
+			<div id="param">
+				<table>
+					<tr>
+						<th>Node amount</th>
+						<td><input type="text" id="node_amount" value="20" /></td>
+					</tr>
+					<tr>
+						<th>Split (col x row)</th>
+						<td><input type="text" id="row" value="3" size="5" />x<input type="text" id="col" value="5" size="5" /></td>
+					</tr>
+					<tr>
+						<th>Transfer duration (ms)</th>
+						<td><input type="text" id="transfer" value="500" /></td>
+					</tr>
+					<tr>
+						<th>Linkage duration (ms)</th>
+						<td><input type="text" id="linkage" value="20" /></td>
+					</tr>
+				</table>
+				<button id="start">Start</button>
+				<button id="stop">Stop</button>
+			</div>
+			<div id="frame"></div>
+		</div>
 		<script>
-$(document).ready(function() {
+$('#start').click(function() {
+	var svg = d3.select('#frame').select('svg').remove();
 	var svg = d3.select('#frame').append('svg')
 		.attr('width', 800)
 		.attr('height', 600);
 
 	var obj = new anim.Object(svg, 'image/test/flower.jpg', { x: 200, y: 200 });
-	var ds = new sim.DistributedSystem(svg);
+	obj.options.duration= {
+		show: 100,
+		split: 100,
+		crypt: 200,
+		minimize: 500,
+		sendBlock: 200
+	};
 
-	var nbr = 15;
+	var ds = new sim.DistributedSystem(svg);
+	ds.options.duration = {
+		addNode: 20,
+		addLink: $('#linkage').val(),
+		addObject: 100,
+		doTransfer: $('#transfer').val(),
+		move: 500
+	};
+
+	var nbr = $('#node_amount').val();
 	for (var i = 0; i < nbr; i++) {
 		ds.addNode(new sim.Node({
 			name: 'n' + i,
@@ -59,7 +136,7 @@ $(document).ready(function() {
 
 	ds.call(obj);
 	obj.show();
-	obj.split(3, 5);
+	obj.split($('#row').val(), $('#col').val());
 	obj.crypt();
 	obj.minimize();
 
@@ -69,7 +146,7 @@ $(document).ready(function() {
 	console.log(obj.blocks);
 	for (var i = 0; i < obj.blocks.length; i++) {
 		ds.call(obj);
-		obj.sendBlock(obj.blocks[i].name, { x: 350 * 2 , y: 20 * 2 });
+		obj.sendBlock(obj.blocks[i].name, { x: 350 , y: 30 });
 
 		obj.call(ds);
 		ds.addObject('n3', obj.blocks[i].name, 'image/test/crypted.jpg');
@@ -82,6 +159,10 @@ $(document).ready(function() {
 	}
 
 	ds.start();
+});
+
+$('#stop').click(function() {
+	window.location.reload();
 });
 		</script>
 	</body>

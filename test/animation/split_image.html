@@ -20,11 +20,48 @@ html, body {
 
 #param {
 	float: left;
-	width: 300px;
+	padding: 5px;
+
+	background-color: #E6F2FF;
 }
 
 svg {
 	border: 1px solid black;
+}
+
+table {
+	width: 200px;
+}
+
+table th, table td {
+	vertical-align: middle;
+	text-align: center;
+}
+
+th {
+	width: 100px;
+	font-size: 14px;
+	font-weight: 400;
+}
+
+input {
+	width: 100%;
+	font-size: 14px;
+	font-weight: 400;
+
+	box-sizing: border-box;
+}
+
+#row, #col {
+	width: 30px;
+}
+
+#row {
+	float: left;
+}
+
+#col {
+	float: right;
 }
 		</style>
 	</head>
@@ -38,8 +75,8 @@ svg {
 						<td><input type="text" id="node_amount" value="20" /></td>
 					</tr>
 					<tr>
-						<th>Split</th>
-						<td><input type="text" id="row" value="3" size="5" />&nbsp;X&nbsp;<input type="text" id="col" value="5" size="5" />&nbsp;</td>
+						<th>Split (col x row)</th>
+						<td><input type="text" id="row" value="3" size="5" />x<input type="text" id="col" value="5" size="5" /></td>
 					</tr>
 					<tr>
 						<th>Transfer duration (ms)</th>
