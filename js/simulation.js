@@ -67,11 +67,12 @@ var sim = new Simulation();
 		};
 
 		this._addNode = function(node) {
+			var scenario = this.scenario.getThread(arguments);
+
 			this.getNodeCoord(node);
-			console.log(node);
 			this.nodes[node.name] = node;
 			this.addressMap[node.start_address] = node.name;
-			this.refreshNodes();
+			this.refreshNodes(scenario);
 		};
 
 		this.addLink = function(sourceName, targetName) {
@@ -84,6 +85,7 @@ var sim = new Simulation();
 		};
 
 		this._addLink = function(sourceName, targetName) {
+			var scenario = this.scenario.getThread(arguments);
 			var source = this.nodes[sourceName];
 			var target = this.nodes[targetName];
 			this.links.push({
@@ -92,23 +94,23 @@ var sim = new Simulation();
 				id: source.name + '_' + target.name
 			});
 			target.links.push(source);
-			this.refreshLinks();
+			this.refreshLinks(scenario);
 		};
 
-		this.addObject = function(nodeName, name, source, doItNow) {
-			if (doItNow) {
-				this._addObject(nodeName, name, source, 0);
-				return;
-			}
+		this.addObject = function(nodeName, name, source) {
 			this.scenario.push({
 				function: this._addObject,
-				args: [ nodeName, name, source ],
+				args: [ nodeName, name, source, undefined ],
 				name: 'addObject',
 				object: this
 			});
 		};
 
 		this._addObject = function(nodeName, name, source, duration) {
+			var scenario = this.scenario.getThread(arguments);
+			console.log('nodeName=' + nodeName);
+			console.log('name=' + name);
+			console.log('source=' + source);
 			var node = this.nodes[nodeName];
 			var obj = {
 				name: name,
@@ -116,7 +118,7 @@ var sim = new Simulation();
 			};
 			node.objects.push(obj);
 			this.updateLocator(obj, node);
-			this.refreshObjects(duration);
+			this.refreshObjects(scenario, duration);
 		};
 
 		this.requestObject = function(nodeName, objectName) {
@@ -129,9 +131,11 @@ var sim = new Simulation();
 		};
 
 		this._requestObject = function(nodeName, objectName) {
+			console.log(arguments);
+			var scenario = this.scenario.getThread(arguments);
 			var target = this.nodes[nodeName];
 
-			console.log(this.objects);
+			console.log(objectName);
 			if (!(objectName in this.objects)) {
 				throw new Error('Object not found.');
 			}
@@ -145,7 +149,7 @@ var sim = new Simulation();
 					this.doTransfer(nodeRoute[i], nodeRoute[i + 1], objectName);
 				}
 			}
-			this.scenario.start();
+			scenario._next();
 		};
 
 		this.transform = function(transform_val) {
@@ -158,17 +162,17 @@ var sim = new Simulation();
 		};
 
 		this._transform = function(transform_val) {
+			var scenario = this.scenario.getThread(arguments);
 			var transform = this.group.attr('transform');
 			if (!transform) {
 				transform = 'translate(0, 0) scale(1)';
 			}
-			console.log('transform=' + transform);
 			this.group.attr('transform', transform)
 				.transition()
 					.duration(this.options.duration.move)
 					.attr('transform', transform_val)
 					.each('end', function() {
-						self.scenario._next();
+						scenario._next();
 					});
 		};
 
@@ -209,7 +213,7 @@ var sim = new Simulation();
 		};
 
 		this.doTransfer = function(source, target, objectName) {
-			this.scenario.orders.unshift({
+			this.scenario.current.orders.unshift({
 				function: this._doTransfer,
 				args: arguments,
 				name: 'doTransfer',
@@ -218,13 +222,14 @@ var sim = new Simulation();
 		};
 
 		this._doTransfer = function(source, target, objectName) {
+			var scenario = this.scenario.getThread(arguments);
 			var transfer = {
 				source: source,
 				target: target,
 				object: this.objects[objectName]
 			};
 
-			this.performTransfer(transfer);
+			this.performTransfer(scenario, transfer);
 		};
 
 		this.getNodeCoord = function(node) {
@@ -234,7 +239,7 @@ var sim = new Simulation();
 			node.y = (self.svg.attr('height') / 2) * (1 + 0.8 * Math.sin(angle));
 		};
 
-		this.refreshNodes = function() {
+		this.refreshNodes = function(scenario) {
 			var duration = self.computeDuration(this.options.duration.addNode);
 
 			// Join data
@@ -282,7 +287,7 @@ var sim = new Simulation();
 				.duration(duration)
 				.style('opacity', 1)
 				.each('end', function() {
-					self.scenario._next();
+					scenario._next();
 				});
 
 			// Update
@@ -292,7 +297,7 @@ var sim = new Simulation();
 			nodes.exit().remove();
 		};
 
-		this.refreshLinks = function() {
+		this.refreshLinks = function(scenario) {
 			var duration = self.computeDuration(this.options.duration.addLink);
 
 			var links = self.group.selectAll('path.link')
@@ -335,11 +340,11 @@ var sim = new Simulation();
 					.duration(duration)
 					.attr('stroke-dashoffset', 0)
 					.each('end', function() {
-						self.scenario._next();
+						scenario._next();
 					});
 		};
 
-		this.refreshObjects = function(duration) {
+		this.refreshObjects = function(scenario, duration) {
 			if (duration === undefined) {
 				duration = self.computeDuration(this.options.duration.addObject);
 			}
@@ -379,12 +384,12 @@ var sim = new Simulation();
 					.duration(duration)
 					.style('opacity', 1)
 					.each('end', function() {
-						self.scenario._next();
+						scenario._next();
 					});
 			objects.exit().remove();
 		};
 
-		this.performTransfer = function(transfer) {
+		this.performTransfer = function(scenario, transfer) {
 			var duration = self.computeDuration(this.options.duration.doTransfer);
 
 			var pathNode = d3.select('#' + transfer.source.name + '_' + transfer.target.name).node();
@@ -409,8 +414,7 @@ var sim = new Simulation();
 					})
 				.each('end', function() {
 					g_obj.remove();
-					var doItNow = true;
-					transfer.target.addObject(transfer.object.name, transfer.object.source, doItNow);
+					self._addObject(scenario, transfer.target.name, transfer.object.name, transfer.object.source, 0);
 				});
 		};
 
@@ -424,6 +428,7 @@ var sim = new Simulation();
 		};
 
 		this._store = function(objectName) {
+			var scenario = this.scenario.getThread(arguments);
 			var object_address = CryptoJS.SHA1(CryptoJS.SHA1(objectName)).toString();
 
 			var list = [];
@@ -431,7 +436,6 @@ var sim = new Simulation();
 				var node = this.nodes[nodeName];
 				list.push(node.start_address);
 			}
-			console.log(list);
 
 			list.push(object_address);
 			list.sort();
@@ -440,8 +444,7 @@ var sim = new Simulation();
 				index = list.length;
 			}
 			var node_name = this.addressMap[list[index - 1]];
-			console.log(node_name);
-			this._requestObject(node_name, objectName);
+			this._requestObject(scenario, node_name, objectName);
 		};
 	};
 
@@ -459,10 +462,6 @@ var sim = new Simulation();
 		};
 
 		this.addObject = function(name, source, doItNow) {
-			var obj = {
-				name: name,
-				source: source
-			};
 			this.parent.addObject(this.name, name, source, doItNow);
 		};
 

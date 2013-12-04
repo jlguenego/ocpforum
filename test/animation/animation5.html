@@ -17,18 +17,9 @@ html, body {
 	margin: 0px;
 	padding: 0px;
 }
-#frame {
-	width: 90%;
-	height: 90%;
-	margin: auto;
-}
 
 svg {
 	border: 1px solid black;
-}
-
-rect {
-	fill: red;
 }
 		</style>
 	</head>
@@ -40,7 +31,7 @@ var r = new sim.Random('kiki');
 
 var svg = d3.select('#frame').append('svg')
 	.attr('width', 800)
-	.attr('height', 600);
+	.attr('height', 300);
 
 var scenario = new Scenario();
 var ds = new sim.DistributedSystem(scenario, svg);

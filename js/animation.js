@@ -49,6 +49,8 @@ var anim = new Animation();
 		};
 
 		this._show = function() {
+			var scenario = this.scenario.getThread(arguments);
+
 			this.im = new Image();
 			this.im.src = this.source;
 			this.im.onload = function() {
@@ -67,7 +69,7 @@ var anim = new Animation();
 						.duration(self.options.duration.show)
 						.style('opacity', 1)
 						.each('end', function() {
-							self.scenario._next();
+							scenario._next();
 						});
 			};
 		};
@@ -89,6 +91,8 @@ var anim = new Animation();
 		};
 
 		this._split = function(row, col) {
+			var scenario = this.scenario.getThread(arguments);
+
 			var dataset = [];
 
 			for (var i = 0; i < row; i++) {
@@ -159,7 +163,7 @@ var anim = new Animation();
 				})
 				.each('end', function(d) {
 					if (d.i == 0 && d.j == 0) {
-						self.scenario._next();
+						scenario._next();
 					}
 				});
 		};
@@ -174,6 +178,8 @@ var anim = new Animation();
 		};
 
 		this._crypt = function() {
+			var scenario = this.scenario.getThread(arguments);
+
 			this.group.selectAll('svg')
 				.each(function(d) {
 					d.width = parseInt(d3.select(this).attr('width'));
@@ -197,7 +203,7 @@ var anim = new Animation();
 						.attr('x', function(d) { return d.x; })
 						.each('end', function(d) {
 							if (d.i == 0 && d.j == 0) {
-								self.scenario._next();
+								scenario._next();
 							}
 						});
 		};
@@ -212,13 +218,15 @@ var anim = new Animation();
 		};
 
 		this._minimize = function() {
+			var scenario = this.scenario.getThread(arguments);
+
 			this.group
 				.attr('transform', 'scale(1)')
 				.transition()
 					.duration(self.options.duration.minimize)
 					.attr('transform', 'scale(' + self.options.scale.minimize + ')')
 					.each('end', function() {
-						self.scenario._next();
+						scenario._next();
 					});
 		};
 
@@ -232,13 +240,15 @@ var anim = new Animation();
 		};
 
 		this._sendBlock = function(block_name, coord) {
+			var scenario = this.scenario.getThread(arguments);
+
 			var svg = this.group.select('svg#' + block_name)
 				.transition()
 					.duration(self.options.duration.sendBlock)
 					.attr('x', coord.x / self.options.scale.minimize)
 					.attr('y', coord.y / self.options.scale.minimize)
 					.each('end', function(d) {
-						self.scenario._next();
+						scenario._next();
 					});
 		};
 
@@ -252,8 +262,10 @@ var anim = new Animation();
 		};
 
 		this._remove = function(block_name) {
+			var scenario = this.scenario.getThread(arguments);
+
 			this.group.select('svg#' + block_name).remove();
-			this.scenario._next();
+			scenario._next();
 		};
 	};
 })(anim)

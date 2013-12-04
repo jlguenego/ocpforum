@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<base href="../../" />
+		<meta charset="utf-8" />
+		<style>
+		</style>
+	</head>
+	<body>
+		<script>
+function repairArgs() {
+	var args = arguments.callee.caller.arguments;
+	return Array.prototype.shift.call(args);
+}
+
+function x(a, b) {
+	//console.log(arguments);
+	var y = repairArgs(arguments);
+	console.log(y);
+	//console.log(arguments);
+	console.log('a=' + a);
+	console.log('b=' + b);
+}
+a = [ 1.3, 'ererr' ];
+a.unshift('t1');
+console.log(a);
+x.apply(this, a);
+		</script>
+	</body>
+</html>

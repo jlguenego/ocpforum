@@ -17,16 +17,9 @@ html, body {
 	margin: 0px;
 	padding: 0px;
 }
-#frame {
-	width: 90%;
-	height: 90%;
-	margin: auto;
 
+svg {
 	border: 1px solid black;
-}
-
-rect {
-	fill: red;
 }
 		</style>
 	</head>
@@ -36,10 +29,17 @@ rect {
 		<script>
 var svg = d3.select('#frame').append('svg')
 	.attr('width', 800)
-	.attr('height', 600);
+	.attr('height', 300);
 
 var scenario = new Scenario();
 var ds = new sim.DistributedSystem(scenario, svg);
+ds.options.duration = {
+	addNode: 100,
+	addLink: 100,
+	addObject: 1000,
+	doTransfer: 1000,
+	move: 500
+};
 
 var n1 = new sim.Node({
 	name: 'n1',
@@ -58,10 +58,17 @@ var n4 = new sim.Node({
 	name: 'n4',
 	image: 'image/neufbox.png'
 });
+
+scenario.setThread('t1');
 ds.addNode(n1);
+scenario.setThread('t2');
 ds.addNode(n2);
+scenario.setThread('t3');
 ds.addNode(n3);
+scenario.setThread('t4');
 ds.addNode(n4);
+scenario.setThread('main');
+scenario.wait('t1', 't2', 't3', 't4');
 
 ds.addLink('n1', 'n2');
 ds.addLink('n2', 'n3');
@@ -69,8 +76,10 @@ ds.addLink('n3', 'n4');
 
 ds.addObject('n1', 'flower', 'image/test/flower.jpg');
 //ds.quick = true;
-n4.requestObject('flower');
+//n4.requestObject('flower');
+ds.requestObject('n4', 'flower');
 
+console.log(scenario);
 scenario.start();
 		</script>
 	</body>
