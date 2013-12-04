@@ -17,10 +17,10 @@ html, body {
 	margin: 0px;
 	padding: 0px;
 }
-
-#param {
-	float: left;
-	width: 300px;
+#frame {
+	width: 90%;
+	height: 90%;
+	margin: auto;
 }
 
 svg {
@@ -30,57 +30,17 @@ svg {
 	</head>
 
 	<body>
-		<div>
-			<div id="param">
-				<table>
-					<tr>
-						<th>Node amount</th>
-						<td><input type="text" id="node_amount" value="20" /></td>
-					</tr>
-					<tr>
-						<th>Split</th>
-						<td><input type="text" id="row" value="3" size="5" />&nbsp;X&nbsp;<input type="text" id="col" value="5" size="5" />&nbsp;</td>
-					</tr>
-					<tr>
-						<th>Transfer duration (ms)</th>
-						<td><input type="text" id="transfer" value="500" /></td>
-					</tr>
-					<tr>
-						<th>Linkage duration (ms)</th>
-						<td><input type="text" id="linkage" value="20" /></td>
-					</tr>
-				</table>
-				<button id="start">Start</button>
-				<button id="stop">Stop</button>
-			</div>
-			<div id="frame"></div>
-		</div>
+		<div id="frame"></div>
 		<script>
-$('#start').click(function() {
-	var svg = d3.select('#frame').select('svg').remove();
+$(document).ready(function() {
 	var svg = d3.select('#frame').append('svg')
 		.attr('width', 800)
 		.attr('height', 600);
 
 	var obj = new anim.Object(svg, 'image/test/flower.jpg', { x: 200, y: 200 });
-	obj.options.duration= {
-		show: 100,
-		split: 100,
-		crypt: 200,
-		minimize: 500,
-		sendBlock: 200
-	};
-
 	var ds = new sim.DistributedSystem(svg);
-	ds.options.duration = {
-		addNode: 20,
-		addLink: $('#linkage').val(),
-		addObject: 100,
-		doTransfer: $('#transfer').val(),
-		move: 500
-	};
 
-	var nbr = $('#node_amount').val();
+	var nbr = 15;
 	for (var i = 0; i < nbr; i++) {
 		ds.addNode(new sim.Node({
 			name: 'n' + i,
@@ -99,7 +59,7 @@ $('#start').click(function() {
 
 	ds.call(obj);
 	obj.show();
-	obj.split($('#row').val(), $('#col').val());
+	obj.split(3, 5);
 	obj.crypt();
 	obj.minimize();
 
@@ -109,7 +69,7 @@ $('#start').click(function() {
 	console.log(obj.blocks);
 	for (var i = 0; i < obj.blocks.length; i++) {
 		ds.call(obj);
-		obj.sendBlock(obj.blocks[i].name, { x: 350 , y: 30 });
+		obj.sendBlock(obj.blocks[i].name, { x: 350 * 2 , y: 20 * 2 });
 
 		obj.call(ds);
 		ds.addObject('n3', obj.blocks[i].name, 'image/test/crypted.jpg');
@@ -122,10 +82,6 @@ $('#start').click(function() {
 	}
 
 	ds.start();
-});
-
-$('#stop').click(function() {
-	window.location.reload();
 });
 		</script>
 	</body>

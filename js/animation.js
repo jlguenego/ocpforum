@@ -32,6 +32,9 @@ var anim = new Animation();
 				minimize: 1000,
 				sendBlock: 1000
 			},
+			scale: {
+				minimize: 0.3
+			},
 			h: 1.5
 		};
 
@@ -223,7 +226,7 @@ var anim = new Animation();
 				.attr('transform', 'scale(1)')
 				.transition()
 					.duration(self.options.duration.minimize)
-					.attr('transform', 'scale(0.5)')
+					.attr('transform', 'scale(' + self.options.scale.minimize + ')')
 					.each('end', function() {
 						self._next();
 					});
@@ -238,11 +241,11 @@ var anim = new Animation();
 		};
 
 		this._sendBlock = function(block_name, coord) {
-			this.group.select('svg#' + block_name)
+			var svg = this.group.select('svg#' + block_name)
 				.transition()
 					.duration(self.options.duration.sendBlock)
-					.attr('x', coord.x)
-					.attr('y', coord.y)
+					.attr('x', coord.x / self.options.scale.minimize)
+					.attr('y', coord.y / self.options.scale.minimize)
 					.each('end', function(d) {
 						self._next();
 					});
