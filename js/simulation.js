@@ -69,7 +69,7 @@ var sim = new Simulation();
 		this._addNode = function(node) {
 			var scenario = this.scenario.getThread(arguments);
 
-			this.getNodeCoord(node);
+			this.setNodeCoord(node);
 			this.nodes[node.name] = node;
 			this.addressMap[node.start_address] = node.name;
 			this.refreshNodes(scenario);
@@ -198,13 +198,16 @@ var sim = new Simulation();
 				}
 			}
 
-			var smallerSize = 0;
-			var result = [];
+			if (routes.length == 0) {
+				return [];
+			}
+
+			var result = null;
+			var smallerSize = -1;
 			for (var i = 0; i < routes.length; i++) {
 				var routeSize = routes[i].length;
-				if (smallerSize == 0 || routeSize < smallerSize) {
+				if (smallerSize == -1 || routeSize < smallerSize) {
 					result = routes[i];
-					smallerSize = routeSize;
 				}
 			}
 			result.push(target);
@@ -232,10 +235,13 @@ var sim = new Simulation();
 			this.performTransfer(scenario, transfer);
 		};
 
-		this.getNodeCoord = function(node) {
-			node.start_address = CryptoJS.SHA1(CryptoJS.SHA1(node.name)).toString();
-			var angle = (parseInt(node.start_address.substr(15, 4), 16) / 0xffff) * 2 * Math.PI;
-			node.x = (self.svg.attr('width') / 2) * (1 + 0.8 * Math.cos(angle));
+		this.setNodeCoord = function(node) {
+			if (node.start_address === undefined) {
+				node.start_address = CryptoJS.SHA1(CryptoJS.SHA1(node.name)).toString();
+			}
+			console.log('node.start_address = ' + node.start_address);
+			var angle = (parseInt(node.start_address.substr(0, 4), 16) / 0xffff) * 2 * Math.PI;
+			node.x= (self.svg.attr('width') / 2) * (1 + 0.8 * Math.cos(angle));
 			node.y = (self.svg.attr('height') / 2) * (1 + 0.8 * Math.sin(angle));
 		};
 
@@ -451,6 +457,7 @@ var sim = new Simulation();
 	sim.Node = function(n) {
 		this.name = n.name;
 		this.image = n.image;
+		this.start_address = n.start_address;
 		this.parent = null;
 
 		this.links = [];

@@ -120,11 +120,24 @@ $('#start').click(function() {
 		move: 500
 	};
 
+	String.prototype.padleft = function(length, character) {
+		 return new Array(length - this.length + 1).join(character || '0') + this;
+	};
+
+	String.prototype.padright = function(length, character) {
+		 return this + (new Array(length - this.length + 1)).join(character || '0');
+	};
+
 	var nbr = $('#node_amount').val();
 	for (var i = 0; i < nbr; i++) {
+		var start_address = Math.floor((i / nbr) * 0xffff).toString(16);
+		console.log('start_address=' + start_address);
+		start_address = start_address.padleft(4, '0');
+		start_address = start_address.padright(16, '0');
 		ds.addNode(new sim.Node({
 			name: 'n' + i,
-			image: 'image/neufbox.png'
+			image: 'image/neufbox.png',
+			start_address: start_address
 		}));
 	}
 
