@@ -1,9 +1,7 @@
 <?php
 
 define('ROOT_DIR', dirname(dirname(__FILE__)));
-define('BASE_DIR', dirname(dirname($_SERVER['SCRIPT_NAME'])));
-
-
+include(ROOT_DIR . '/include/constant.inc');
 include(ROOT_DIR . '/include/top_page.inc');
 ?>
 
