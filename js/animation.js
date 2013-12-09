@@ -268,5 +268,22 @@ var anim = new Animation();
 			this.group.select('svg#' + block_name).remove();
 			scenario._next();
 		};
+
+		this.sleep = function(duration) {
+			this.scenario.push({
+				function: this._sleep,
+				args: arguments,
+				name: 'sleep',
+				object: this
+			});
+		};
+
+		this._sleep = function(duration) {
+			var scenario = this.scenario.getThread(arguments);
+			console.log('duration=' + duration);
+			setTimeout(function() {
+				scenario._next();
+			}, duration);
+		};
 	};
 })(anim)

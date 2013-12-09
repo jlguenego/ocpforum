@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<base href="../../" />
+		<meta charset="utf-8" />
+
+		<script src="_ext/d3.v3.min.js"></script>
+		<script src="_ext/jquery-1.10.2.min.js"></script>
+		<script src="_ext/sha1.js"></script>
+		<script src="js/jlg_commons.js"></script>
+		<script src="js/animation.js"></script>
+		<script src="js/multi_ring.js"></script>
+		<script src="js/scenario.js"></script>
+
+		<style>
+html, body {
+	width: 100%;
+	height: 100%;
+	margin: 0px;
+	padding: 0px;
+}
+
+.ring {
+	fill: none;
+	stroke: #EEEEEE;
+	stroke-width: 2;
+}
+		</style>
+	</head>
+
+	<body>
+		<div id="frame"></div>
+
+		<script>
+$(document).ready(function() {
+	var ring_nbr = 3;
+
+	var svg = d3.select('#frame').append('svg')
+		.attr('width', 800)
+		.attr('height', 600);
+
+	var scenario = new Scenario();
+	var mr = new sim.MultiRingDS(scenario, svg);
+	mr.options.duration = {
+		refreshRing: 500
+	};
+
+	for (var i = 0; i < ring_nbr; i++) {
+		mr.addRing('r' + i);
+	}
+
+	var nbr = 20;
+	for (var i = 0; i < nbr; i++) {
+		var name = 'n' + i;
+		var start_address = CryptoJS.SHA1(CryptoJS.SHA1(name)).toString();
+		var ring = parseInt(start_address.substr(0, 1), 16) % ring_nbr;
+		mr.addNode(new sim.Node({
+			name: name,
+			start_address: start_address,
+			image: 'image/neufbox.png',
+			ring: 'r' + ring
+		}));
+	}
+
+	scenario.start();
+});
+		</script>
+	</body>
+</html>

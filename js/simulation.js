@@ -477,10 +477,6 @@ var sim = new Simulation();
 
 		this.objects = [];
 
-		this.setSelector = function(selector) {
-			this.selector = selector;
-		};
-
 		this.addObject = function(name, source, doItNow) {
 			this.parent.addObject(this.name, name, source, doItNow);
 		};

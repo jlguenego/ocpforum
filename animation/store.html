@@ -1,30 +1,15 @@
-<!DOCTYPE html>
-<html>
-	<head>
-		<base href="../../" />
-		<meta charset="utf-8" />
-
-		<script src="_ext/d3.v3.min.js"></script>
-		<script src="_ext/jquery-1.10.2.min.js"></script>
-		<script src="_ext/sha1.js"></script>
-		<script src="js/jlg_commons.js"></script>
-		<script src="js/animation.js"></script>
-		<script src="js/simulation.js"></script>
-		<script src="js/scenario.js"></script>
-
-		<style>
-html, body {
-	width: 100%;
-	height: 100%;
-	margin: 0px;
-	padding: 0px;
+<style>
+#store_container {
+	position: relative;
+	min-height: 480px;
+	margin: auto;
 }
 
 #param {
 	float: left;
 	padding: 5px;
 
-	background-color: #E6F2FF;
+	background-color: #F4F9F9;
 }
 
 svg {
@@ -65,57 +50,54 @@ input {
 #col {
 	float: right;
 }
-		</style>
-	</head>
-
-	<body>
-		<div>
-			<div id="param">
-				<table>
-					<tr>
-						<th>Node amount</th>
-						<td><input type="text" id="node_amount" value="20" /></td>
-					</tr>
-					<tr>
-						<th>Split (col x row)</th>
-						<td><input type="text" id="row" value="3" size="5" />x<input type="text" id="col" value="5" size="5" /></td>
-					</tr>
-					<tr>
-						<th>Split duration (ms)</th>
-						<td><input type="text" id="split" value="3000" /></td>
-					</tr>
-					<tr>
-						<th>Show image duration (ms)</th>
-						<td><input type="text" id="show_image" value="500" /></td>
-					</tr>
-					<tr>
-						<th>Sleep duration (ms)</th>
-						<td><input type="text" id="sleep" value="1000" /></td>
-					</tr>
-					<tr>
-						<th>Crypt duration (ms)</th>
-						<td><input type="text" id="crypt" value="1000" /></td>
-					</tr>
-					<tr>
-						<th>Transfer duration (ms)</th>
-						<td><input type="text" id="transfer" value="500" /></td>
-					</tr>
-					<tr>
-						<th>Linkage duration (ms)</th>
-						<td><input type="text" id="linkage" value="20" /></td>
-					</tr>
-				</table>
-				<button id="start">Start</button>
-				<button id="stop">Stop</button>
-			</div>
-			<div id="frame"></div>
-		</div>
-		<script>
+</style>
+<div id="store_container">
+	<div id="param">
+		<table>
+			<tr>
+				<th>Node amount</th>
+				<td><input type="text" id="node_amount" value="20" /></td>
+			</tr>
+			<tr>
+				<th>Split (col x row)</th>
+				<td><input type="text" id="row" value="3" size="5" />x<input type="text" id="col" value="5" size="5" /></td>
+			</tr>
+			<tr>
+				<th>Split duration (ms)</th>
+				<td><input type="text" id="split" value="3000" /></td>
+			</tr>
+			<tr>
+				<th>Show image duration (ms)</th>
+				<td><input type="text" id="show_image" value="500" /></td>
+			</tr>
+			<tr>
+				<th>Sleep duration (ms)</th>
+				<td><input type="text" id="sleep" value="1000" /></td>
+			</tr>
+			<tr>
+				<th>Crypt duration (ms)</th>
+				<td><input type="text" id="crypt" value="1000" /></td>
+			</tr>
+			<tr>
+				<th>Transfer duration (ms)</th>
+				<td><input type="text" id="transfer" value="500" /></td>
+			</tr>
+			<tr>
+				<th>Linkage duration (ms)</th>
+				<td><input type="text" id="linkage" value="20" /></td>
+			</tr>
+		</table>
+		<button id="start">Start</button>
+		<button id="stop">Stop</button>
+	</div>
+	<div id="frame"></div>
+</div>
+<script>
 $('#start').click(function() {
 	var svg = d3.select('#frame').select('svg').remove();
 	var svg = d3.select('#frame').append('svg')
-		.attr('width', 800)
-		.attr('height', 600);
+		.attr('width', 800 * 0.8)
+		.attr('height', 600 * 0.8);
 
 	var scenario = new Scenario();
 
@@ -188,6 +170,4 @@ $('#start').click(function() {
 $('#stop').click(function() {
 	window.location.reload();
 });
-		</script>
-	</body>
-</html>
+</script>

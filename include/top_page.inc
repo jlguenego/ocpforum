@@ -7,6 +7,9 @@
 		<link rel="icon" type="image/png" href="image/ocp_logo.png">
 		<link rel="stylesheet" href="css/main.css" />
 
+		<script src="_ext/d3.v3.min.js"></script>
+		<script src="_ext/sha1.js"></script>
+
 		<!-- JQUERY / JQUERY UI -->
 		<script src="_ext/jquery-1.10.2.min.js"></script>
 		<script src="_ext/jquery-ui-1.10.3/ui/minified/jquery-ui.min.js"></script>
@@ -21,6 +24,12 @@
 
 		<script src="js/widget_content_table.js"></script>
 		<link rel="stylesheet" href="js/theme/default/widget_content_table.css" />
+
+
+		<script src="js/jlg_commons.js"></script>
+		<script src="js/animation.js"></script>
+		<script src="js/simulation.js"></script>
+		<script src="js/scenario.js"></script>
 	</head>
 
 	<body>
