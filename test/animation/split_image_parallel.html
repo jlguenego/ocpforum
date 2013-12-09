@@ -7,6 +7,7 @@
 		<script src="_ext/d3.v3.min.js"></script>
 		<script src="_ext/jquery-1.10.2.min.js"></script>
 		<script src="_ext/sha1.js"></script>
+		<script src="js/jlg_commons.js"></script>
 		<script src="js/animation.js"></script>
 		<script src="js/simulation.js"></script>
 		<script src="js/scenario.js"></script>
@@ -120,14 +121,6 @@ $('#start').click(function() {
 		move: 500
 	};
 
-	String.prototype.padleft = function(length, character) {
-		 return new Array(length - this.length + 1).join(character || '0') + this;
-	};
-
-	String.prototype.padright = function(length, character) {
-		 return this + (new Array(length - this.length + 1)).join(character || '0');
-	};
-
 	var nbr = $('#node_amount').val();
 	for (var i = 0; i < nbr; i++) {
 		var start_address = Math.floor((i / nbr) * 0xffff).toString(16);
@@ -166,7 +159,7 @@ $('#start').click(function() {
 		obj.sendBlock(obj.blocks[i].name, { x: 350 , y: 30 });
 		ds.addObject('n3', obj.blocks[i].name, 'image/test/crypted.jpg');
 		obj.remove(obj.blocks[i].name);
-		ds.store(obj.blocks[i].name);
+		ds.store('n3', obj.blocks[i].name);
 	}
 	scenario.setThread('main');
 	scenario.wait.apply(scenario, list);

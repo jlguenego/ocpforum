@@ -146,7 +146,6 @@ var sim = new Simulation();
 
 			var nodeRoute = this.getCloserNodeRoute(objectName, target);
 			console.log(nodeRoute.map(function(d) { return d.name; }));
-			return;
 
 			if (nodeRoute.length == 0) {
 				throw new Error('No node found.');
@@ -157,6 +156,47 @@ var sim = new Simulation();
 			}
 			scenario._next();
 		};
+
+
+		this.getCloserNodeRoute = function(objectName, target, explored) {
+			explored = explored || {};
+			for (var i = 0; i < target.objects.length; i++) {
+				if (target.objects[i].name == objectName) {
+					return [ target ];
+				}
+			}
+
+			// Target does not have the object.
+			explored[target.name] = target;
+			var routes = [];
+			for (var i = 0; i < target.links.in.length; i++) {
+				var node = target.links.in[i];
+				if (node.name in explored) {
+					continue;
+				}
+				var route = this.getCloserNodeRoute(objectName, target.links.in[i], explored);
+				if (route.length > 0) {
+					routes.push(route);
+				}
+			}
+
+			if (routes.length == 0) {
+				return [];
+			}
+
+			var result = null;
+			var smallerSize = -1;
+			for (var i = 0; i < routes.length; i++) {
+				var routeSize = routes[i].length;
+				if (smallerSize == -1 || routeSize < smallerSize) {
+					result = routes[i];
+				}
+			}
+			result.push(target);
+
+			return result;
+		};
+
 
 		this.transform = function(transform_val) {
 			this.scenario.push({
