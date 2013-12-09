@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<base href="../../" />
+		<meta charset="utf-8" />
+
+		<script src="_ext/d3.v3.min.js"></script>
+		<script src="_ext/jquery-1.10.2.min.js"></script>
+		<script src="_ext/sha1.js"></script>
+		<script src="js/animation.js"></script>
+		<script src="js/simulation.js"></script>
+		<script src="js/scenario.js"></script>
+
+		<style>
+html, body {
+	width: 100%;
+	height: 100%;
+	margin: 0px;
+	padding: 0px;
+}
+
+#param {
+	float: left;
+	padding: 5px;
+
+	background-color: #E6F2FF;
+}
+
+svg {
+	border: 1px solid black;
+}
+
+table {
+	width: 200px;
+}
+
+table th, table td {
+	vertical-align: middle;
+	text-align: center;
+}
+
+th {
+	width: 100px;
+	font-size: 14px;
+	font-weight: 400;
+}
+
+input {
+	width: 100%;
+	font-size: 14px;
+	font-weight: 400;
+
+	box-sizing: border-box;
+}
+
+#row, #col {
+	width: 30px;
+}
+
+#row {
+	float: left;
+}
+
+#col {
+	float: right;
+}
+		</style>
+	</head>
+
+	<body>
+		<div>
+			<div id="param">
+				<table>
+					<tr>
+						<th>Node amount</th>
+						<td><input type="text" id="node_amount" value="20" /></td>
+					</tr>
+					<tr>
+						<th>Split (col x row)</th>
+						<td><input type="text" id="row" value="3" size="5" />x<input type="text" id="col" value="5" size="5" /></td>
+					</tr>
+					<tr>
+						<th>Transfer duration (ms)</th>
+						<td><input type="text" id="transfer" value="500" /></td>
+					</tr>
+					<tr>
+						<th>Linkage duration (ms)</th>
+						<td><input type="text" id="linkage" value="0" /></td>
+					</tr>
+				</table>
+				<button id="start">Start</button>
+				<button id="stop">Stop</button>
+			</div>
+			<div id="frame"></div>
+		</div>
+		<script>
+$('#start').click(function() {
+	var svg = d3.select('#frame').select('svg').remove();
+	var svg = d3.select('#frame').append('svg')
+		.attr('width', 800)
+		.attr('height', 600);
+
+	var scenario = new Scenario();
+
+	var ds = new sim.DistributedSystem(scenario, svg);
+	ds.options.duration = {
+		addNode: 20,
+		addLink: $('#linkage').val(),
+		addObject: 100,
+		doTransfer: $('#transfer').val(),
+		move: 500
+	};
+
+	String.prototype.padleft = function(length, character) {
+		 return new Array(length - this.length + 1).join(character || '0') + this;
+	};
+
+	String.prototype.padright = function(length, character) {
+		 return this + (new Array(length - this.length + 1)).join(character || '0');
+	};
+
+	Array.prototype.find = function(callback) {
+		for (var i = 0; i < this.length; i++) {
+			if (callback(this[i])) {
+				return this[i];
+			}
+		}
+		return undefined;
+	};
+
+	var nbr = $('#node_amount').val();
+	for (var i = 0; i < nbr; i++) {
+		var start_address = Math.floor((i / nbr) * 0xffff).toString(16);
+		console.log('start_address=' + start_address);
+		start_address = start_address.padleft(4, '0');
+		start_address = start_address.padright(16, '0');
+		ds.addNode(new sim.Node({
+			name: 'n' + i,
+			image: 'image/neufbox.png',
+			start_address: start_address
+		}));
+	}
+
+	for (var i = 0; i < nbr; i++) {
+		for (var j = 1; j <= nbr; j = j * 2) {
+			var j2 = (i + j) % nbr;
+			ds.addLink('n' + i, 'n' + j2);
+		}
+	}
+
+	ds.addObject('n8', 'flower', 'image/test/flower.jpg');
+	ds.store('n8', 'flower');
+
+	scenario.start();
+});
+
+$('#stop').click(function() {
+	window.location.reload();
+});
+		</script>
+	</body>
+</html>

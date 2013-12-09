@@ -93,7 +93,9 @@ var sim = new Simulation();
 				target: target,
 				id: source.name + '_' + target.name
 			});
-			target.links.push(source);
+
+			target.links.in.push(source);
+			source.links.out.push(target);
 			this.refreshLinks(scenario);
 		};
 
@@ -118,6 +120,7 @@ var sim = new Simulation();
 			};
 			node.objects.push(obj);
 			this.updateLocator(obj, node);
+
 			this.refreshObjects(scenario, duration);
 		};
 
@@ -131,6 +134,7 @@ var sim = new Simulation();
 		};
 
 		this._requestObject = function(nodeName, objectName) {
+			console.log('_requestObject start');
 			console.log(arguments);
 			var scenario = this.scenario.getThread(arguments);
 			var target = this.nodes[nodeName];
@@ -141,6 +145,8 @@ var sim = new Simulation();
 			}
 
 			var nodeRoute = this.getCloserNodeRoute(objectName, target);
+			console.log(nodeRoute.map(function(d) { return d.name; }));
+			return;
 
 			if (nodeRoute.length == 0) {
 				throw new Error('No node found.');
@@ -176,45 +182,6 @@ var sim = new Simulation();
 					});
 		};
 
-		this.getCloserNodeRoute = function(objectName, target, explored) {
-			explored = explored || {};
-			for (var i = 0; i < target.objects.length; i++) {
-				if (target.objects[i].name == objectName) {
-					return [ target ];
-				}
-			}
-
-			// Target does not have the object.
-			explored[target.name] = target;
-			var routes = [];
-			for (var i = 0; i < target.links.length; i++) {
-				var node = target.links[i];
-				if (node.name in explored) {
-					continue;
-				}
-				var route = this.getCloserNodeRoute(objectName, target.links[i], explored);
-				if (route.length > 0) {
-					routes.push(route);
-				}
-			}
-
-			if (routes.length == 0) {
-				return [];
-			}
-
-			var result = null;
-			var smallerSize = -1;
-			for (var i = 0; i < routes.length; i++) {
-				var routeSize = routes[i].length;
-				if (smallerSize == -1 || routeSize < smallerSize) {
-					result = routes[i];
-				}
-			}
-			result.push(target);
-
-			return result;
-		};
-
 		this.doTransfer = function(scenario, source, target, objectName) {
 			scenario.current.orders.unshift({
 				function: this._doTransfer,
@@ -242,7 +209,7 @@ var sim = new Simulation();
 			console.log('node.start_address = ' + node.start_address);
 			var angle = (parseInt(node.start_address.substr(0, 4), 16) / 0xffff) * 2 * Math.PI;
 			node.x= (self.svg.attr('width') / 2) * (1 + 0.8 * Math.cos(angle));
-			node.y = (self.svg.attr('height') / 2) * (1 + 0.8 * Math.sin(angle));
+			node.y = (self.svg.attr('height') / 2) * (1 - 0.8 * Math.sin(angle));
 		};
 
 		this.refreshNodes = function(scenario) {
@@ -424,7 +391,7 @@ var sim = new Simulation();
 				});
 		};
 
-		this.store = function(objectName) {
+		this.store = function(nodeName, objectName) {
 			this.scenario.push({
 				function: this._store,
 				args: arguments,
@@ -433,24 +400,27 @@ var sim = new Simulation();
 			});
 		};
 
-		this._store = function(objectName) {
+		this._store = function(nodeName, objectName) {
 			var scenario = this.scenario.getThread(arguments);
-			var object_address = CryptoJS.SHA1(CryptoJS.SHA1(objectName)).toString();
+			var route = [];
 
-			var list = [];
-			for (nodeName in this.nodes) {
-				var node = this.nodes[nodeName];
-				list.push(node.start_address);
+			var node = this.nodes[nodeName];
+
+			while (true) {
+				route.push(node);
+				var next_node = node.getResponsible(objectName);
+
+				if (node == next_node) {
+					break;
+				}
+				node = next_node;
 			}
 
-			list.push(object_address);
-			list.sort();
-			var index = list.indexOf(object_address);
-			if (index == 0) {
-				index = list.length;
+			for (var i = route.length - 2; i >= 0 ; i--) {
+				this.doTransfer(scenario, route[i], route[i + 1], objectName);
 			}
-			var node_name = this.addressMap[list[index - 1]];
-			this._requestObject(scenario, node_name, objectName);
+
+			scenario._next();
 		};
 	};
 
@@ -460,7 +430,10 @@ var sim = new Simulation();
 		this.start_address = n.start_address;
 		this.parent = null;
 
-		this.links = [];
+		this.links = {
+			in: [],
+			out: []
+		};
 
 		this.objects = [];
 
@@ -474,6 +447,33 @@ var sim = new Simulation();
 
 		this.requestObject = function(name) {
 			this.parent.requestObject(this.name, name);
+		};
+
+		this.getResponsible = function(objectName) {
+			var object_address = CryptoJS.SHA1(CryptoJS.SHA1(objectName)).toString();
+
+			var ring = this.links.out.map(function(d) { return d.start_address; });
+
+			ring.push(this.start_address);
+			ring.push(object_address);
+
+			ring.sort();
+			var index = ring.indexOf(object_address);
+			if (index == 0) {
+				index = ring.length;
+			}
+			var node_address = ring[index - 1];
+
+			if (node_address == this.start_address) {
+				// Object is stored.
+				return this;
+			}
+
+			var node = this.links.out.find(function(d) {
+				return d.start_address == node_address;
+			});
+
+			return node;
 		};
 	};
 
