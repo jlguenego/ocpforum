@@ -230,7 +230,7 @@ var anim = new Animation();
 					});
 		};
 
-		this.sendBlock = function(block_name, coord) {
+		this.sendBlock = function(block_name, ds, nodeName) {
 			this.scenario.push({
 				function: this._sendBlock,
 				args: arguments,
@@ -239,8 +239,9 @@ var anim = new Animation();
 			});
 		};
 
-		this._sendBlock = function(block_name, coord) {
+		this._sendBlock = function(block_name, ds, nodeName) {
 			var scenario = this.scenario.getThread(arguments);
+			var coord = ds.nodes[nodeName];
 
 			var svg = this.group.select('svg#' + block_name)
 				.transition()

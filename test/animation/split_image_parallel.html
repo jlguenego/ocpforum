@@ -156,7 +156,7 @@ $('#start').click(function() {
 		var tname = 't' + i;
 		list.push(tname);
 		scenario.setThread(tname);
-		obj.sendBlock(obj.blocks[i].name, { x: 350 , y: 30 });
+		obj.sendBlock(obj.blocks[i].name, ds, 'n3');
 		ds.addObject('n3', obj.blocks[i].name, 'image/test/crypted.jpg');
 		obj.remove(obj.blocks[i].name);
 		ds.store('n3', obj.blocks[i].name);
