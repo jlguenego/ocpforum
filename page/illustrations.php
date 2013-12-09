@@ -24,8 +24,8 @@ include(ROOT_DIR . '/include/top_page.inc');
 	First the network is built: the nodes are positioned on a ring and linked together.
 	The link set tries to be as small as possible. Each node tries to have a minimum set of links in order to
 	not saturate the network rooting tables.
-	We call distance between two nodes the number of link an object needs to take in order to join two nodes.
-	The distance between two node must be as small as possible.
+	We call distance between two nodes the number of links an object needs to take in order to join two nodes.
+	The distance between two nodes must be as small as possible.
 	This illustration shows a file to be stored. The file is first splitted in many blocks and then each block is
 	encrypted. Then each block is delivered to a bootstrap node that will diffuse it through the distributed system
 	using a ring topology and the caching on the road.
