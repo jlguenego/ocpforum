@@ -13,7 +13,9 @@ var sim = new Simulation();
 			x: svg.attr('width'),
 			y: svg.attr('height')
 		};
-		this.links_g = this.svg.insert('g', ':first-child').classed('links', true);
+		this.group = this.svg.insert('g', ':first-child').classed('main', true)
+			.attr('transform', 'translate(0, ' + (this.svgbox.y / 2) + ')');
+		this.links_g = this.group.insert('g', ':first-child').classed('links', true);
 
 		this.options = {
 			duration: {
@@ -33,6 +35,19 @@ var sim = new Simulation();
 		this.nodes = {};
 		this.links = [];
 
+		this.scale = 1;
+
+		var ring_cx = function(d) {
+			var width = self.options.ring.radius * 2 + 200;
+			return width * d.index + width / 2;
+		};
+		var ring_cy = function(d) {
+			return 0;
+		};
+		var ring_r = function(d) {
+			return self.options.ring.radius;
+		};
+
 		this.addRing = function(name) {
 			this.scenario.push({
 				function: this._addRing,
@@ -50,21 +65,45 @@ var sim = new Simulation();
 				index: i,
 				nodes: {}
 			};
-
-			this.refreshRings();
+			this.refreshRings(scenario);
 		};
 
-		this.refreshRings = function() {
-			var ring_nbr = d3.values(this.rings).length;
+		this.refreshMain = function() {
+			console.log(this.group);
+			var bbox = this.group.node().getBBox();
+			console.log(bbox);
+			if (bbox.width == 0) {
+				return;
+			}
+			var scale = this.scale;
+			var box_width = this.svgbox.x * 0.9;
+			var box_height = this.svgbox.y * 0.9;
 
+			if (bbox.width > box_width) {
+				scale = (box_width / bbox.width);
+				console.log('box_width=' + box_width);
+				console.log('bbox.width=' + bbox.width);
+				console.log('new scale=' + scale);
+			}
+			if (bbox.height > box_height) {
+				scale = Math.min(box_height / bbox.height, box_width / bbox.width);
+				console.log('new scale=' + scale);
+			}
+			this.scale = scale;
+			var y = this.svgbox.y / 2;
+			this.group.transition()
+				.duration(this.options.duration.refreshRing)
+				.attr('transform', 'translate(0, ' + y + ') scale(' + this.scale + ')');
+		};
+
+		this.refreshRings = function(scenario) {
 			var dataset = d3.values(this.rings);
 
-			var ring_g = this.svg.selectAll('g.ring').data(dataset);
+			var ring_g = this.group.selectAll('g.ring').data(dataset);
 			ring_g.exit().remove();
 
 			var new_ring_g = ring_g.enter().append('g')
-				.classed('ring', true)
-				.attr('transform', 'scale(0)');
+				.classed('ring', true);
 			new_ring_g.append('circle')
 					.attr('r', 0);
 
@@ -73,29 +112,16 @@ var sim = new Simulation();
 			}
 			var first_ring = dataset[0];
 
-			var ring_cx = function(d) {
-				var width = self.svgbox.x / ring_nbr;
-				return width * d.index + width / 2;
-			};
-			var ring_cy = function(d) {
-				return self.svgbox.y / 2;
-			};
-			var ring_r = function(d) {
-				return self.options.ring.radius;
-			};
-			var scale = function(d) {
-				return 1 / ring_nbr;
-			};
-
 			ring_g.select('circle').attr('r', ring_r);
 
 			ring_g.transition()
 				.duration(this.options.duration.refreshRing)
 				.attr('transform', function(d) {
-					return 'translate(' + ring_cx(d) + ', ' + ring_cy(d) + ') scale(' + scale(d) + ')';
+					return 'translate(' + ring_cx(d) + ', ' + ring_cy(d) + ')';
 				})
 				.each('end', function(d) {
 					if (d.name == first_ring.name) {
+						self.refreshMain();
 						scenario._next();
 					}
 				});
@@ -218,22 +244,21 @@ var sim = new Simulation();
 				.attr('d', function(d) {
 					var source_coord = self.getNodeAbsoluteCoord(d.source);
 					var target_coord = self.getNodeAbsoluteCoord(d.target);
+					var bbox = self.group.node().getBBox();
+
 					var p1 = {
-						x: ((self.svgbox.x / 2) + source_coord.x) / 2,
-						y: ((self.svgbox.y / 2) + source_coord.y) / 2
+						x: ((bbox.width / 2) + source_coord.x) / 2,
+						y: (source_coord.y) / 2
 					};
 					var p2 = {
-						x: ((self.svgbox.x / 2) + target_coord.x) / 2,
-						y: ((self.svgbox.y / 2) + target_coord.y) / 2
+						x: ((bbox.width / 2) + target_coord.x) / 2,
+						y: (target_coord.y) / 2
 					};
 
 					if (d.source.ring == d.target.ring) {
-						var ring_nbr = d3.values(self.rings).length;
-						var width = self.svgbox.x / ring_nbr;
-
 						var ring = self.rings[d.source.ring];
-						var cx = width * ring.index + width / 2;
-						var cy = self.svgbox.y / 2;
+						var cx = ring_cx(ring);
+						var cy = ring_cy(ring);
 
 						p1 = {
 							x: (cx + source_coord.x) / 2,
@@ -268,13 +293,10 @@ var sim = new Simulation();
 		};
 
 		this.getNodeAbsoluteCoord = function(node) {
-			var ring_nbr = d3.values(this.rings).length;
-			var width = this.svgbox.x / ring_nbr;
-
 			var ring = this.rings[node.ring];
-			var cx = width * ring.index + width / 2;
-			var cy = this.svgbox.y / 2;
-			var r = self.options.ring.radius / ring_nbr;
+			var cx = ring_cx(ring);
+			var cy = ring_cy(ring);
+			var r = ring_r(ring);
 
 			var angle = (parseInt(node.start_address.substr(0, 4), 16) / 0xffff) * 2 * Math.PI;
 			var x = cx + r * Math.cos(angle);
