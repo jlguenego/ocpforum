@@ -7,6 +7,16 @@ Array.prototype.find = function(callback) {
 	return undefined;
 };
 
+Array.prototype.findAll = function(callback) {
+	var result = [];
+	for (var i = 0; i < this.length; i++) {
+		if (callback(this[i])) {
+			result.push(this[i]);
+		}
+	}
+	return result;
+};
+
 String.prototype.padleft = function(length, character) {
 	return new Array(length - this.length + 1).join(character || '0') + this;
 };

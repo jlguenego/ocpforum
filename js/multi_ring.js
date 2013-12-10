@@ -13,6 +13,7 @@ var sim = new Simulation();
 			x: svg.attr('width'),
 			y: svg.attr('height')
 		};
+		this.defs = this.svg.append('defs');
 		this.group = this.svg.insert('g', ':first-child').classed('main', true)
 			.attr('transform', 'translate(0, ' + (this.svgbox.y / 2) + ')');
 		this.links_g = this.group.insert('g', ':first-child').classed('links', true);
@@ -21,7 +22,9 @@ var sim = new Simulation();
 			duration: {
 				refreshRing: 500,
 				addNode: 100,
-				addLink: 100
+				addLink: 100,
+				addObject: 100,
+				doTransfer: 500
 			},
 			ring: {
 				radius: 300,
@@ -34,17 +37,19 @@ var sim = new Simulation();
 		this.rings = {};
 		this.nodes = {};
 		this.links = [];
+		this.objects = {};
+		this.locator = {};
 
 		this.scale = 1;
 
-		var ring_cx = function(d) {
+		this.ring_cx = function(d) {
 			var width = self.options.ring.radius * 2 + 200;
 			return width * d.index + width / 2;
 		};
-		var ring_cy = function(d) {
+		this.ring_cy = function(d) {
 			return 0;
 		};
-		var ring_r = function(d) {
+		this.ring_r = function(d) {
 			return self.options.ring.radius;
 		};
 
@@ -112,12 +117,12 @@ var sim = new Simulation();
 			}
 			var first_ring = dataset[0];
 
-			ring_g.select('circle').attr('r', ring_r);
+			ring_g.select('circle').attr('r', this.ring_r);
 
 			ring_g.transition()
 				.duration(this.options.duration.refreshRing)
 				.attr('transform', function(d) {
-					return 'translate(' + ring_cx(d) + ', ' + ring_cy(d) + ')';
+					return 'translate(' + self.ring_cx(d) + ', ' + self.ring_cy(d) + ')';
 				})
 				.each('end', function(d) {
 					if (d.name == first_ring.name) {
@@ -193,14 +198,10 @@ var sim = new Simulation();
 					scenario._next();
 				});
 
-			var ring_r = function(d) {
-				return self.options.ring.radius;
-			};
-
 			node.attr('transform', function(d) {
 				// 0, 0: center of the ring.
 				var ring = self.rings[d.ring];
-				var r = ring_r(ring);
+				var r = self.ring_r(ring);
 				var angle = (parseInt(d.start_address.substr(0, 4), 16) / 0xffff) * 2 * Math.PI;
 				var x = r * Math.cos(angle);
 				var y = - r * Math.sin(angle);
@@ -230,6 +231,9 @@ var sim = new Simulation();
 
 			target.links.in.push(source);
 			source.links.out.push(target);
+			if (source.ring == target.ring) {
+				source.links.out_ring.push(target);
+			}
 			this.refreshLinks(scenario);
 		};
 
@@ -242,8 +246,8 @@ var sim = new Simulation();
 			var new_path = path.enter().append('path');
 			path.attr('id', function(d) { return d.id; })
 				.attr('d', function(d) {
-					var source_coord = self.getNodeAbsoluteCoord(d.source);
-					var target_coord = self.getNodeAbsoluteCoord(d.target);
+					var source_coord = d.source.getAbsoluteCoord();
+					var target_coord = d.target.getAbsoluteCoord();
 					var bbox = self.group.node().getBBox();
 
 					var p1 = {
@@ -257,8 +261,8 @@ var sim = new Simulation();
 
 					if (d.source.ring == d.target.ring) {
 						var ring = self.rings[d.source.ring];
-						var cx = ring_cx(ring);
-						var cy = ring_cy(ring);
+						var cx = self.ring_cx(ring);
+						var cy = self.ring_cy(ring);
 
 						p1 = {
 							x: (cx + source_coord.x) / 2,
@@ -292,13 +296,189 @@ var sim = new Simulation();
 					});
 		};
 
-		this.getNodeAbsoluteCoord = function(node) {
-			var ring = this.rings[node.ring];
-			var cx = ring_cx(ring);
-			var cy = ring_cy(ring);
-			var r = ring_r(ring);
+		this.addObject = function(nodeName, name, source) {
+			this.scenario.push({
+				function: this._addObject,
+				args: [ nodeName, name, source, undefined ],
+				name: 'addObject',
+				object: this
+			});
+		};
 
-			var angle = (parseInt(node.start_address.substr(0, 4), 16) / 0xffff) * 2 * Math.PI;
+		this._addObject = function(nodeName, name, source, duration) {
+			var scenario = this.scenario.getThread(arguments);
+
+			console.log('nodeName=' + nodeName);
+			console.log('name=' + name);
+			console.log('source=' + source);
+			var node = this.nodes[nodeName];
+			console.log(node);
+			var obj = {
+				name: name,
+				source: source
+			};
+			node.objects.push(obj);
+			this.objects[obj.name] = obj;
+
+			this.refreshObjects(scenario, duration);
+		};
+
+		this.refreshObjects = function(scenario, duration) {
+			if (duration === undefined) {
+				duration = this.options.duration.addObject;
+			}
+
+			var symbols = this.defs.selectAll('symbol').data(d3.values(this.objects));
+			symbols.exit().remove();
+			symbols.enter().append('symbol')
+				.attr('id', function(d) {
+					return d.name;
+				})
+				.append('image')
+					.attr('xlink:href', function(d) { return d.source; })
+					.attr('width', 25)
+					.attr('height', 25);
+
+			var nodes = this.group.selectAll('g.node');
+			var objects = nodes.selectAll('use.object').data(function(d) { return d.objects; });
+
+			objects.exit().remove();
+			objects.enter().append('use')
+				.classed('object', true)
+				.attr('xlink:href', function(d) { return '#' + d.name; })
+				.attr('x', 0)
+				.attr('y', 0)
+				.style('opacity', 0)
+				.transition()
+					.duration(duration)
+					.style('opacity', 1)
+					.each('end', function() {
+						scenario._next();
+					});
+
+		};
+
+		this.store = function(nodeName, objectName) {
+			this.scenario.push({
+				function: this._store,
+				args: arguments,
+				name: 'store',
+				object: this
+			});
+		};
+
+		this._store = function(nodeName, objectName) {
+			var scenario = this.scenario.getThread(arguments);
+			var node = this.nodes[nodeName];
+			node.store(scenario, objectName);
+
+			for (var ringName in this.rings) {
+				if (ringName == node.ring) {
+					continue;
+				}
+
+				var ringNode = node.getResponsibleForRing(ringName, objectName);
+
+				if (!ringNode) {
+					continue;
+				}
+
+				var oldThread = scenario.current.name;
+				scenario.setThread(objectName + '_' + ringName);
+				scenario.push({
+					function: this._storeRec,
+					args: [ ringNode.name, objectName ],
+					name: '_storeRec',
+					object: this
+				});
+				this._doTransfer(scenario, node, ringNode, objectName);
+				scenario.setThread(oldThread);
+			}
+		};
+
+		this._storeRec = function(nodeName, objectName) {
+			var scenario = this.scenario.getThread(arguments);
+			var node = this.nodes[nodeName];
+			node.store(scenario, objectName);
+		};
+
+		this.doTransfer = function(scenario, source, target, objectName) {
+			scenario.current.orders.unshift({
+				function: this._doTransfer,
+				args: [ source, target, objectName ],
+				name: 'doTransfer',
+				object: this
+			});
+		};
+
+		this._doTransfer = function(source, target, objectName) {
+			var scenario = this.scenario.getThread(arguments);
+			var transfer = {
+				source: source,
+				target: target,
+				object: this.objects[objectName]
+			};
+
+			this.performTransfer(scenario, transfer);
+		};
+
+		this.performTransfer = function(scenario, transfer) {
+			var duration = this.options.duration.doTransfer;
+
+			var pathNode = d3.select('#' + transfer.source.name + '_' + transfer.target.name).node();
+			var pathLength = pathNode.getTotalLength();
+			var g_obj = this.group.append('g')
+				.classed('transfer', true)
+				.attr('transform', 'translate(-12, -12)');
+
+			console.log(transfer.object.name);
+
+			g_obj.append('use')
+				.attr('transform', function(d) {
+					var p = pathNode.getPointAtLength(0)
+					return 'translate(' + [p.x, p.y] + ') scale(' + self.options.ring.node.scale + ')';
+				})
+				.attr('xlink:href', '#' + transfer.object.name)
+				.transition()
+					.duration(duration)
+					.ease("linear")
+					.attrTween("transform", function (d, i) {
+						return function (t) {
+							var p = pathNode.getPointAtLength(pathLength*t);
+							return 'translate(' + [p.x, p.y] + ') scale(' + self.options.ring.node.scale + ')';
+						}
+					})
+				.each('end', function() {
+					g_obj.remove();
+					self._addObject(scenario, transfer.target.name, transfer.object.name, transfer.object.source, 0);
+				});
+		};
+	};
+
+	sim.Node = function(n) {
+		var self = this;
+
+		this.name = n.name;
+		this.image = n.image;
+		this.start_address = n.start_address;
+		this.parent = null;
+		this.ring = n.ring;
+
+		this.links = {
+			in: [],
+			out: [],
+			out_ring: []
+		};
+
+		this.objects = [];
+
+		this.getAbsoluteCoord = function() {
+			var ring = this.parent.rings[this.ring];
+			var cx = this.parent.ring_cx(ring);
+			var cy = this.parent.ring_cy(ring);
+			var r = this.parent.ring_r(ring);
+
+			var angle = (parseInt(this.start_address.substr(0, 4), 16) / 0xffff) * 2 * Math.PI;
 			var x = cx + r * Math.cos(angle);
 			var y = cy - r * Math.sin(angle);
 			return {
@@ -306,17 +486,79 @@ var sim = new Simulation();
 				y: y
 			};
 		};
-	};
 
-	sim.Node = function(n) {
-		this.name = n.name;
-		this.image = n.image;
-		this.start_address = n.start_address;
-		this.parent = null;
-		this.ring = n.ring;
-		this.links = {
-			in: [],
-			out: []
+		this.store = function(scenario, objectName) {
+			var next_node = this.getResponsible(objectName);
+
+			if (this == next_node) {
+				scenario._next();
+			} else {
+				scenario.current.orders.unshift({
+					function: this.parent._storeRec,
+					args: [ next_node.name, objectName ],
+					name: '_storeRec',
+					object: this.parent
+				});
+				this.parent._doTransfer(scenario, this, next_node, objectName);
+			}
+		};
+
+		this.getResponsible = function(objectName) {
+			var object_address = CryptoJS.SHA1(CryptoJS.SHA1(objectName)).toString();
+
+			var ring = this.links.out_ring.map(function(d) { return d.start_address; });
+
+			console.log(ring);
+			ring.push(this.start_address);
+			ring.push(object_address);
+
+			ring.sort();
+			var index = ring.indexOf(object_address);
+			if (index == 0) {
+				index = ring.length;
+			}
+			var node_address = ring[index - 1];
+
+			if (node_address == this.start_address) {
+				// Object is stored.
+				return this;
+			}
+			console.log(this.links.out);
+
+			var node = this.links.out_ring.find(function(d) {
+				console.log(d.start_address);
+				return d.start_address == node_address;
+			});
+			console.log(node);
+
+			return node;
+		};
+
+		this.getResponsibleForRing = function(ringName, objectName) {
+			var object_address = CryptoJS.SHA1(CryptoJS.SHA1(objectName)).toString();
+
+			var ring = [];
+			for (var nodeName in this.links.out) {
+				var n = this.links.out[nodeName];
+				if (n.ring == ringName) {
+					ring.push(n.start_address);
+				}
+			}
+
+			ring.push(object_address);
+
+			ring.sort();
+			var index = ring.indexOf(object_address);
+			if (index == 0) {
+				index = ring.length;
+			}
+			var node_address = ring[index - 1];
+
+			var node = this.links.out.find(function(d) {
+				return d.start_address == node_address;
+			});
+
+			return node;
 		};
 	};
 })(sim)
