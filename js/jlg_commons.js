@@ -23,7 +23,5 @@ Math.randomize = function(min, max) {
 	if (max === undefined) {
 		throw new Error('No max specified.');
 	}
-	console.log('min=' + min);
-	console.log('max=' + max);
 	return Math.random() * (max - min) + min;
 };

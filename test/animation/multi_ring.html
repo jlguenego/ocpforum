@@ -30,6 +30,12 @@ svg {
 	stroke: #EEEEEE;
 	stroke-width: 2;
 }
+
+.links path {
+	fill: none;
+	stroke: #FFD7D7;
+	stroke-width: 0.5;
+}
 		</style>
 	</head>
 
@@ -46,8 +52,9 @@ $(document).ready(function() {
 	var scenario = new Scenario();
 	var mr = new sim.MultiRingDS(scenario, svg);
 	mr.options.duration = {
-		refreshRing: 500,
-		addNode: 500
+		refreshRing: 100,
+		addNode: 100,
+		addLink: 20
 	};
 
 	var ring_nbr = 3;
@@ -67,6 +74,19 @@ $(document).ready(function() {
 			ring: 'r' + ring_id
 		}));
 	}
+
+	for (var i = 0; i < nbr; i++) {
+		var sourceName = 'n' + i;
+		for (var j = 0; j < nbr; j++) {
+			if (i == j) {
+				continue;
+			}
+			var targetName = 'n' + j;
+			mr.addLink(sourceName, targetName);
+		}
+	}
+
+	//mr.addRing('r3', 3);
 
 	scenario.start();
 });
