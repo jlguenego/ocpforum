@@ -16,7 +16,8 @@ var sim = new Simulation();
 
 		this.options = {
 			duration: {
-				refreshRing: 500
+				refreshRing: 500,
+				addNode: 100
 			}
 		};
 
@@ -32,11 +33,12 @@ var sim = new Simulation();
 			});
 		};
 
-		this._addRing = function(name) {
+		this._addRing = function(name, i) {
 			var scenario = this.scenario.getThread(arguments);
 
 			this.rings[name] = {
 				name: name,
+				index: i,
 				nodes: {}
 			};
 
@@ -62,27 +64,83 @@ var sim = new Simulation();
 			}
 			var first_ring = dataset[0];
 
-			var y = this.svgbox.y / 2;
-			var x = function(d, i) {
+			var ring_cx = function(d) {
 				var width = self.svgbox.x / ring_nbr;
-				return width * i + width / 2;
+				return width * d.index + width / 2;
+			};
+			var ring_cy = function(d) {
+				return self.svgbox.y / 2;
+			};
+			var ring_r = function(d) {
+				return (Math.min(self.svgbox.x, self.svgbox.y) / 2) * 0.8;
+			};
+			var scale = function(d) {
+				return 1 / ring_nbr;
 			};
 
-			ring_g.select('circle')
-				.transition()
-					.duration(this.options.duration.refreshRing)
-					.attr('r', ((self.svgbox.x / ring_nbr) / 2) * 0.8);
+			ring_g.select('circle').attr('r', ring_r);
 
 			ring_g.transition()
 				.duration(this.options.duration.refreshRing)
-				.attr('transform', function(d, i) {
-					return 'scale(1) translate(' + x(d, i) + ', ' + y + ')';
+				.attr('transform', function(d) {
+					return 'translate(' + ring_cx(d) + ', ' + ring_cy(d) + ') scale(' + scale(d) + ')';
 				})
 				.each('end', function(d) {
 					if (d.name == first_ring.name) {
 						scenario._next();
 					}
 				});
+
+			// Refresh nodes
+			var node = ring_g.selectAll('g.node')
+				.data(function(d, i) { return d3.values(d.nodes); });
+			node.exit().remove();
+
+			var new_g = node.enter().append('g')
+				.classed('node', true)
+				.style('opacity', 0);
+
+			var text = new_g.append('text')
+				.attr('x', 25)
+				.style('opacity', 0);
+			text.append('tspan')
+				.text(function(d) { return d.name; });
+
+			new_g.on('mouseover', function() {
+					d3.select(this).select('text')
+						.transition()
+							.duration(200)
+							.style('opacity', 1);
+				})
+				.on('mouseout', function() {
+					d3.select(this).select('text')
+						.transition()
+							.duration(200)
+							.style('opacity', 0);
+				});
+
+			new_g.append('image')
+				.attr('xlink:href', function(d) { return d.image; })
+				.attr('transform', 'translate(-25, -25)')
+				.attr('width', 50)
+				.attr('height', 50);
+
+			new_g.transition()
+				.duration(this.options.duration.addNode)
+				.style('opacity', 1);
+
+			node.attr('transform', function(d) {
+				// 0, 0: center of the ring.
+				var ring = self.rings[d.ring];
+				var r = ring_r(ring);
+				console.log('r=' + r);
+				var angle = (parseInt(d.start_address.substr(0, 4), 16) / 0xffff) * 2 * Math.PI;
+				var x = r * Math.cos(angle);
+				var y = - r * Math.sin(angle);
+				console.log('x=' + x);
+				console.log('y=' + y);
+				return 'translate(' + x + ', ' + y + ')';
+			});
 		};
 
 		this.addNode = function(node) {

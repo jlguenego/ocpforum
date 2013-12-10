@@ -7,6 +7,7 @@
 		<script src="_ext/d3.v3.min.js"></script>
 		<script src="_ext/jquery-1.10.2.min.js"></script>
 		<script src="_ext/sha1.js"></script>
+		<script src="_ext/seedrandom-min.js"></script>
 		<script src="js/jlg_commons.js"></script>
 		<script src="js/animation.js"></script>
 		<script src="js/multi_ring.js"></script>
@@ -20,7 +21,7 @@ html, body {
 	padding: 0px;
 }
 
-.ring {
+.ring circle {
 	fill: none;
 	stroke: #EEEEEE;
 	stroke-width: 2;
@@ -32,9 +33,8 @@ html, body {
 		<div id="frame"></div>
 
 		<script>
+Math.seedrandom('Hello');
 $(document).ready(function() {
-	var ring_nbr = 3;
-
 	var svg = d3.select('#frame').append('svg')
 		.attr('width', 800)
 		.attr('height', 600);
@@ -42,23 +42,25 @@ $(document).ready(function() {
 	var scenario = new Scenario();
 	var mr = new sim.MultiRingDS(scenario, svg);
 	mr.options.duration = {
-		refreshRing: 500
+		refreshRing: 500,
+		addNode: 500
 	};
 
+	var ring_nbr = 3;
 	for (var i = 0; i < ring_nbr; i++) {
-		mr.addRing('r' + i);
+		mr.addRing('r' + i, i);
 	}
 
 	var nbr = 20;
 	for (var i = 0; i < nbr; i++) {
 		var name = 'n' + i;
-		var start_address = CryptoJS.SHA1(CryptoJS.SHA1(name)).toString();
-		var ring = parseInt(start_address.substr(0, 1), 16) % ring_nbr;
+		var start_address = CryptoJS.SHA1(CryptoJS.SHA1(Math.randomize(0, 1000).toString())).toString();
+		var ring_id = Math.floor(Math.randomize(0, 1000)) % ring_nbr;
 		mr.addNode(new sim.Node({
 			name: name,
 			start_address: start_address,
 			image: 'image/neufbox.png',
-			ring: 'r' + ring
+			ring: 'r' + ring_id
 		}));
 	}
 

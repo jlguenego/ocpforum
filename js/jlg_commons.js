@@ -14,3 +14,16 @@ String.prototype.padleft = function(length, character) {
 String.prototype.padright = function(length, character) {
 	return this + (new Array(length - this.length + 1)).join(character || '0');
 };
+
+
+Math.randomize = function(min, max) {
+	if (min === undefined) {
+		return Math.random();
+	}
+	if (max === undefined) {
+		throw new Error('No max specified.');
+	}
+	console.log('min=' + min);
+	console.log('max=' + max);
+	return Math.random() * (max - min) + min;
+};
