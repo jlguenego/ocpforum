@@ -209,6 +209,125 @@ var sim = new Simulation();
 			});
 		};
 
+		this.addLinks = function(topologyName) {
+			this.scenario.push({
+				function: this._addLinks,
+				args: arguments,
+				name: 'addLinks',
+				object: this
+			});
+		};
+
+		this._addLinks = function(topologyName) {
+			var scenario = this.scenario.getThread(arguments);
+
+			if (topologyName == 'topology_all_to_all') {
+				console.log('topology_all_to_all');
+				this.addTopoA2A(scenario);
+			} else if (topologyName == 'topology_optimum') {
+				console.log('topology_optimum');
+				this.addTopoOptimum(scenario);
+			}
+		};
+
+		this.addTopoA2A = function(scenario) {
+			var nodeName_a = d3.keys(this.nodes);
+			for (var i = 0; i < nodeName_a.length; i++) {
+				for (var j = 0; j < nodeName_a.length; j++) {
+					if (i == j) {
+						continue;
+					}
+					this.scenario.unshift({
+						function: this._addLink,
+						args: [ nodeName_a[i], nodeName_a[j] ],
+						name: 'addLink',
+						object: this
+					});
+				}
+			}
+			scenario._next();
+		};
+
+		this.addTopoOptimum = function(scenario) {
+			for (var ringName in this.rings) {
+				var ring = this.rings[ringName];
+
+				var addressMap = {};
+				var addressList = [];
+				for (var nodeName in ring.nodes) {
+					var node = ring.nodes[nodeName];
+					addressMap[node.start_address] = node.name;
+					addressList.push(node.start_address);
+				}
+
+				addressList.sort();
+				var nbr = addressList.length;
+				for (var i = 0; i < nbr; i++) {
+					for (var j = 1; j <= nbr; j = j * 2) {
+						var j2 = (i + j) % nbr;
+						var sourceNodeName = addressMap[addressList[i]];
+						var targetNodeName = addressMap[addressList[j2]];
+
+						this.scenario.unshift({
+							function: this._addLink,
+							args: [ sourceNodeName, targetNodeName ],
+							name: 'addLink',
+							object: this
+						});
+					}
+				}
+			}
+
+			for (var nodeName in this.nodes) {
+				var node = this.nodes[nodeName];
+				var start_address = node.start_address;
+
+				for (var ringName in this.rings) {
+					if (node.ring == ringName) {
+						continue;
+					}
+
+					var ringNode = this.getNodeResponsibleForRing(ringName, start_address);
+					this.scenario.unshift({
+						function: this._addLink,
+						args: [ nodeName, ringNode.name ],
+						name: 'addLink',
+						object: this
+					});
+				}
+			}
+
+
+			scenario._next();
+		};
+
+		this.getNodeResponsibleForRing = function(ringName, address) {
+			var nodes = this.rings[ringName].nodes;
+			var addressList = [];
+			for (var nodeName in nodes) {
+				var n = nodes[nodeName];
+				if (n.start_address == address) {
+					return n;
+				}
+				addressList.push(n.start_address);
+			}
+
+			addressList.push(address);
+
+			addressList.sort();
+			var index = addressList.indexOf(address);
+			if (index == 0) {
+				index = addressList.length;
+			}
+			var node_address = addressList[index - 1];
+
+			var node = d3.values(nodes).find(function(d) {
+				return d.start_address == node_address;
+			});
+
+			return node;
+		};
+
 		this.addLink = function(sourceName, targetName) {
 			this.scenario.push({
 				function: this._addLink,
@@ -377,7 +496,8 @@ var sim = new Simulation();
 					continue;
 				}
 
-				var ringNode = node.getResponsibleForRing(ringName, objectName);
+				var object_address = CryptoJS.SHA1(CryptoJS.SHA1(objectName)).toString();
+				var ringNode = node.getResponsibleForRing(ringName, object_address);
 
 				if (!ringNode) {
 					continue;
@@ -534,12 +654,13 @@ var sim = new Simulation();
 			return node;
 		};
 
-		this.getResponsibleForRing = function(ringName, objectName) {
-			var object_address = CryptoJS.SHA1(CryptoJS.SHA1(objectName)).toString();
-
+		this.getResponsibleForRing = function(ringName, object_address) {
 			var ring = [];
 			for (var nodeName in this.links.out) {
 				var n = this.links.out[nodeName];
+				if (n.start_address == object_address) {
+					return n;
+				}
 				if (n.ring == ringName) {
 					ring.push(n.start_address);
 				}

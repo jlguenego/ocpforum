@@ -44,6 +44,10 @@ function Scenario() {
 		this.current.orders.push(order);
 	};
 
+	this.unshift = function(order) {
+		this.current.orders.unshift(order);
+	};
+
 	this.start = function() {
 		this._next();
 	};

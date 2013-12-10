@@ -54,45 +54,45 @@ $(document).ready(function() {
 	mr.options.duration = {
 		refreshRing: 100,
 		addNode: 100,
-		addLink: 0,
+		addLink: 20,
 		addObject: 100,
-		doTransfer: 5000
+		doTransfer: 1000
 	};
 
-	var ring_nbr = 1;
+	var ring_nbr = 2;
 	for (var i = 0; i < ring_nbr; i++) {
 		mr.addRing('r' + i, i);
 	}
 
-	var nbr = 20;
-	for (var i = 0; i < nbr; i++) {
-		var name = 'n' + i;
-		var start_address = CryptoJS.SHA1(CryptoJS.SHA1(Math.randomize(0, 1000).toString())).toString();
-		var ring_id = Math.floor(Math.randomize(0, 1000)) % ring_nbr;
-		mr.addNode(new sim.Node({
-			name: name,
-			start_address: start_address,
-			image: 'image/neufbox.png',
-			ring: 'r' + ring_id
-		}));
-	}
 
-	for (var i = 0; i < nbr; i++) {
-		var sourceName = 'n' + i;
+	var nbr = 3;
+	var counter = 0;
+	for (var i = 0; i < ring_nbr; i++) {
 		for (var j = 0; j < nbr; j++) {
-			if (i == j) {
-				continue;
-			}
-			if (i == 3 && j == 1) {
-				continue;
-			}
-			var targetName = 'n' + j;
-			mr.addLink(sourceName, targetName);
+			var name = 'n' + counter;
+			//var start_address = CryptoJS.SHA1(CryptoJS.SHA1(Math.randomize(0, 1000).toString())).toString();
+
+			var start_address = Math.floor((j / nbr) * 0xffff).toString(16);
+			console.log('start_address=' + start_address);
+			start_address = start_address.padleft(4, '0');
+			start_address = start_address.padright(16, '0');
+
+			var ring_id = i;
+			mr.addNode(new sim.Node({
+				name: name,
+				start_address: start_address,
+				image: 'image/neufbox.png',
+				ring: 'r' + ring_id
+			}));
+
+			counter++;
 		}
 	}
 
-	mr.addObject('n3', 'flower', 'image/test/flower.jpg');
-	mr.store('n3', 'flower');
+	mr.addLinks('topology_optimum');
+
+	mr.addObject('n2', 'flower', 'image/test/flower.jpg');
+	mr.store('n2', 'flower');
 
 	scenario.start();
 });
