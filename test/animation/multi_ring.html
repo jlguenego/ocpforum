@@ -11,7 +11,7 @@
 		<script src="js/jlg_commons.js"></script>
 		<script src="js/animation.js"></script>
 		<script src="js/multi_ring.js"></script>
-		<script src="js/scenario.js"></script>
+		<script src="js/processus.js"></script>
 
 		<style>
 html, body {
@@ -49,8 +49,8 @@ $(document).ready(function() {
 		.attr('width', 800)
 		.attr('height', 300);
 
-	var scenario = new Scenario();
-	var mr = new sim.MultiRingDS(scenario, svg);
+	var thread = new Thread('main');
+	var mr = new sim.MultiRingDS(thread, svg);
 	mr.options.duration = {
 		refreshRing: 100,
 		addNode: 100,
@@ -59,13 +59,13 @@ $(document).ready(function() {
 		doTransfer: 1000
 	};
 
-	var ring_nbr = 2;
+	var ring_nbr = 3;
 	for (var i = 0; i < ring_nbr; i++) {
 		mr.addRing('r' + i, i);
 	}
 
 
-	var nbr = 3;
+	var nbr = 11;
 	var counter = 0;
 	for (var i = 0; i < ring_nbr; i++) {
 		for (var j = 0; j < nbr; j++) {
@@ -91,10 +91,10 @@ $(document).ready(function() {
 
 	mr.addLinks('topology_optimum');
 
-	mr.addObject('n2', 'flower', 'image/test/flower.jpg');
-	mr.store('n2', 'flower');
+	mr.addObject('n8', 'flower', 'image/test/flower.jpg');
+	mr.store('n8', 'flower');
 
-	scenario.start();
+	thread.start();
 });
 		</script>
 	</body>

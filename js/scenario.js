@@ -31,6 +31,7 @@ function Scenario() {
 
 	this._startThread = function(threadName) {
 		var scenario = this.getThread(arguments);
+		console.log('starting thread ' + threadName);
 		setTimeout(function() {
 			var s = new Scenario();
 			s.threads = self.threads;
@@ -101,7 +102,7 @@ function Scenario() {
 			order.function.apply(order.object, order.args);
 		} else {
 			this.current.state = true;
-			console.log('no order anymore.');
+			console.log(this.current.name + ': no order anymore.');
 		}
 	};
 

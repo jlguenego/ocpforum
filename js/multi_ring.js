@@ -4,10 +4,10 @@ function Simulation() {
 var sim = new Simulation();
 
 (function(sim, undefined) {
-	sim.MultiRingDS = function(scenario, svg) {
+	sim.MultiRingDS = function(thread, svg) {
 		var self = this;
 
-		this.scenario = scenario;
+		this.thread = thread;
 		this.svg = svg;
 		this.svgbox = {
 			x: svg.attr('width'),
@@ -54,7 +54,7 @@ var sim = new Simulation();
 		};
 
 		this.addRing = function(name) {
-			this.scenario.push({
+			this.thread.push({
 				function: this._addRing,
 				args: arguments,
 				name: 'addRing',
@@ -63,14 +63,14 @@ var sim = new Simulation();
 		};
 
 		this._addRing = function(name, i) {
-			var scenario = this.scenario.getThread(arguments);
+			var thread = this.thread.getThread(arguments);
 
 			this.rings[name] = {
 				name: name,
 				index: i,
 				nodes: {}
 			};
-			this.refreshRings(scenario);
+			this.refreshRings(thread);
 		};
 
 		this.refreshMain = function() {
@@ -101,7 +101,7 @@ var sim = new Simulation();
 				.attr('transform', 'translate(0, ' + y + ') scale(' + this.scale + ')');
 		};
 
-		this.refreshRings = function(scenario) {
+		this.refreshRings = function(thread) {
 			var dataset = d3.values(this.rings);
 
 			var ring_g = this.group.selectAll('g.ring').data(dataset);
@@ -127,7 +127,7 @@ var sim = new Simulation();
 				.each('end', function(d) {
 					if (d.name == first_ring.name) {
 						self.refreshMain();
-						scenario._next();
+						thread._next();
 					}
 				});
 
@@ -136,7 +136,7 @@ var sim = new Simulation();
 
 		this.addNode = function(node) {
 			node.parent = this;
-			this.scenario.push({
+			this.thread.push({
 				function: this._addNode,
 				args: arguments,
 				name: 'addNode',
@@ -145,16 +145,16 @@ var sim = new Simulation();
 		};
 
 		this._addNode = function(node) {
-			var scenario = this.scenario.getThread(arguments);
+			var thread = this.thread.getThread(arguments);
 
 			this.nodes[node.name] = node;
 			console.log(node);
 			this.rings[node.ring].nodes[node.name] = node;
 
-			this.refreshNodes(scenario);
+			this.refreshNodes(thread);
 		};
 
-		this.refreshNodes = function(scenario) {
+		this.refreshNodes = function(thread) {
 			var dataset = d3.values(this.rings);
 			var ring_g = this.svg.selectAll('g.ring').data(dataset);
 
@@ -195,7 +195,7 @@ var sim = new Simulation();
 				.duration(this.options.duration.addNode)
 				.style('opacity', 1)
 				.each('end', function() {
-					scenario._next();
+					thread._next();
 				});
 
 			node.attr('transform', function(d) {
@@ -210,7 +210,7 @@ var sim = new Simulation();
 		};
 
 		this.addLinks = function(topologyName) {
-			this.scenario.push({
+			this.thread.push({
 				function: this._addLinks,
 				args: arguments,
 				name: 'addLinks',
@@ -219,25 +219,25 @@ var sim = new Simulation();
 		};
 
 		this._addLinks = function(topologyName) {
-			var scenario = this.scenario.getThread(arguments);
+			var thread = this.thread.getThread(arguments);
 
 			if (topologyName == 'topology_all_to_all') {
 				console.log('topology_all_to_all');
-				this.addTopoA2A(scenario);
+				this.addTopoA2A(thread);
 			} else if (topologyName == 'topology_optimum') {
 				console.log('topology_optimum');
-				this.addTopoOptimum(scenario);
+				this.addTopoOptimum(thread);
 			}
 		};
 
-		this.addTopoA2A = function(scenario) {
+		this.addTopoA2A = function(thread) {
 			var nodeName_a = d3.keys(this.nodes);
 			for (var i = 0; i < nodeName_a.length; i++) {
 				for (var j = 0; j < nodeName_a.length; j++) {
 					if (i == j) {
 						continue;
 					}
-					this.scenario.unshift({
+					this.thread.unshift({
 						function: this._addLink,
 						args: [ nodeName_a[i], nodeName_a[j] ],
 						name: 'addLink',
@@ -245,10 +245,10 @@ var sim = new Simulation();
 					});
 				}
 			}
-			scenario._next();
+			thread._next();
 		};
 
-		this.addTopoOptimum = function(scenario) {
+		this.addTopoOptimum = function(thread) {
 			for (var ringName in this.rings) {
 				var ring = this.rings[ringName];
 
@@ -268,7 +268,7 @@ var sim = new Simulation();
 						var sourceNodeName = addressMap[addressList[i]];
 						var targetNodeName = addressMap[addressList[j2]];
 
-						this.scenario.unshift({
+						this.thread.unshift({
 							function: this._addLink,
 							args: [ sourceNodeName, targetNodeName ],
 							name: 'addLink',
@@ -288,7 +288,7 @@ var sim = new Simulation();
 					}
 
 					var ringNode = this.getNodeResponsibleForRing(ringName, start_address);
-					this.scenario.unshift({
+					this.thread.unshift({
 						function: this._addLink,
 						args: [ nodeName, ringNode.name ],
 						name: 'addLink',
@@ -298,7 +298,7 @@ var sim = new Simulation();
 			}
 
 
-			scenario._next();
+			thread._next();
 		};
 
 		this.getNodeResponsibleForRing = function(ringName, address) {
@@ -329,7 +329,7 @@ var sim = new Simulation();
 		};
 
 		this.addLink = function(sourceName, targetName) {
-			this.scenario.push({
+			this.thread.push({
 				function: this._addLink,
 				args: arguments,
 				name: 'addLink',
@@ -338,7 +338,7 @@ var sim = new Simulation();
 		};
 
 		this._addLink = function(sourceName, targetName) {
-			var scenario = this.scenario.getThread(arguments);
+			var thread = this.thread.getThread(arguments);
 
 			var source = this.nodes[sourceName];
 			var target = this.nodes[targetName];
@@ -353,10 +353,10 @@ var sim = new Simulation();
 			if (source.ring == target.ring) {
 				source.links.out_ring.push(target);
 			}
-			this.refreshLinks(scenario);
+			this.refreshLinks(thread);
 		};
 
-		this.refreshLinks = function(scenario) {
+		this.refreshLinks = function(thread) {
 			var dataset = this.links;
 
 			var path = this.links_g.selectAll('path').data(dataset);
@@ -411,12 +411,12 @@ var sim = new Simulation();
 					.duration(this.options.duration.addLink)
 					.attr('stroke-dashoffset', 0)
 					.each('end', function(d, i) {
-						scenario._next();
+						thread._next();
 					});
 		};
 
 		this.addObject = function(nodeName, name, source) {
-			this.scenario.push({
+			this.thread.push({
 				function: this._addObject,
 				args: [ nodeName, name, source, undefined ],
 				name: 'addObject',
@@ -425,7 +425,7 @@ var sim = new Simulation();
 		};
 
 		this._addObject = function(nodeName, name, source, duration) {
-			var scenario = this.scenario.getThread(arguments);
+			var thread = this.thread.getThread(arguments);
 
 			console.log('nodeName=' + nodeName);
 			console.log('name=' + name);
@@ -439,10 +439,10 @@ var sim = new Simulation();
 			node.objects.push(obj);
 			this.objects[obj.name] = obj;
 
-			this.refreshObjects(scenario, duration);
+			this.refreshObjects(thread, duration);
 		};
 
-		this.refreshObjects = function(scenario, duration) {
+		this.refreshObjects = function(thread, duration) {
 			if (duration === undefined) {
 				duration = this.options.duration.addObject;
 			}
@@ -472,13 +472,13 @@ var sim = new Simulation();
 					.duration(duration)
 					.style('opacity', 1)
 					.each('end', function() {
-						scenario._next();
+						thread._next();
 					});
 
 		};
 
 		this.store = function(nodeName, objectName) {
-			this.scenario.push({
+			this.thread.push({
 				function: this._store,
 				args: arguments,
 				name: 'store',
@@ -487,12 +487,15 @@ var sim = new Simulation();
 		};
 
 		this._store = function(nodeName, objectName) {
-			var scenario = this.scenario.getThread(arguments);
+			var thread = this.thread.getThread(arguments);
+			console.log('_store start');
 			var node = this.nodes[nodeName];
-			node.store(scenario, objectName);
+			node.store(thread, objectName);
 
 			for (var ringName in this.rings) {
+				console.log('ringName = ' + ringName);
 				if (ringName == node.ring) {
+					console.log('same ring');
 					continue;
 				}
 
@@ -500,49 +503,68 @@ var sim = new Simulation();
 				var ringNode = node.getResponsibleForRing(ringName, object_address);
 
 				if (!ringNode) {
+					console.log('no node responsible found for this ring.' + ringName);
 					continue;
 				}
 
-				var oldThread = scenario.current.name;
-				scenario.setThread(objectName + '_' + ringName);
-				scenario.push({
+				var tname = objectName + '_' + ringName;
+				var new_thread = new Thread(tname, thread);
+				console.log('push new order in thread ' + tname);
+				var nodeName = node.name;
+				var ringNodeName = ringNode.name;
+				this.doTransfer(new_thread, nodeName, ringNodeName, objectName);
+				new_thread.push({
 					function: this._storeRec,
-					args: [ ringNode.name, objectName ],
+					args: [ ringNodeName, objectName ],
 					name: '_storeRec',
 					object: this
 				});
-				this._doTransfer(scenario, node, ringNode, objectName);
-				scenario.setThread(oldThread);
+				if (tname == 'flower_r2') {
+					new_thread.push({
+						function: function() {
+							var thread = self.thread.getThread(arguments);
+							console.log('I am a special thread...');
+							thread._next();
+						},
+						args: [ 'kiki' ],
+						name: 'helloworld',
+						object: this
+					});
+				}
+				console.log(new_thread.orders.map(function(d) {	return d.name; }));
+				new_thread.start();
 			}
 		};
 
 		this._storeRec = function(nodeName, objectName) {
-			var scenario = this.scenario.getThread(arguments);
+			var thread = this.thread.getThread(arguments);
 			var node = this.nodes[nodeName];
-			node.store(scenario, objectName);
+			node.store(thread, objectName);
 		};
 
-		this.doTransfer = function(scenario, source, target, objectName) {
-			scenario.current.orders.unshift({
+		this.doTransfer = function(thread, sourceName, targetName, objectName) {
+			thread.unshift({
 				function: this._doTransfer,
-				args: [ source, target, objectName ],
+				args: [ sourceName, targetName, objectName ],
 				name: 'doTransfer',
 				object: this
 			});
 		};
 
-		this._doTransfer = function(source, target, objectName) {
-			var scenario = this.scenario.getThread(arguments);
+		this._doTransfer = function(sourceName, targetName, objectName) {
+			var thread = this.thread.getThread(arguments);
+			var source = this.nodes[sourceName];
+			var target = this.nodes[targetName];
 			var transfer = {
 				source: source,
 				target: target,
 				object: this.objects[objectName]
 			};
 
-			this.performTransfer(scenario, transfer);
+			this.performTransfer(thread, transfer);
 		};
 
-		this.performTransfer = function(scenario, transfer) {
+		this.performTransfer = function(thread, transfer) {
 			var duration = this.options.duration.doTransfer;
 
 			var pathNode = d3.select('#' + transfer.source.name + '_' + transfer.target.name).node();
@@ -570,7 +592,7 @@ var sim = new Simulation();
 					})
 				.each('end', function() {
 					g_obj.remove();
-					self._addObject(scenario, transfer.target.name, transfer.object.name, transfer.object.source, 0);
+					self._addObject(thread, transfer.target.name, transfer.object.name, transfer.object.source, 0);
 				});
 		};
 	};
@@ -607,19 +629,19 @@ var sim = new Simulation();
 			};
 		};
 
-		this.store = function(scenario, objectName) {
+		this.store = function(thread, objectName) {
 			var next_node = this.getResponsible(objectName);
 
 			if (this == next_node) {
-				scenario._next();
+				thread._next();
 			} else {
-				scenario.current.orders.unshift({
+				thread.unshift({
 					function: this.parent._storeRec,
 					args: [ next_node.name, objectName ],
 					name: '_storeRec',
 					object: this.parent
 				});
-				this.parent._doTransfer(scenario, this, next_node, objectName);
+				this.parent._doTransfer(thread, this.name, next_node.name, objectName);
 			}
 		};
 
@@ -655,16 +677,22 @@ var sim = new Simulation();
 		};
 
 		this.getResponsibleForRing = function(ringName, object_address) {
+			console.log('getResponsibleForRing with ringName=' + ringName);
 			var ring = [];
 			for (var nodeName in this.links.out) {
 				var n = this.links.out[nodeName];
+				if (n.ring != ringName) {
+					continue;
+				}
 				if (n.start_address == object_address) {
+					console.log('return node ' + n.name);
 					return n;
 				}
-				if (n.ring == ringName) {
-					ring.push(n.start_address);
-				}
+				ring.push(n.start_address);
 			}
+
+			console.log('ring is built');
+			console.log(ring);
 
 			ring.push(object_address);
 
@@ -676,7 +704,7 @@ var sim = new Simulation();
 			var node_address = ring[index - 1];
 
 			var node = this.links.out.find(function(d) {
-				return d.start_address == node_address;
+				return (d.start_address == node_address) && (d.ring == ringName);
 			});
 
 			return node;
