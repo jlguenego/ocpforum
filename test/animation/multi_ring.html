@@ -21,6 +21,10 @@ html, body {
 	padding: 0px;
 }
 
+svg {
+	border: 1px solid black;
+}
+
 .ring circle {
 	fill: none;
 	stroke: #EEEEEE;
@@ -37,7 +41,7 @@ Math.seedrandom('Hello');
 $(document).ready(function() {
 	var svg = d3.select('#frame').append('svg')
 		.attr('width', 800)
-		.attr('height', 600);
+		.attr('height', 300);
 
 	var scenario = new Scenario();
 	var mr = new sim.MultiRingDS(scenario, svg);

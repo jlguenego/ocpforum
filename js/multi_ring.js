@@ -18,6 +18,12 @@ var sim = new Simulation();
 			duration: {
 				refreshRing: 500,
 				addNode: 100
+			},
+			ring: {
+				radius: 300,
+				node: {
+					scale: 2
+				}
 			}
 		};
 
@@ -72,7 +78,7 @@ var sim = new Simulation();
 				return self.svgbox.y / 2;
 			};
 			var ring_r = function(d) {
-				return (Math.min(self.svgbox.x, self.svgbox.y) / 2) * 0.8;
+				return self.options.ring.radius;
 			};
 			var scale = function(d) {
 				return 1 / ring_nbr;
@@ -139,7 +145,7 @@ var sim = new Simulation();
 				var y = - r * Math.sin(angle);
 				console.log('x=' + x);
 				console.log('y=' + y);
-				return 'translate(' + x + ', ' + y + ')';
+				return 'translate(' + x + ', ' + y + ') scale(' + self.options.ring.node.scale + ')';
 			});
 		};
 
