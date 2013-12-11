@@ -7,8 +7,6 @@ function Thread(name, parentThread) {
 	this.isFinished = false;
 
 	this.push = function(order) {
-		console.log('push new order in thread ' + this.name);
-		console.log(order);
 		this.orders.push(order);
 	};
 
@@ -27,19 +25,11 @@ function Thread(name, parentThread) {
 			order.function.apply(order.object, order.args);
 		} else {
 			this.isFinished = true;
-			console.log(this.name + ': no order anymore.');
-			console.log(this);
 		}
 	}
 
 	this.start = function() {
-
 		setTimeout(function() {
-			console.log('starting thread ' + self.name);
-			console.log('orders: ');
-			for (var i = 0; i < self.orders.length; i++) {
-				console.log(self.orders[i]);
-			}
 			self._next();
 		}, 0);
 	};
@@ -66,9 +56,7 @@ function Thread(name, parentThread) {
 
 	this.wait = function() {
 		this.push({
-			function: function() {
-				console.log('waiting...');
-			},
+			function: function() {},
 			args: [],
 			name: 'wait',
 			object: this
@@ -81,7 +69,6 @@ function Thread(name, parentThread) {
 					var thread = this.getThread(arguments);
 
 					thread.isFinished = true;
-					console.log(thread.name + ': checking wait');
 					var allFinished = true;
 					for (var i = 0; i < arguments.length; i++) {
 						var t = arguments[i];
@@ -92,7 +79,6 @@ function Thread(name, parentThread) {
 					}
 
 					if (allFinished) {
-						console.log(this.name + ': wait finished');
 						this._next();
 					}
 				},

@@ -241,7 +241,9 @@ var anim = new Animation();
 
 		this._sendBlock = function(block_name, ds, nodeName) {
 			var thread = this.thread.getThread(arguments);
-			var coord = ds.nodes[nodeName];
+			var node = ds.nodes[nodeName];
+			var coord = node.getAbsoluteCoordSVG();
+			console.log(coord);
 
 			var svg = this.group.select('svg#' + block_name)
 				.transition()
@@ -280,7 +282,6 @@ var anim = new Animation();
 
 		this._sleep = function(duration) {
 			var thread = this.thread.getThread(arguments);
-			console.log('duration=' + duration);
 			setTimeout(function() {
 				thread._next();
 			}, duration);

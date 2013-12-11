@@ -485,6 +485,13 @@ var sim = new Simulation();
 			this.parent.requestObject(this.name, name);
 		};
 
+		this.getAbsoluteCoordSVG = function() {
+			return {
+				x: this.x,
+				y: this.y
+			};
+		};
+
 		this.getResponsible = function(objectName) {
 			var object_address = CryptoJS.SHA1(CryptoJS.SHA1(objectName)).toString();
 

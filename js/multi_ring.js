@@ -24,7 +24,8 @@ var sim = new Simulation();
 				addNode: 100,
 				addLink: 100,
 				addObject: 100,
-				doTransfer: 500
+				doTransfer: 500,
+				transform: 500
 			},
 			ring: {
 				radius: 300,
@@ -74,9 +75,7 @@ var sim = new Simulation();
 		};
 
 		this.refreshMain = function() {
-			console.log(this.group);
 			var bbox = this.group.node().getBBox();
-			console.log(bbox);
 			if (bbox.width == 0) {
 				return;
 			}
@@ -86,13 +85,9 @@ var sim = new Simulation();
 
 			if (bbox.width > box_width) {
 				scale = (box_width / bbox.width);
-				console.log('box_width=' + box_width);
-				console.log('bbox.width=' + bbox.width);
-				console.log('new scale=' + scale);
 			}
 			if (bbox.height > box_height) {
 				scale = Math.min(box_height / bbox.height, box_width / bbox.width);
-				console.log('new scale=' + scale);
 			}
 			this.scale = scale;
 			var y = this.svgbox.y / 2;
@@ -148,7 +143,6 @@ var sim = new Simulation();
 			var thread = this.thread.getThread(arguments);
 
 			this.nodes[node.name] = node;
-			console.log(node);
 			this.rings[node.ring].nodes[node.name] = node;
 
 			this.refreshNodes(thread);
@@ -222,10 +216,8 @@ var sim = new Simulation();
 			var thread = this.thread.getThread(arguments);
 
 			if (topologyName == 'topology_all_to_all') {
-				console.log('topology_all_to_all');
 				this.addTopoA2A(thread);
 			} else if (topologyName == 'topology_optimum') {
-				console.log('topology_optimum');
 				this.addTopoOptimum(thread);
 			}
 		};
@@ -427,11 +419,7 @@ var sim = new Simulation();
 		this._addObject = function(nodeName, name, source, duration) {
 			var thread = this.thread.getThread(arguments);
 
-			console.log('nodeName=' + nodeName);
-			console.log('name=' + name);
-			console.log('source=' + source);
 			var node = this.nodes[nodeName];
-			console.log(node);
 			var obj = {
 				name: name,
 				source: source
@@ -488,14 +476,11 @@ var sim = new Simulation();
 
 		this._store = function(nodeName, objectName) {
 			var thread = this.thread.getThread(arguments);
-			console.log('_store start');
 			var node = this.nodes[nodeName];
 			node.store(thread, objectName);
 
 			for (var ringName in this.rings) {
-				console.log('ringName = ' + ringName);
 				if (ringName == node.ring) {
-					console.log('same ring');
 					continue;
 				}
 
@@ -503,13 +488,11 @@ var sim = new Simulation();
 				var ringNode = node.getResponsibleForRing(ringName, object_address);
 
 				if (!ringNode) {
-					console.log('no node responsible found for this ring.' + ringName);
 					continue;
 				}
 
 				var tname = objectName + '_' + ringName;
 				var new_thread = new Thread(tname, thread);
-				console.log('push new order in thread ' + tname);
 				var nodeName = node.name;
 				var ringNodeName = ringNode.name;
 				this.doTransfer(new_thread, nodeName, ringNodeName, objectName);
@@ -560,7 +543,6 @@ var sim = new Simulation();
 				.classed('transfer', true)
 				.attr('transform', 'translate(-12, -12)');
 
-			console.log(transfer.object.name);
 
 			g_obj.append('use')
 				.attr('transform', function(d) {
@@ -581,6 +563,31 @@ var sim = new Simulation();
 					g_obj.remove();
 					self._addObject(thread, transfer.target.name, transfer.object.name, transfer.object.source, 0);
 				});
+		};
+
+		this.transform = function(transform_val) {
+			this.thread.push({
+				function: this._transform,
+				args: arguments,
+				name: 'transform',
+				object: this
+			});
+		};
+
+		this._transform = function(transform_val, scale_val) {
+			var thread = this.thread.getThread(arguments);
+			var transform = this.group.attr('transform');
+			if (!transform) {
+				transform = 'translate(0, ' + (this.svgbox.y / 2) + ') scale(' + this.scale + ')';
+			}
+			var scale = this.scale * scale_val;
+			this.group.attr('transform', transform)
+				.transition()
+					.duration(this.options.duration.transform)
+					.attr('transform', transform_val + ' scale(' + scale + ')')
+					.each('end', function() {
+						thread._next();
+					});
 		};
 	};
 
@@ -616,6 +623,23 @@ var sim = new Simulation();
 			};
 		};
 
+		this.getAbsoluteCoordSVG = function() {
+			var ring = this.parent.rings[this.ring];
+			var cx = this.parent.ring_cx(ring);
+			var cy = this.parent.ring_cy(ring);
+			var r = this.parent.ring_r(ring);
+
+			var angle = (parseInt(this.start_address.substr(0, 4), 16) / 0xffff) * 2 * Math.PI;
+			var x = cx + r * Math.cos(angle);
+			var y = cy - r * Math.sin(angle);
+
+			var result = {
+				x: x * this.parent.scale,
+				y: (y * this.parent.scale) + (this.parent.svgbox.y / 2)
+			};
+			return result;
+		};
+
 		this.store = function(thread, objectName) {
 			var next_node = this.getResponsible(objectName);
 
@@ -637,7 +661,6 @@ var sim = new Simulation();
 
 			var ring = this.links.out_ring.map(function(d) { return d.start_address; });
 
-			console.log(ring);
 			ring.push(this.start_address);
 			ring.push(object_address);
 
@@ -652,19 +675,15 @@ var sim = new Simulation();
 				// Object is stored.
 				return this;
 			}
-			console.log(this.links.out);
 
 			var node = this.links.out_ring.find(function(d) {
-				console.log(d.start_address);
 				return d.start_address == node_address;
 			});
-			console.log(node);
 
 			return node;
 		};
 
 		this.getResponsibleForRing = function(ringName, object_address) {
-			console.log('getResponsibleForRing with ringName=' + ringName);
 			var ring = [];
 			for (var nodeName in this.links.out) {
 				var n = this.links.out[nodeName];
@@ -672,14 +691,10 @@ var sim = new Simulation();
 					continue;
 				}
 				if (n.start_address == object_address) {
-					console.log('return node ' + n.name);
 					return n;
 				}
 				ring.push(n.start_address);
 			}
-
-			console.log('ring is built');
-			console.log(ring);
 
 			ring.push(object_address);
 
