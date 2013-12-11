@@ -47,7 +47,7 @@ th {
 	font-weight: 400;
 }
 
-input {
+input, select {
 	width: 100%;
 	font-size: 14px;
 	font-weight: 400;
@@ -85,6 +85,15 @@ input {
 		<div>
 			<div id="param">
 				<table>
+					<tr>
+						<th>Storage method</th>
+						<td>
+							<select id="storage_method">
+								<option value="redundancy_first">Red. first</option>
+								<option value="redundancy_last">Red. last</option>
+							</select>
+						</td>
+					</tr>
 					<tr>
 						<th>Ring amount</th>
 						<td><input type="text" id="ring_amount" value="3" /></td>
@@ -146,6 +155,7 @@ $('#start').click(function() {
 		doTransfer: $('#transfer').val(),
 		transform: 500
 	};
+	mr.options.storage_method = $('#storage_method').val();
 
 	var obj = new anim.Object(thread, svg, 'image/test/flower.jpg', { x: 200, y: 200 });
 	obj.options.duration= {

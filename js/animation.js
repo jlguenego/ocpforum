@@ -243,7 +243,6 @@ var anim = new Animation();
 			var thread = this.thread.getThread(arguments);
 			var node = ds.nodes[nodeName];
 			var coord = node.getAbsoluteCoordSVG();
-			console.log(coord);
 
 			var svg = this.group.select('svg#' + block_name)
 				.transition()

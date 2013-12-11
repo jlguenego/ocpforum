@@ -32,7 +32,8 @@ var sim = new Simulation();
 				node: {
 					scale: 2
 				}
-			}
+			},
+			storage_method: 'redundancy_first'
 		};
 
 		this.rings = {};
@@ -476,6 +477,17 @@ var sim = new Simulation();
 
 		this._store = function(nodeName, objectName) {
 			var thread = this.thread.getThread(arguments);
+
+			if (this.options.storage_method == 'redundancy_first') {
+				this._storeRF(thread, nodeName, objectName);
+			} else if (this.options.storage_method == 'redundancy_last') {
+				this._storeRL(thread, nodeName, objectName);
+			}
+		};
+
+		this._storeRF = function(nodeName, objectName) {
+			var thread = this.thread.getThread(arguments);
+
 			var node = this.nodes[nodeName];
 			node.store(thread, objectName);
 
@@ -504,6 +516,13 @@ var sim = new Simulation();
 				});
 				new_thread.start();
 			}
+		};
+
+		this._storeRL = function(nodeName, objectName) {
+			var thread = this.thread.getThread(arguments);
+
+			var node = this.nodes[nodeName];
+			node.store(thread, objectName);
 		};
 
 		this._storeRec = function(nodeName, objectName) {
