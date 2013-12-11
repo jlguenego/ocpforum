@@ -28,6 +28,7 @@ function Thread(name, parentThread) {
 		} else {
 			this.isFinished = true;
 			console.log(this.name + ': no order anymore.');
+			console.log(this);
 		}
 	}
 
@@ -41,7 +42,20 @@ function Thread(name, parentThread) {
 			}
 			self._next();
 		}, 0);
-	}
+	};
+
+	this.startThread = function(thread) {
+		this.push({
+			function: function(t) {
+				var thread = this.getThread(arguments);
+				t.start();
+				thread._next();
+			},
+			args: arguments,
+			name: 'startThread',
+			object: this
+		});
+	};
 
 	this.getThread = function() {
 		// return the thread. Call this with the keyword argument inside.
@@ -67,7 +81,7 @@ function Thread(name, parentThread) {
 					var thread = this.getThread(arguments);
 
 					thread.isFinished = true;
-					console.log('checking wait');
+					console.log(thread.name + ': checking wait');
 					var allFinished = true;
 					for (var i = 0; i < arguments.length; i++) {
 						var t = arguments[i];
@@ -78,7 +92,7 @@ function Thread(name, parentThread) {
 					}
 
 					if (allFinished) {
-						console.log('wait finished');
+						console.log(this.name + ': wait finished');
 						this._next();
 					}
 				},

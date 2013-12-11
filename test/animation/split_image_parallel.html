@@ -10,7 +10,7 @@
 		<script src="js/jlg_commons.js"></script>
 		<script src="js/animation.js"></script>
 		<script src="js/simulation.js"></script>
-		<script src="js/scenario.js"></script>
+		<script src="js/processus.js"></script>
 
 		<style>
 html, body {
@@ -82,7 +82,7 @@ input {
 					</tr>
 					<tr>
 						<th>Split duration (ms)</th>
-						<td><input type="text" id="split" value="3000" /></td>
+						<td><input type="text" id="split" value="300" /></td>
 					</tr>
 					<tr>
 						<th>Show image duration (ms)</th>
@@ -90,11 +90,11 @@ input {
 					</tr>
 					<tr>
 						<th>Sleep duration (ms)</th>
-						<td><input type="text" id="sleep" value="1000" /></td>
+						<td><input type="text" id="sleep" value="100" /></td>
 					</tr>
 					<tr>
 						<th>Crypt duration (ms)</th>
-						<td><input type="text" id="crypt" value="1000" /></td>
+						<td><input type="text" id="crypt" value="100" /></td>
 					</tr>
 					<tr>
 						<th>Transfer duration (ms)</th>
@@ -117,9 +117,9 @@ $('#start').click(function() {
 		.attr('width', 800)
 		.attr('height', 600);
 
-	var scenario = new Scenario();
+	var thread = new Thread('main');
 
-	var obj = new anim.Object(scenario, svg, 'image/test/flower.jpg', { x: 200, y: 200 });
+	var obj = new anim.Object(thread, svg, 'image/test/flower.jpg', { x: 200, y: 200 });
 	obj.options.duration= {
 		show: $('#show_image').val(),
 		split: $('#split').val(),
@@ -128,7 +128,7 @@ $('#start').click(function() {
 		sendBlock: 200
 	};
 
-	var ds = new sim.DistributedSystem(scenario, svg);
+	var ds = new sim.DistributedSystem(thread, svg);
 	ds.options.duration = {
 		addNode: 20,
 		addLink: $('#linkage').val(),
@@ -172,17 +172,22 @@ $('#start').click(function() {
 	var list = [];
 	for (var i = 0; i < obj.blocks.length; i++) {
 		var tname = 't' + i;
-		list.push(tname);
-		scenario.setThread(tname);
+		var t = new Thread(tname, thread);
+		list.push(t);
+
+		ds.thread = t;
+		obj.thread = t;
 		obj.sendBlock(obj.blocks[i].name, ds, 'n3');
 		ds.addObject('n3', obj.blocks[i].name, 'image/test/crypted.jpg');
 		obj.remove(obj.blocks[i].name);
 		ds.store('n3', obj.blocks[i].name);
+		thread.startThread(t);
 	}
-	scenario.setThread('main');
-	scenario.wait.apply(scenario, list);
+	ds.thread = thread;
+	obj.thread = thread;
+	thread.wait.apply(thread, list);
 
-	scenario.start();
+	thread.start();
 });
 
 $('#stop').click(function() {

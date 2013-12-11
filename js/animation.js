@@ -4,7 +4,7 @@ function Animation() {
 var anim = new Animation();
 
 (function(anim, undefined) {
-	anim.Object = function(scenario, svg, source, center) {
+	anim.Object = function(thread, svg, source, center) {
 		var self = this;
 
 		this.center = center;
@@ -19,7 +19,7 @@ var anim = new Animation();
 		this.crypted.src = 'image/test/crypted.jpg';
 
 		this.blocks = [];
-		this.scenario = scenario;
+		this.thread = thread;
 
 		this.im = null;
 		this.width = 200;
@@ -40,7 +40,7 @@ var anim = new Animation();
 		};
 
 		this.show = function() {
-			this.scenario.push({
+			this.thread.push({
 				function: this._show,
 				args: arguments,
 				name: 'show',
@@ -49,7 +49,7 @@ var anim = new Animation();
 		};
 
 		this._show = function() {
-			var scenario = this.scenario.getThread(arguments);
+			var thread = this.thread.getThread(arguments);
 
 			this.im = new Image();
 			this.im.src = this.source;
@@ -69,7 +69,7 @@ var anim = new Animation();
 						.duration(self.options.duration.show)
 						.style('opacity', 1)
 						.each('end', function() {
-							scenario._next();
+							thread._next();
 						});
 			};
 		};
@@ -82,7 +82,7 @@ var anim = new Animation();
 					});
 				}
 			}
-			this.scenario.push({
+			this.thread.push({
 				function: this._split,
 				args: arguments,
 				name: 'split',
@@ -91,7 +91,7 @@ var anim = new Animation();
 		};
 
 		this._split = function(row, col) {
-			var scenario = this.scenario.getThread(arguments);
+			var thread = this.thread.getThread(arguments);
 
 			var dataset = [];
 
@@ -163,13 +163,13 @@ var anim = new Animation();
 				})
 				.each('end', function(d) {
 					if (d.i == 0 && d.j == 0) {
-						scenario._next();
+						thread._next();
 					}
 				});
 		};
 
 		this.crypt = function() {
-			this.scenario.push({
+			this.thread.push({
 				function: this._crypt,
 				args: arguments,
 				name: 'crypt',
@@ -178,7 +178,7 @@ var anim = new Animation();
 		};
 
 		this._crypt = function() {
-			var scenario = this.scenario.getThread(arguments);
+			var thread = this.thread.getThread(arguments);
 
 			this.group.selectAll('svg')
 				.each(function(d) {
@@ -203,13 +203,13 @@ var anim = new Animation();
 						.attr('x', function(d) { return d.x; })
 						.each('end', function(d) {
 							if (d.i == 0 && d.j == 0) {
-								scenario._next();
+								thread._next();
 							}
 						});
 		};
 
 		this.minimize = function() {
-			this.scenario.push({
+			this.thread.push({
 				function: this._minimize,
 				args: arguments,
 				name: 'minimize',
@@ -218,7 +218,7 @@ var anim = new Animation();
 		};
 
 		this._minimize = function() {
-			var scenario = this.scenario.getThread(arguments);
+			var thread = this.thread.getThread(arguments);
 
 			this.group
 				.attr('transform', 'scale(1)')
@@ -226,12 +226,12 @@ var anim = new Animation();
 					.duration(self.options.duration.minimize)
 					.attr('transform', 'scale(' + self.options.scale.minimize + ')')
 					.each('end', function() {
-						scenario._next();
+						thread._next();
 					});
 		};
 
 		this.sendBlock = function(block_name, ds, nodeName) {
-			this.scenario.push({
+			this.thread.push({
 				function: this._sendBlock,
 				args: arguments,
 				name: 'sendBlock',
@@ -240,7 +240,7 @@ var anim = new Animation();
 		};
 
 		this._sendBlock = function(block_name, ds, nodeName) {
-			var scenario = this.scenario.getThread(arguments);
+			var thread = this.thread.getThread(arguments);
 			var coord = ds.nodes[nodeName];
 
 			var svg = this.group.select('svg#' + block_name)
@@ -249,12 +249,12 @@ var anim = new Animation();
 					.attr('x', coord.x / self.options.scale.minimize)
 					.attr('y', coord.y / self.options.scale.minimize)
 					.each('end', function(d) {
-						scenario._next();
+						thread._next();
 					});
 		};
 
 		this.remove = function(block_name) {
-			this.scenario.push({
+			this.thread.push({
 				function: this._remove,
 				args: arguments,
 				name: 'remove',
@@ -263,14 +263,14 @@ var anim = new Animation();
 		};
 
 		this._remove = function(block_name) {
-			var scenario = this.scenario.getThread(arguments);
+			var thread = this.thread.getThread(arguments);
 
 			this.group.select('svg#' + block_name).remove();
-			scenario._next();
+			thread._next();
 		};
 
 		this.sleep = function(duration) {
-			this.scenario.push({
+			this.thread.push({
 				function: this._sleep,
 				args: arguments,
 				name: 'sleep',
@@ -279,10 +279,10 @@ var anim = new Animation();
 		};
 
 		this._sleep = function(duration) {
-			var scenario = this.scenario.getThread(arguments);
+			var thread = this.thread.getThread(arguments);
 			console.log('duration=' + duration);
 			setTimeout(function() {
-				scenario._next();
+				thread._next();
 			}, duration);
 		};
 	};

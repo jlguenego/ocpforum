@@ -10,7 +10,7 @@
 		<script src="js/jlg_commons.js"></script>
 		<script src="js/animation.js"></script>
 		<script src="js/simulation.js"></script>
-		<script src="js/scenario.js"></script>
+		<script src="js/processus.js"></script>
 
 		<style>
 html, body {
@@ -101,9 +101,9 @@ $('#start').click(function() {
 		.attr('width', 800)
 		.attr('height', 600);
 
-	var scenario = new Scenario();
+	var thread = new Thread();
 
-	var obj = new anim.Object(scenario, svg, 'image/test/flower.jpg', { x: 200, y: 200 });
+	var obj = new anim.Object(thread, svg, 'image/test/flower.jpg', { x: 200, y: 200 });
 	obj.options.duration= {
 		show: 100,
 		split: 100,
@@ -112,7 +112,7 @@ $('#start').click(function() {
 		sendBlock: 200
 	};
 
-	var ds = new sim.DistributedSystem(scenario, svg);
+	var ds = new sim.DistributedSystem(thread, svg);
 	ds.options.duration = {
 		addNode: 20,
 		addLink: $('#linkage').val(),
@@ -153,7 +153,7 @@ $('#start').click(function() {
 		ds.store('n3', obj.blocks[i].name);
 	}
 
-	scenario.start();
+	thread.start();
 });
 
 $('#stop').click(function() {
