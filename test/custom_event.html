@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<base href="../" />
+		<meta charset="utf-8" />
+
+		<script src="_ext/jquery-1.10.2.min.js"></script>
+	</head>
+
+	<body>
+		<button id="start">Start</button>
+		<div id="stat"></div>
+
+		<script>
+$('#stat').get(0).addEventListener("toto", function(e) {
+	console.log(e);
+});
+$('#start').click(function() {
+	var event = new CustomEvent('toto', { detail: { test: 'coucou' } });
+
+	$('#stat').get(0).dispatchEvent(event);
+	//console.log(event);
+});
+		</script>
+	</body>
+</html>

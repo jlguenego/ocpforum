@@ -17,6 +17,7 @@ var sim = new Simulation();
 		this.group = this.svg.insert('g', ':first-child').classed('main', true)
 			.attr('transform', 'translate(0, ' + (this.svgbox.y / 2) + ')');
 		this.links_g = this.group.insert('g', ':first-child').classed('links', true);
+		this.reportElem = null;
 
 		this.options = {
 			duration: {
@@ -584,6 +585,8 @@ var sim = new Simulation();
 				.each('end', function() {
 					g_obj.remove();
 					self._addObject(thread, transfer.target.name, transfer.object.name, transfer.object.source, 0);
+
+					self.report({ add_transfer: 1 });
 				});
 		};
 
@@ -610,6 +613,15 @@ var sim = new Simulation();
 					.each('end', function() {
 						thread._next();
 					});
+		};
+
+		this.report = function(report) {
+			if (!this.reportElem) {
+				return;
+			}
+			var event = new CustomEvent('multi_ring_stat', { detail: report });
+
+			this.reportElem.dispatchEvent(event);
 		};
 	};
 
