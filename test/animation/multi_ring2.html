@@ -21,8 +21,50 @@ html, body {
 	padding: 0px;
 }
 
+#param {
+	float: left;
+	padding: 5px;
+
+	background-color: #E6F2FF;
+}
+
 svg {
 	border: 1px solid black;
+}
+
+table {
+	width: 200px;
+}
+
+table th, table td {
+	vertical-align: middle;
+	text-align: center;
+}
+
+th {
+	width: 100px;
+	font-size: 14px;
+	font-weight: 400;
+}
+
+input {
+	width: 100%;
+	font-size: 14px;
+	font-weight: 400;
+
+	box-sizing: border-box;
+}
+
+#row, #col {
+	width: 30px;
+}
+
+#row {
+	float: left;
+}
+
+#col {
+	float: right;
 }
 
 .ring circle {
@@ -40,42 +82,87 @@ svg {
 	</head>
 
 	<body>
-		<div id="frame"></div>
+		<div>
+			<div id="param">
+				<table>
+					<tr>
+						<th>Ring amount</th>
+						<td><input type="text" id="ring_amount" value="3" /></td>
+					</tr>
+					<tr>
+						<th>Node per ring</th>
+						<td><input type="text" id="node_amount" value="10" /></td>
+					</tr>
+					<tr>
+						<th>Split (col x row)</th>
+						<td><input type="text" id="row" value="3" size="5" />x<input type="text" id="col" value="5" size="5" /></td>
+					</tr>
+					<tr>
+						<th>Split duration (ms)</th>
+						<td><input type="text" id="split" value="300" /></td>
+					</tr>
+					<tr>
+						<th>Show image duration (ms)</th>
+						<td><input type="text" id="show_image" value="500" /></td>
+					</tr>
+					<tr>
+						<th>Sleep duration (ms)</th>
+						<td><input type="text" id="sleep" value="100" /></td>
+					</tr>
+					<tr>
+						<th>Crypt duration (ms)</th>
+						<td><input type="text" id="crypt" value="100" /></td>
+					</tr>
+					<tr>
+						<th>Transfer duration (ms)</th>
+						<td><input type="text" id="transfer" value="500" /></td>
+					</tr>
+					<tr>
+						<th>Linkage duration (ms)</th>
+						<td><input type="text" id="linkage" value="20" /></td>
+					</tr>
+				</table>
+				<button id="start">Start</button>
+				<button id="stop">Stop</button>
+			</div>
+			<div id="frame"></div>
+		</div>
 
 		<script>
 Math.seedrandom('Hello');
-$(document).ready(function() {
+$('#start').click(function() {
+	var svg = d3.select('#frame').select('svg').remove();
 	var svg = d3.select('#frame').append('svg')
 		.attr('width', 800)
-		.attr('height', 300);
+		.attr('height', 600);
 
 	var thread = new Thread('main');
 	var mr = new sim.MultiRingDS(thread, svg);
 	mr.options.duration = {
 		refreshRing: 100,
 		addNode: 100,
-		addLink: 20,
+		addLink: $('#linkage').val(),
 		addObject: 100,
-		doTransfer: 1000,
+		doTransfer: $('#transfer').val(),
 		transform: 500
 	};
 
 	var obj = new anim.Object(thread, svg, 'image/test/flower.jpg', { x: 200, y: 200 });
 	obj.options.duration= {
-		show: 200,
-		split: 500,
-		crypt: 500,
+		show: $('#show_image').val(),
+		split: $('#split').val(),
+		crypt: $('#crypt').val(),
 		minimize: 500,
 		sendBlock: 200
 	};
 
-	var ring_nbr = 3;
+	var ring_nbr = $('#ring_amount').val();
 	for (var i = 0; i < ring_nbr; i++) {
 		mr.addRing('r' + i, i);
 	}
 
 
-	var nbr = 11;
+	var nbr = $('#node_amount').val();
 	var counter = 0;
 	for (var i = 0; i < ring_nbr; i++) {
 		for (var j = 0; j < nbr; j++) {
@@ -99,18 +186,17 @@ $(document).ready(function() {
 	}
 
 	mr.addLinks('topology_optimum');
-	mr.transform('translate(500, 250)', 0.4);
+	mr.transform('translate(500, 450)', 0.4);
 
 	obj.show();
-	//obj.sleep($('#sleep').val());
-	obj.split(2, 2);
+	obj.sleep($('#sleep').val());
+	obj.split($('#row').val(), $('#col').val());
 	obj.crypt();
-	//obj.sleep($('#sleep').val());
+	obj.sleep($('#sleep').val());
 	obj.minimize();
 
 	mr.transform('translate(0, ' + (mr.svgbox.y / 2) + ')', 1);
 
-//	mr.addObject('n8', 'flower', 'image/test/flower.jpg');
 	var list = [];
 	for (var i = 0; i < obj.blocks.length; i++) {
 		var tname = 't' + i;
@@ -128,9 +214,12 @@ $(document).ready(function() {
 	mr.thread = thread;
 	obj.thread = thread;
 	thread.wait.apply(thread, list);
-//	mr.store('n8', 'flower');
 
 	thread.start();
+});
+
+$('#stop').click(function() {
+	window.location.reload();
 });
 		</script>
 	</body>
