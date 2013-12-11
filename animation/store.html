@@ -93,33 +93,34 @@ input {
 	<div id="frame"></div>
 </div>
 <script>
-$('#start').click(function() {
-	var svg = d3.select('#frame').select('svg').remove();
-	var svg = d3.select('#frame').append('svg')
-		.attr('width', 800 * 0.8)
-		.attr('height', 600 * 0.8);
 
-	var scenario = new Scenario();
+$('#store_container #start').click(function() {
+	var svg = d3.select('#store_container #frame').select('svg').remove();
+	var svg = d3.select('#store_container #frame').append('svg')
+		.attr('width', 800)
+		.attr('height', 600);
 
-	var obj = new anim.Object(scenario, svg, 'image/test/flower.jpg', { x: 200, y: 200 });
+	var thread = new Thread('main');
+
+	var obj = new anim.Object(thread, svg, 'image/test/flower.jpg', { x: 200, y: 200 });
 	obj.options.duration= {
-		show: $('#show_image').val(),
-		split: $('#split').val(),
-		crypt: $('#crypt').val(),
+		show: $('#store_container #show_image').val(),
+		split: $('#store_container #split').val(),
+		crypt: $('#store_container #crypt').val(),
 		minimize: 500,
 		sendBlock: 200
 	};
 
-	var ds = new sim.DistributedSystem(scenario, svg);
+	var ds = new sim.DistributedSystem(thread, svg);
 	ds.options.duration = {
 		addNode: 20,
-		addLink: $('#linkage').val(),
+		addLink: $('#store_container #linkage').val(),
 		addObject: 100,
-		doTransfer: $('#transfer').val(),
+		doTransfer: $('#store_container #transfer').val(),
 		move: 500
 	};
 
-	var nbr = $('#node_amount').val();
+	var nbr = $('#store_container #node_amount').val();
 	for (var i = 0; i < nbr; i++) {
 		var start_address = Math.floor((i / nbr) * 0xffff).toString(16);
 		console.log('start_address=' + start_address);
@@ -142,10 +143,10 @@ $('#start').click(function() {
 	ds.transform('translate(500, 350) scale(0.4)');
 
 	obj.show();
-	obj.sleep($('#sleep').val());
-	obj.split($('#row').val(), $('#col').val());
+	obj.sleep($('#store_container #sleep').val());
+	obj.split($('#store_container #row').val(), $('#col').val());
 	obj.crypt();
-	obj.sleep($('#sleep').val());
+	obj.sleep($('#store_container #sleep').val());
 	obj.minimize();
 
 	ds.transform('translate(0, 0) scale(1)');
@@ -154,20 +155,25 @@ $('#start').click(function() {
 	var list = [];
 	for (var i = 0; i < obj.blocks.length; i++) {
 		var tname = 't' + i;
-		list.push(tname);
-		scenario.setThread(tname);
+		var t = new Thread(tname, thread);
+		list.push(t);
+
+		ds.thread = t;
+		obj.thread = t;
 		obj.sendBlock(obj.blocks[i].name, ds, 'n3');
 		ds.addObject('n3', obj.blocks[i].name, 'image/test/crypted.jpg');
 		obj.remove(obj.blocks[i].name);
 		ds.store('n3', obj.blocks[i].name);
+		thread.startThread(t);
 	}
-	scenario.setThread('main');
-	scenario.wait.apply(scenario, list);
+	ds.thread = thread;
+	obj.thread = thread;
+	thread.wait.apply(thread, list);
 
-	scenario.start();
+	thread.start();
 });
 
-$('#stop').click(function() {
+$('#store_container #stop').click(function() {
 	window.location.reload();
 });
 </script>

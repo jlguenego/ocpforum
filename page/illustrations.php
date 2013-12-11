@@ -28,9 +28,9 @@ include(ROOT_DIR . '/include/top_page.inc');
 	The distance between two nodes must be as small as possible.
 	This illustration shows a file to be stored. The file is first splitted in many blocks and then each block is
 	encrypted. Then each block is delivered to a bootstrap node that will diffuse it through the distributed system
-	using a ring topology and the caching on the road.
+	using a multi-ring topology and the caching on the road.
 </p>
-<?php include(ROOT_DIR . '/animation/store.html'); ?>
+<?php include(ROOT_DIR . '/animation/multi_ring.html'); ?>
 
 <?php
 

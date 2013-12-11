@@ -17,6 +17,7 @@
 		<!-- END JQUERY / JQUERY UI -->
 
 		<script src="_ext/jquery.slides.min.js"></script>
+		<script src="_ext/seedrandom-min.js"></script>
 
 
 		<script src="js/widget_menu.js"></script>
@@ -28,8 +29,8 @@
 
 		<script src="js/jlg_commons.js"></script>
 		<script src="js/animation.js"></script>
-		<script src="js/simulation.js"></script>
-		<script src="js/scenario.js"></script>
+		<script src="js/multi_ring.js"></script>
+		<script src="js/processus.js"></script>
 	</head>
 
 	<body>
