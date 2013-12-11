@@ -491,6 +491,18 @@ var sim = new Simulation();
 			var node = this.nodes[nodeName];
 			node.store(thread, objectName);
 
+			this.sendToOtherRings(thread, node, objectName);
+
+		};
+
+		this._storeRL = function(nodeName, objectName) {
+			var thread = this.thread.getThread(arguments);
+
+			var node = this.nodes[nodeName];
+			node.store(thread, objectName, { initial_ring: node.ring });
+		};
+
+		this.sendToOtherRings = function(thread, node, objectName) {
 			for (var ringName in this.rings) {
 				if (ringName == node.ring) {
 					continue;
@@ -505,12 +517,10 @@ var sim = new Simulation();
 
 				var tname = objectName + '_' + ringName;
 				var new_thread = new Thread(tname, thread);
-				var nodeName = node.name;
-				var ringNodeName = ringNode.name;
-				this.doTransfer(new_thread, nodeName, ringNodeName, objectName);
+				this.doTransfer(new_thread, node.name, ringNode.name, objectName);
 				new_thread.push({
 					function: this._storeRec,
-					args: [ ringNodeName, objectName ],
+					args: [ ringNode.name, objectName, {} ],
 					name: '_storeRec',
 					object: this
 				});
@@ -518,17 +528,10 @@ var sim = new Simulation();
 			}
 		};
 
-		this._storeRL = function(nodeName, objectName) {
-			var thread = this.thread.getThread(arguments);
-
-			var node = this.nodes[nodeName];
-			node.store(thread, objectName);
-		};
-
-		this._storeRec = function(nodeName, objectName) {
+		this._storeRec = function(nodeName, objectName, context) {
 			var thread = this.thread.getThread(arguments);
 			var node = this.nodes[nodeName];
-			node.store(thread, objectName);
+			node.store(thread, objectName, context);
 		};
 
 		this.doTransfer = function(thread, sourceName, targetName, objectName) {
@@ -659,15 +662,21 @@ var sim = new Simulation();
 			return result;
 		};
 
-		this.store = function(thread, objectName) {
+		this.store = function(thread, objectName, context) {
 			var next_node = this.getResponsible(objectName);
 
 			if (this == next_node) {
+				// This is the responsible node.
+				if (this.parent.options.storage_method == 'redundancy_last') {
+					if (context.initial_ring == this.ring) {
+						this.parent.sendToOtherRings(thread, this, objectName);
+					}
+				}
 				thread._next();
 			} else {
 				thread.unshift({
 					function: this.parent._storeRec,
-					args: [ next_node.name, objectName ],
+					args: [ next_node.name, objectName, context ],
 					name: '_storeRec',
 					object: this.parent
 				});

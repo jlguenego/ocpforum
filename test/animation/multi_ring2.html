@@ -215,10 +215,10 @@ $('#start').click(function() {
 
 		mr.thread = t;
 		obj.thread = t;
-		obj.sendBlock(obj.blocks[i].name, mr, 'n3');
-		mr.addObject('n3', obj.blocks[i].name, 'image/test/crypted.jpg');
+		obj.sendBlock(obj.blocks[i].name, mr, 'n1');
+		mr.addObject('n1', obj.blocks[i].name, 'image/test/crypted.jpg');
 		obj.remove(obj.blocks[i].name);
-		mr.store('n3', obj.blocks[i].name);
+		mr.store('n1', obj.blocks[i].name);
 		thread.startThread(t);
 	}
 	mr.thread = thread;
