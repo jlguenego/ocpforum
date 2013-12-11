@@ -8,7 +8,7 @@
 		<script src="_ext/jquery-1.10.2.min.js"></script>
 		<script src="_ext/sha1.js"></script>
 		<script src="js/simulation.js"></script>
-		<script src="js/scenario.js"></script>
+		<script src="js/processus.js"></script>
 
 		<style>
 html, body {
@@ -27,58 +27,68 @@ svg {
 	<body>
 		<div id="frame"></div>
 		<script>
-var svg = d3.select('#frame').append('svg')
-	.attr('width', 800)
-	.attr('height', 300);
+$(document).ready(function() {
+	var svg = d3.select('#frame').append('svg')
+		.attr('width', 800)
+		.attr('height', 300);
 
-var scenario = new Scenario();
-var ds = new sim.DistributedSystem(scenario, svg);
-ds.options.duration = {
-	addNode: 100,
-	addLink: 100,
-	addObject: 1000,
-	doTransfer: 1000,
-	move: 500
-};
+	var thread = new Thread('main');
+	var ds = new sim.DistributedSystem(thread, svg);
+	ds.options.duration = {
+		addNode: 1000,
+		addLink: 100,
+		addObject: 1000,
+		doTransfer: 1000,
+		move: 500
+	};
 
-var n1 = new sim.Node({
-	name: 'n1',
-	image: 'image/neufbox.png'
+	var n1 = new sim.Node({
+		name: 'n1',
+		image: 'image/neufbox.png'
+	});
+	var n2 = new sim.Node({
+		name: 'n2',
+		image: 'image/neufbox.png'
+	});
+	var n3 = new sim.Node({
+		name: 'n3',
+		image: 'image/neufbox.png'
+	});
+
+	var n4 = new sim.Node({
+		name: 'n4',
+		image: 'image/neufbox.png'
+	});
+
+	var t1 = new Thread('t1', thread);
+	ds.thread = t1;
+	ds.addNode(n1);
+	t1.start();
+	var t2 = new Thread('t2', thread);
+	ds.thread = t2;
+	ds.addNode(n2);
+	t2.start();
+	var t3 = new Thread('t3', thread);
+	ds.thread = t3;
+	ds.addNode(n3);
+	t3.start();
+	var t4 = new Thread('t4', thread);
+	ds.thread = t4;
+	ds.addNode(n4);
+	t4.start();
+	ds.thread = thread;
+	thread.wait(t1, t2, t3, t4);
+
+	ds.addLink('n1', 'n2');
+	ds.addLink('n2', 'n3');
+	ds.addLink('n3', 'n4');
+
+	ds.addObject('n1', 'flower', 'image/test/flower.jpg');
+	ds.requestObject('n4', 'flower');
+
+	console.log(thread);
+	thread.start();
 });
-var n2 = new sim.Node({
-	name: 'n2',
-	image: 'image/neufbox.png'
-});
-var n3 = new sim.Node({
-	name: 'n3',
-	image: 'image/neufbox.png'
-});
-
-var n4 = new sim.Node({
-	name: 'n4',
-	image: 'image/neufbox.png'
-});
-
-scenario.setThread('t1');
-ds.addNode(n1);
-scenario.setThread('t2');
-ds.addNode(n2);
-scenario.setThread('t3');
-ds.addNode(n3);
-scenario.setThread('t4');
-ds.addNode(n4);
-scenario.setThread('main');
-scenario.wait('t1', 't2', 't3', 't4');
-
-ds.addLink('n1', 'n2');
-ds.addLink('n2', 'n3');
-ds.addLink('n3', 'n4');
-
-ds.addObject('n1', 'flower', 'image/test/flower.jpg');
-ds.requestObject('n4', 'flower');
-
-console.log(scenario);
-scenario.start();
 		</script>
 	</body>
 </html>

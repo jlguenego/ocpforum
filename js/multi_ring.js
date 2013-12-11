@@ -519,19 +519,6 @@ var sim = new Simulation();
 					name: '_storeRec',
 					object: this
 				});
-				if (tname == 'flower_r2') {
-					new_thread.push({
-						function: function() {
-							var thread = self.thread.getThread(arguments);
-							console.log('I am a special thread...');
-							thread._next();
-						},
-						args: [ 'kiki' ],
-						name: 'helloworld',
-						object: this
-					});
-				}
-				console.log(new_thread.orders.map(function(d) {	return d.name; }));
 				new_thread.start();
 			}
 		};

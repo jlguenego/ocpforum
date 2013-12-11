@@ -4,7 +4,7 @@ function Simulation() {
 var sim = new Simulation();
 
 (function(sim, undefined) {
-	sim.DistributedSystem = function(scenario, svg) {
+	sim.DistributedSystem = function(thread, svg) {
 		var self = this;
 
 		this.options = {
@@ -19,7 +19,7 @@ var sim = new Simulation();
 
 		this.nodes = {};
 		this.links = [];
-		this.scenario = scenario;
+		this.thread = thread;
 		this.svg = svg;
 		this.group = this.svg.append('g');
 		this.svgbox = {
@@ -58,7 +58,7 @@ var sim = new Simulation();
 
 		this.addNode = function(node) {
 			node.parent = self;
-			this.scenario.push({
+			this.thread.push({
 				function: this._addNode,
 				args: arguments,
 				name: 'addNode',
@@ -67,16 +67,16 @@ var sim = new Simulation();
 		};
 
 		this._addNode = function(node) {
-			var scenario = this.scenario.getThread(arguments);
+			var thread = this.thread.getThread(arguments);
 
 			this.setNodeCoord(node);
 			this.nodes[node.name] = node;
 			this.addressMap[node.start_address] = node.name;
-			this.refreshNodes(scenario);
+			this.refreshNodes(thread);
 		};
 
 		this.addLink = function(sourceName, targetName) {
-			this.scenario.push({
+			this.thread.push({
 				function: this._addLink,
 				args: arguments,
 				name: 'addLink',
@@ -85,7 +85,7 @@ var sim = new Simulation();
 		};
 
 		this._addLink = function(sourceName, targetName) {
-			var scenario = this.scenario.getThread(arguments);
+			var thread = this.thread.getThread(arguments);
 			var source = this.nodes[sourceName];
 			var target = this.nodes[targetName];
 			this.links.push({
@@ -96,11 +96,11 @@ var sim = new Simulation();
 
 			target.links.in.push(source);
 			source.links.out.push(target);
-			this.refreshLinks(scenario);
+			this.refreshLinks(thread);
 		};
 
 		this.addObject = function(nodeName, name, source) {
-			this.scenario.push({
+			this.thread.push({
 				function: this._addObject,
 				args: [ nodeName, name, source, undefined ],
 				name: 'addObject',
@@ -109,7 +109,7 @@ var sim = new Simulation();
 		};
 
 		this._addObject = function(nodeName, name, source, duration) {
-			var scenario = this.scenario.getThread(arguments);
+			var thread = this.thread.getThread(arguments);
 			console.log('nodeName=' + nodeName);
 			console.log('name=' + name);
 			console.log('source=' + source);
@@ -121,11 +121,11 @@ var sim = new Simulation();
 			node.objects.push(obj);
 			this.updateLocator(obj, node);
 
-			this.refreshObjects(scenario, duration);
+			this.refreshObjects(thread, duration);
 		};
 
 		this.requestObject = function(nodeName, objectName) {
-			this.scenario.push({
+			this.thread.push({
 				function: this._requestObject,
 				args: arguments,
 				name: 'requestObject',
@@ -136,7 +136,7 @@ var sim = new Simulation();
 		this._requestObject = function(nodeName, objectName) {
 			console.log('_requestObject start');
 			console.log(arguments);
-			var scenario = this.scenario.getThread(arguments);
+			var thread = this.thread.getThread(arguments);
 			var target = this.nodes[nodeName];
 
 			console.log(objectName);
@@ -151,10 +151,10 @@ var sim = new Simulation();
 				throw new Error('No node found.');
 			} else if (nodeRoute.length > 1) {
 				for (var i = nodeRoute.length - 2; i >= 0 ; i--) {
-					this.doTransfer(scenario, nodeRoute[i], nodeRoute[i + 1], objectName);
+					this.doTransfer(thread, nodeRoute[i], nodeRoute[i + 1], objectName);
 				}
 			}
-			scenario._next();
+			thread._next();
 		};
 
 
@@ -199,7 +199,7 @@ var sim = new Simulation();
 
 
 		this.transform = function(transform_val) {
-			this.scenario.push({
+			this.thread.push({
 				function: this._transform,
 				args: arguments,
 				name: 'transform',
@@ -208,7 +208,7 @@ var sim = new Simulation();
 		};
 
 		this._transform = function(transform_val) {
-			var scenario = this.scenario.getThread(arguments);
+			var thread = this.thread.getThread(arguments);
 			var transform = this.group.attr('transform');
 			if (!transform) {
 				transform = 'translate(0, 0) scale(1)';
@@ -218,12 +218,12 @@ var sim = new Simulation();
 					.duration(this.options.duration.move)
 					.attr('transform', transform_val)
 					.each('end', function() {
-						scenario._next();
+						thread._next();
 					});
 		};
 
-		this.doTransfer = function(scenario, source, target, objectName) {
-			scenario.current.orders.unshift({
+		this.doTransfer = function(thread, source, target, objectName) {
+			thread.unshift({
 				function: this._doTransfer,
 				args: [ source, target, objectName ],
 				name: 'doTransfer',
@@ -232,14 +232,14 @@ var sim = new Simulation();
 		};
 
 		this._doTransfer = function(source, target, objectName) {
-			var scenario = this.scenario.getThread(arguments);
+			var thread = this.thread.getThread(arguments);
 			var transfer = {
 				source: source,
 				target: target,
 				object: this.objects[objectName]
 			};
 
-			this.performTransfer(scenario, transfer);
+			this.performTransfer(thread, transfer);
 		};
 
 		this.setNodeCoord = function(node) {
@@ -252,7 +252,7 @@ var sim = new Simulation();
 			node.y = (self.svg.attr('height') / 2) * (1 - 0.8 * Math.sin(angle));
 		};
 
-		this.refreshNodes = function(scenario) {
+		this.refreshNodes = function(thread) {
 			var duration = self.computeDuration(this.options.duration.addNode);
 
 			// Join data
@@ -300,7 +300,7 @@ var sim = new Simulation();
 				.duration(duration)
 				.style('opacity', 1)
 				.each('end', function() {
-					scenario._next();
+					thread._next();
 				});
 
 			// Update
@@ -310,7 +310,7 @@ var sim = new Simulation();
 			nodes.exit().remove();
 		};
 
-		this.refreshLinks = function(scenario) {
+		this.refreshLinks = function(thread) {
 			var duration = self.computeDuration(this.options.duration.addLink);
 
 			var links = self.group.selectAll('path.link')
@@ -353,11 +353,11 @@ var sim = new Simulation();
 					.duration(duration)
 					.attr('stroke-dashoffset', 0)
 					.each('end', function() {
-						scenario._next();
+						thread._next();
 					});
 		};
 
-		this.refreshObjects = function(scenario, duration) {
+		this.refreshObjects = function(thread, duration) {
 			if (duration === undefined) {
 				duration = self.computeDuration(this.options.duration.addObject);
 			}
@@ -397,12 +397,12 @@ var sim = new Simulation();
 					.duration(duration)
 					.style('opacity', 1)
 					.each('end', function() {
-						scenario._next();
+						thread._next();
 					});
 			objects.exit().remove();
 		};
 
-		this.performTransfer = function(scenario, transfer) {
+		this.performTransfer = function(thread, transfer) {
 			var duration = self.computeDuration(this.options.duration.doTransfer);
 
 			var pathNode = d3.select('#' + transfer.source.name + '_' + transfer.target.name).node();
@@ -427,12 +427,12 @@ var sim = new Simulation();
 					})
 				.each('end', function() {
 					g_obj.remove();
-					self._addObject(scenario, transfer.target.name, transfer.object.name, transfer.object.source, 0);
+					self._addObject(thread, transfer.target.name, transfer.object.name, transfer.object.source, 0);
 				});
 		};
 
 		this.store = function(nodeName, objectName) {
-			this.scenario.push({
+			this.thread.push({
 				function: this._store,
 				args: arguments,
 				name: 'store',
@@ -441,7 +441,7 @@ var sim = new Simulation();
 		};
 
 		this._store = function(nodeName, objectName) {
-			var scenario = this.scenario.getThread(arguments);
+			var thread = this.thread.getThread(arguments);
 			var route = [];
 
 			var node = this.nodes[nodeName];
@@ -457,10 +457,10 @@ var sim = new Simulation();
 			}
 
 			for (var i = route.length - 2; i >= 0 ; i--) {
-				this.doTransfer(scenario, route[i], route[i + 1], objectName);
+				this.doTransfer(thread, route[i], route[i + 1], objectName);
 			}
 
-			scenario._next();
+			thread._next();
 		};
 	};
 
