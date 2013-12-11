@@ -101,7 +101,7 @@ $('#start').click(function() {
 		.attr('width', 800)
 		.attr('height', 600);
 
-	var thread = new Thread();
+	var thread = new Thread('main');
 
 	var obj = new anim.Object(thread, svg, 'image/test/flower.jpg', { x: 200, y: 200 });
 	obj.options.duration= {
