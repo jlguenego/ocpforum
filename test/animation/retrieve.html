@@ -96,15 +96,15 @@ input, select {
 					</tr>
 					<tr>
 						<th>Ring amount</th>
-						<td><input type="text" id="ring_amount" value="2" /></td>
+						<td><input type="text" id="ring_amount" value="3" /></td>
 					</tr>
 					<tr>
 						<th>Node per ring</th>
-						<td><input type="text" id="node_amount" value="10" /></td>
+						<td><input type="text" id="node_amount" value="6" /></td>
 					</tr>
 					<tr>
 						<th>Split (col x row)</th>
-						<td><input type="text" id="row" value="1" size="5" />x<input type="text" id="col" value="1" size="5" /></td>
+						<td><input type="text" id="row" value="2" size="5" />x<input type="text" id="col" value="2" size="5" /></td>
 					</tr>
 					<tr>
 						<th>Split duration (ms)</th>
@@ -116,11 +116,11 @@ input, select {
 					</tr>
 					<tr>
 						<th>Sleep duration (ms)</th>
-						<td><input type="text" id="sleep" value="100" /></td>
+						<td><input type="text" id="sleep" value="500" /></td>
 					</tr>
 					<tr>
 						<th>Crypt duration (ms)</th>
-						<td><input type="text" id="crypt" value="100" /></td>
+						<td><input type="text" id="crypt" value="300" /></td>
 					</tr>
 					<tr>
 						<th>Transfer duration (ms)</th>
@@ -138,7 +138,10 @@ input, select {
 		</div>
 
 		<script>
+var retrieve_node = 'n15';
+var store_node = 'n1';
 Math.seedrandom('Hello');
+
 $('#start').click(function() {
 	var svg = d3.select('#frame').select('svg').remove();
 	var svg = d3.select('#frame').append('svg')
@@ -163,7 +166,8 @@ $('#start').click(function() {
 		split: $('#split').val(),
 		crypt: $('#crypt').val(),
 		minimize: 500,
-		sendBlock: 200
+		sendBlock: 200,
+		receiveBlock: 1000
 	};
 
 	var ring_nbr = $('#ring_amount').val();
@@ -201,24 +205,25 @@ $('#start').click(function() {
 	obj.show();
 	obj.sleep($('#sleep').val());
 	obj.split($('#row').val(), $('#col').val());
-	obj.crypt();
+	obj.encrypt();
 	obj.sleep($('#sleep').val());
 	obj.minimize();
 
 	mr.transform('translate(0, ' + (mr.svgbox.y / 2) + ')', 1);
 
 	var list = [];
-	for (var i = 0; i < obj.blocks.length; i++) {
+	var blocks = d3.values(obj.blocks);
+	for (var i = 0; i < blocks.length; i++) {
 		var tname = 't' + i;
 		var t = new Thread(tname, main_thread);
 		list.push(t);
 
 		mr.thread = t;
 		obj.thread = t;
-		obj.sendBlock(obj.blocks[i].name, mr, 'n1');
-		mr.addObject('n1', obj.blocks[i].name, 'image/test/crypted.jpg');
-		obj.remove(obj.blocks[i].name);
-		mr.store('n1', obj.blocks[i].name);
+		obj.sendBlock(blocks[i].name, mr, store_node);
+		mr.addObject(store_node, blocks[i].name, 'image/test/crypted.jpg');
+		obj.remove(blocks[i].name);
+		mr.store(store_node, blocks[i].name);
 		main_thread.startThread(t);
 	}
 	mr.thread = main_thread;
@@ -228,17 +233,41 @@ $('#start').click(function() {
 	obj.sleep(2000);
 
 	list = [];
-	for (var i = 0; i < obj.blocks.length; i++) {
+	for (var i = 0; i < blocks.length; i++) {
 		var tname = 'thread_' + i;
 		var t = new Thread(tname, main_thread);
 		list.push(t);
 
 		mr.thread = t;
-		mr.retrieve('n0', obj.blocks[i].name);
+		mr.retrieve(retrieve_node, blocks[i].name);
 		main_thread.startThread(t);
 	}
 	mr.thread = main_thread;
 	main_thread.wait.apply(main_thread, list);
+
+	obj.sleep(500);
+
+	list = [];
+	for (var i = 0; i < blocks.length; i++) {
+		var tname = 't' + i;
+		var t = new Thread(tname, main_thread);
+		list.push(t);
+
+		mr.thread = t;
+		obj.thread = t;
+		obj.receiveBlock(blocks[i].name, mr, retrieve_node);
+		main_thread.startThread(t);
+	}
+	mr.thread = main_thread;
+	obj.thread = main_thread;
+	main_thread.wait.apply(main_thread, list);
+
+	mr.transform('translate(500, 450)', 0.4);
+	obj.maximize();
+	obj.sleep($('#sleep').val());
+	obj.decrypt();
+	obj.sleep($('#sleep').val());
+	obj.merge();
 
 	main_thread.start();
 });
