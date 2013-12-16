@@ -656,6 +656,79 @@ var sim = new Simulation();
 
 			this.reportElem.dispatchEvent(event);
 		};
+
+		this.interactiveRetrieve = function(obj) {
+			this.thread.push({
+				function: this._interactiveRetrieve,
+				args: arguments,
+				name: 'interactiveRetrieve',
+				object: this
+			});
+		};
+
+		this._interactiveRetrieve = function(obj) {
+			var thread = this.thread.getThread(arguments);
+
+			var nodes = this.svg.selectAll('g.node');
+			nodes.classed('clickable', true);
+
+			var retrieve = function(d) {
+				nodes.classed('clickable', false);
+				nodes.on('click', function() {});
+
+				var retrieve_node = d.name;
+				var main_thread = self.thread;
+				var blocks = d3.values(obj.blocks);
+
+				var list = [];
+				for (var i = 0; i < blocks.length; i++) {
+					var tname = 'thread_' + i;
+					var t = new Thread(tname, main_thread);
+					list.push(t);
+
+					self.thread = t;
+					self.retrieve(retrieve_node, blocks[i].name);
+					main_thread.startThread(t);
+				}
+				self.thread = main_thread;
+				main_thread.wait.apply(main_thread, list);
+
+				obj.sleep(500);
+
+				list = [];
+				for (var i = 0; i < blocks.length; i++) {
+					var tname = 't' + i;
+					var t = new Thread(tname, main_thread);
+					list.push(t);
+
+					self.thread = t;
+					obj.thread = t;
+					obj.receiveBlock(blocks[i].name, self, retrieve_node);
+					main_thread.startThread(t);
+				}
+				self.thread = main_thread;
+				obj.thread = main_thread;
+				main_thread.wait.apply(main_thread, list);
+
+				self.transform('translate(500, 450)', 0.4);
+				obj.maximize();
+				obj.sleep($('#sleep').val());
+				obj.decrypt();
+				obj.sleep($('#sleep').val());
+				obj.merge();
+				obj.onClick(function(d) {
+					d3.select(this).remove();
+					obj.minimize();
+					self.transform('translate(0, ' + (self.svgbox.y / 2) + ')', 1);
+					self.thread.start();
+					nodes.classed('clickable', true)
+						.on('click', retrieve);
+				});
+
+				self.thread.start();
+			};
+			nodes.on('click', retrieve);
+		};
 	};
 
 	sim.Node = function(n) {
@@ -730,6 +803,11 @@ var sim = new Simulation();
 		};
 
 		this.retrieve = function(thread, objectName, context) {
+			if (this.objects[objectName]) {
+				thread._next();
+				return;
+			}
+
 			var next_node = this.getResponsible(objectName);
 
 			if (this == next_node) {

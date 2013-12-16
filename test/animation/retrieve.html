@@ -78,6 +78,10 @@ input, select {
 	stroke: #FFD7D7;
 	stroke-width: 0.5;
 }
+
+.clickable {
+	cursor: pointer;
+}
 		</style>
 	</head>
 
@@ -96,7 +100,7 @@ input, select {
 					</tr>
 					<tr>
 						<th>Ring amount</th>
-						<td><input type="text" id="ring_amount" value="3" /></td>
+						<td><input type="text" id="ring_amount" value="1" /></td>
 					</tr>
 					<tr>
 						<th>Node per ring</th>
@@ -230,45 +234,7 @@ $('#start').click(function() {
 	obj.thread = main_thread;
 	main_thread.wait.apply(main_thread, list);
 
-	obj.sleep(2000);
-
-	list = [];
-	for (var i = 0; i < blocks.length; i++) {
-		var tname = 'thread_' + i;
-		var t = new Thread(tname, main_thread);
-		list.push(t);
-
-		mr.thread = t;
-		mr.retrieve(retrieve_node, blocks[i].name);
-		main_thread.startThread(t);
-	}
-	mr.thread = main_thread;
-	main_thread.wait.apply(main_thread, list);
-
-	obj.sleep(500);
-
-	list = [];
-	for (var i = 0; i < blocks.length; i++) {
-		var tname = 't' + i;
-		var t = new Thread(tname, main_thread);
-		list.push(t);
-
-		mr.thread = t;
-		obj.thread = t;
-		obj.receiveBlock(blocks[i].name, mr, retrieve_node);
-		main_thread.startThread(t);
-	}
-	mr.thread = main_thread;
-	obj.thread = main_thread;
-	main_thread.wait.apply(main_thread, list);
-
-	mr.transform('translate(500, 450)', 0.4);
-	obj.maximize();
-	obj.sleep($('#sleep').val());
-	obj.decrypt();
-	obj.sleep($('#sleep').val());
-	obj.merge();
-
+	mr.interactiveRetrieve(obj);
 	main_thread.start();
 });
 

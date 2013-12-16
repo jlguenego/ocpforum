@@ -446,6 +446,7 @@ var anim = new Animation();
 			var thread = this.thread.getThread(arguments);
 
 			this.group.select('svg#' + block_name).remove();
+			this.image.remove();
 			thread._next();
 		};
 
@@ -463,6 +464,22 @@ var anim = new Animation();
 			setTimeout(function() {
 				thread._next();
 			}, duration);
+		};
+
+		this.onClick = function(callback) {
+			this.thread.push({
+				function: this._onClick,
+				args: arguments,
+				name: 'onClick',
+				object: this
+			});
+		};
+
+		this._onClick = function(callback) {
+			var thread = this.thread.getThread(arguments);
+			this.image.classed('clickable', true)
+				.on('click', callback);
+			thread._next();
 		};
 	};
 })(anim)
