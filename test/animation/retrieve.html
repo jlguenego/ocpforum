@@ -96,11 +96,11 @@ input, select {
 					</tr>
 					<tr>
 						<th>Ring amount</th>
-						<td><input type="text" id="ring_amount" value="1" /></td>
+						<td><input type="text" id="ring_amount" value="2" /></td>
 					</tr>
 					<tr>
 						<th>Node per ring</th>
-						<td><input type="text" id="node_amount" value="5" /></td>
+						<td><input type="text" id="node_amount" value="10" /></td>
 					</tr>
 					<tr>
 						<th>Split (col x row)</th>
@@ -143,10 +143,10 @@ $('#start').click(function() {
 	var svg = d3.select('#frame').select('svg').remove();
 	var svg = d3.select('#frame').append('svg')
 		.attr('width', 800)
-		.attr('height', 600);
+		.attr('height', 300);
 
-	var thread = new Thread('main');
-	var mr = new sim.MultiRingDS(thread, svg);
+	var main_thread = new Thread('main');
+	var mr = new sim.MultiRingDS(main_thread, svg);
 	mr.options.duration = {
 		refreshRing: 100,
 		addNode: 100,
@@ -157,7 +157,7 @@ $('#start').click(function() {
 	};
 	mr.options.storage_method = $('#storage_method').val();
 
-	var obj = new anim.Object(thread, svg, 'image/test/flower.jpg', { x: 200, y: 200 });
+	var obj = new anim.Object(main_thread, svg, 'image/test/flower.jpg', { x: 200, y: 200 });
 	obj.options.duration= {
 		show: $('#show_image').val(),
 		split: $('#split').val(),
@@ -210,7 +210,7 @@ $('#start').click(function() {
 	var list = [];
 	for (var i = 0; i < obj.blocks.length; i++) {
 		var tname = 't' + i;
-		var t = new Thread(tname, thread);
+		var t = new Thread(tname, main_thread);
 		list.push(t);
 
 		mr.thread = t;
@@ -219,26 +219,28 @@ $('#start').click(function() {
 		mr.addObject('n1', obj.blocks[i].name, 'image/test/crypted.jpg');
 		obj.remove(obj.blocks[i].name);
 		mr.store('n1', obj.blocks[i].name);
-		thread.startThread(t);
+		main_thread.startThread(t);
 	}
-	mr.thread = thread;
-	obj.thread = thread;
-	thread.wait.apply(thread, list);
+	mr.thread = main_thread;
+	obj.thread = main_thread;
+	main_thread.wait.apply(main_thread, list);
 
-//	list = [];
-//	for (var i = 0; i < obj.blocks.length; i++) {
-//		var tname = 'thread_' + i;
-//		var t = new Thread(tname, thread);
-//		list.push(t);
-//
-//		mr.thread = t;
-//		mr.retrieve('n0', obj.blocks[i].name);
-//		thread.startThread(t);
-//	}
-//	mr.thread = thread;
-//	thread.wait.apply(thread, list);
+	obj.sleep(2000);
 
-	thread.start();
+	list = [];
+	for (var i = 0; i < obj.blocks.length; i++) {
+		var tname = 'thread_' + i;
+		var t = new Thread(tname, main_thread);
+		list.push(t);
+
+		mr.thread = t;
+		mr.retrieve('n0', obj.blocks[i].name);
+		main_thread.startThread(t);
+	}
+	mr.thread = main_thread;
+	main_thread.wait.apply(main_thread, list);
+
+	main_thread.start();
 });
 
 $('#stop').click(function() {

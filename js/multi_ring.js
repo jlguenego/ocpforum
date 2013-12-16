@@ -398,7 +398,6 @@ var sim = new Simulation();
 						+ ' ' + target_coord.x + ',' + target_coord.y;
 				});
 
-			console.log(new_path.empty());
 			if (new_path.empty()) {
 				thread._next();
 			}
@@ -440,7 +439,7 @@ var sim = new Simulation();
 				name: name,
 				source: source
 			};
-			node.objects.push(obj);
+			node.objects[obj.name] = obj;
 			this.objects[obj.name] = obj;
 
 			this.refreshObjects(thread, duration);
@@ -463,10 +462,14 @@ var sim = new Simulation();
 					.attr('height', 25);
 
 			var nodes = this.group.selectAll('g.node');
-			var objects = nodes.selectAll('use.object').data(function(d) { return d.objects; });
+			var objects = nodes.selectAll('use.object').data(function(d) { return d3.values(d.objects); });
 
 			objects.exit().remove();
-			objects.enter().append('use')
+			var new_objects = objects.enter();
+			if (new_objects.empty()) {
+				thread._next();
+			}
+			new_objects.append('use')
 				.classed('object', true)
 				.attr('xlink:href', function(d) { return '#' + d.name; })
 				.attr('x', 0)
@@ -547,6 +550,22 @@ var sim = new Simulation();
 			var thread = this.thread.getThread(arguments);
 			var node = this.nodes[nodeName];
 			node.store(thread, objectName, context);
+		};
+
+		this.retrieve = function(nodeName, objectName) {
+			this.thread.push({
+				function: this._retrieve,
+				args: arguments,
+				name: 'retrieve',
+				object: this
+			});
+		};
+
+		this._retrieve = function(nodeName, objectName) {
+			var thread = this.thread.getThread(arguments);
+
+			var node = this.nodes[nodeName];
+			node.retrieve(thread, objectName, { initial: true });
 		};
 
 		this.doTransfer = function(thread, sourceName, targetName, objectName) {
@@ -654,7 +673,7 @@ var sim = new Simulation();
 			out_ring: []
 		};
 
-		this.objects = [];
+		this.objects = {};
 
 		this.getAbsoluteCoord = function() {
 			var ring = this.parent.rings[this.ring];
@@ -707,6 +726,21 @@ var sim = new Simulation();
 					object: this.parent
 				});
 				this.parent._doTransfer(thread, this.name, next_node.name, objectName);
+			}
+		};
+
+		this.retrieve = function(thread, objectName, context) {
+			var next_node = this.getResponsible(objectName);
+
+			if (this == next_node) {
+				// This is the responsible node.
+				if (!this.objects[objectName]) {
+					throw new Error('Object not found on ' + this.name + ': ' + objectName);
+				}
+				thread._next();
+			} else {
+				this.parent.doTransfer(thread, next_node.name, this.name, objectName);
+				next_node.retrieve(thread, objectName, { initial: false });
 			}
 		};
 

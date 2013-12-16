@@ -17,7 +17,7 @@ function Thread(name, parentThread) {
 	this._next = function() {
 		var order = this.orders.shift();
 		if (order) {
-			console.log('Executing order: ' + order.name);
+			console.log(this.name + ': Executing order: ' + order.name);
 			if (order.args instanceof Object) {
 				order.args = Array.prototype.slice.call(order.args);
 			}
@@ -26,6 +26,7 @@ function Thread(name, parentThread) {
 			order.function.apply(order.object, order.args);
 		} else {
 			this.isFinished = true;
+			console.log(this.name + ': No order anymore.');
 		}
 	}
 
@@ -80,6 +81,7 @@ function Thread(name, parentThread) {
 					}
 
 					if (allFinished) {
+						console.log(this.name + ': Wait released.');
 						this._next();
 					}
 				},
