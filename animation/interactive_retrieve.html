@@ -1,0 +1,214 @@
+<style>
+#container {
+	position: relative;
+	min-height: 480px;
+	margin: auto;
+}
+
+#param {
+	float: left;
+	padding: 5px;
+
+	background-color: #E6F2FF;
+}
+
+svg {
+	margin: auto;
+	border: 1px solid black;
+}
+
+table th, table td {
+	vertical-align: middle;
+	text-align: center;
+}
+
+th {
+	width: 100px;
+	font-size: 12px;
+	font-weight: 400;
+}
+
+input, select {
+	width: 100%;
+	font-size: 14px;
+	font-weight: 400;
+
+	box-sizing: border-box;
+}
+
+#row, #col {
+	width: 30px;
+}
+
+#row {
+	float: left;
+}
+
+#col {
+	float: right;
+}
+
+.ring circle {
+	fill: none;
+	stroke: #EEEEEE;
+	stroke-width: 2;
+}
+
+.links path {
+	fill: none;
+	stroke: #FFD7D7;
+	stroke-width: 1;
+}
+
+.clickable {
+	cursor: pointer;
+}
+</style>
+
+<div id="container">
+	<div id="param">
+		<table>
+			<tr>
+				<th>Storage method</th>
+				<td>
+					<select id="storage_method">
+						<option value="redundancy_first">Red. first</option>
+						<option value="redundancy_last">Red. last</option>
+					</select>
+				</td>
+
+				<th>Ring amount</th>
+				<td><input type="text" id="ring_amount" value="3" /></td>
+
+				<th>Node per ring</th>
+				<td><input type="text" id="node_amount" value="10" /></td>
+
+				<th>Split (col x row)</th>
+				<td><input type="text" id="row" value="3" size="5" />x<input type="text" id="col" value="5" size="5" /></td>
+			</tr>
+			<tr>
+				<th>Split duration (ms)</th>
+				<td><input type="text" id="split" value="300" /></td>
+
+				<th>Show image duration (ms)</th>
+				<td><input type="text" id="show_image" value="500" /></td>
+
+				<th>Sleep duration (ms)</th>
+				<td><input type="text" id="sleep" value="100" /></td>
+
+				<th>Crypt duration (ms)</th>
+				<td><input type="text" id="crypt" value="100" /></td>
+			</tr>
+			<tr>
+				<th>Transfer duration (ms)</th>
+				<td><input type="text" id="transfer" value="500" /></td>
+
+				<th>Linkage duration (ms)</th>
+				<td><input type="text" id="linkage" value="20" /></td>
+			</tr>
+		</table>
+		<button id="start">Start</button>
+		<button id="stop">Stop</button>
+	</div>
+	<div id="frame"></div>
+</div>
+
+<script>
+var store_node = 'n0';
+Math.seedrandom('Hello');
+$('#start').click(function() {
+	var svg = d3.select('#frame').select('svg').remove();
+	var svg = d3.select('#frame').append('svg')
+		.attr('width', 854)
+		.attr('height', 600);
+
+	var main_thread = new Thread('main');
+	var mr = new sim.MultiRingDS(main_thread, svg);
+	mr.options.duration = {
+		refreshRing: 100,
+		addNode: 100,
+		addLink: $('#linkage').val(),
+		addObject: 100,
+		doTransfer: $('#transfer').val(),
+		transform: 500
+	};
+	mr.options.storage_method = $('#storage_method').val();
+
+	var obj = new anim.Object(main_thread, svg, 'image/test/flower.jpg', { x: 200, y: 200 });
+	obj.options.duration= {
+		show: $('#show_image').val(),
+		split: $('#split').val(),
+		crypt: $('#crypt').val(),
+		minimize: 500,
+		sendBlock: 200,
+		receiveBlock: 1000
+	};
+
+	var ring_nbr = $('#ring_amount').val();
+	for (var i = 0; i < ring_nbr; i++) {
+		mr.addRing('r' + i, i);
+	}
+
+
+	var nbr = $('#node_amount').val();
+	var counter = 0;
+	for (var i = 0; i < ring_nbr; i++) {
+		for (var j = 0; j < nbr; j++) {
+			var name = 'n' + counter;
+			//var start_address = CryptoJS.SHA1(CryptoJS.SHA1(Math.randomize(0, 1000).toString())).toString();
+
+			var start_address = Math.floor((j / nbr) * 0xffff).toString(16);
+			start_address = start_address.padleft(4, '0');
+			start_address = start_address.padright(16, '0');
+
+			var ring_id = i;
+			mr.addNode(new sim.Node({
+				name: name,
+				start_address: start_address,
+				image: 'image/neufbox.png',
+				ring: 'r' + ring_id
+			}));
+
+			counter++;
+		}
+	}
+
+	mr.addLinks('topology_optimum');
+	mr.transform('translate(500, 450)', 0.4);
+
+	obj.show();
+	obj.sleep($('#sleep').val());
+	obj.split($('#row').val(), $('#col').val());
+	obj.encrypt();
+	obj.sleep($('#sleep').val());
+	obj.minimize();
+
+	mr.transform('translate(0, ' + (mr.svgbox.y / 2) + ')', 1);
+
+	var list = [];
+	var blocks = d3.values(obj.blocks);
+	for (var i = 0; i < blocks.length; i++) {
+		var tname = 't' + i;
+		var t = new Thread(tname, main_thread);
+		list.push(t);
+
+		mr.thread = t;
+		obj.thread = t;
+		obj.sendBlock(blocks[i].name, mr, store_node);
+		mr.addObject(store_node, blocks[i].name, blocks[i].src);
+		obj.remove(blocks[i].name);
+		mr.store(store_node, blocks[i].name);
+		main_thread.startThread(t);
+	}
+	mr.thread = main_thread;
+	obj.thread = main_thread;
+	main_thread.wait.apply(main_thread, list);
+
+	mr.interactiveRetrieve(obj);
+	main_thread.start();
+});
+
+$('#stop').click(function() {
+	window.location.reload();
+});
+</script>

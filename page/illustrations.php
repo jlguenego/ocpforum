@@ -30,7 +30,7 @@ include(ROOT_DIR . '/include/top_page.inc');
 	encrypted. Then each block is delivered to a bootstrap node that will diffuse it through the distributed system
 	using a multi-ring topology and the caching on the road.
 </p>
-<?php include(ROOT_DIR . '/animation/multi_ring.html'); ?>
+<?php include(ROOT_DIR . '/animation/interactive_retrieve.html'); ?>
 
 <?php
 

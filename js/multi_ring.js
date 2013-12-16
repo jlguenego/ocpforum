@@ -168,13 +168,15 @@ var sim = new Simulation();
 			text.append('tspan')
 				.text(function(d) { return d.name; });
 
-			new_g.on('mouseover', function() {
+			new_g.on('mouseover', function(d) {
+					d.showProperties();
 					d3.select(this).select('text')
 						.transition()
 							.duration(200)
 							.style('opacity', 1);
 				})
-				.on('mouseout', function() {
+				.on('mouseout', function(d) {
+					d.hideProperties();
 					d3.select(this).select('text')
 						.transition()
 							.duration(200)
@@ -740,6 +742,8 @@ var sim = new Simulation();
 		this.parent = null;
 		this.ring = n.ring;
 
+		this.propertiesGroup = null;
+
 		this.links = {
 			in: [],
 			out: [],
@@ -876,6 +880,27 @@ var sim = new Simulation();
 			});
 
 			return node;
+		};
+
+		this.showProperties = function() {
+			var svg = this.parent.svg;
+			var x = this.parent.svgbox.x - 200;
+			var y = 25;
+			this.propertiesGroup = svg.append('g')
+				.classed('node_properties', true)
+				.attr('transform', 'translate(' + x + ', ' + y + ')');
+
+			var g = this.propertiesGroup.selectAll('use.object').data(d3.values(this.objects));
+			g.exit().remove();
+			g.enter().append('use')
+				.classed('object', true)
+				.attr('xlink:href', function(d, i) { return '#' + d.name; })
+				.attr('x', function(d, i) { return i % 5 * 30})
+				.attr('y', function(d, i) { return Math.floor(i / 5) * 30});
+		};
+
+		this.hideProperties = function() {
+			this.propertiesGroup.remove();
 		};
 	};
 })(sim)

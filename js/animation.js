@@ -15,8 +15,14 @@ var anim = new Animation();
 		this.image = null;
 		this.group = null;
 
-		this.crypted = new Image();
-		this.crypted.src = 'image/test/crypted.jpg';
+		this.cryptedNbr = 7;
+
+		this.crypted = [];
+		for (var i = 0; i < this.cryptedNbr; i++) {
+			var img = new Image();
+			img.src = 'image/test/crypted_' + i + '.jpg'
+			this.crypted.push(img);
+		}
 
 		this.blocks = {};
 		this.thread = thread;
@@ -82,11 +88,17 @@ var anim = new Animation();
 		this.split = function(row, col) {
 			for (var i = 0; i < row; i++) {
 				for (var j = 0; j < col; j++) {
-					this.blocks['flower_' + i + '_' + j] = {
+					var block = {
 						i: i,
 						j: j,
 						name: 'flower_' + i + '_' + j
 					};
+
+					var hash = CryptoJS.SHA1(block.name).toString();
+					var nbr = parseInt(hash.substr(0, 4), 16) % self.cryptedNbr;
+					block.src = self.crypted[nbr].src;
+
+					this.blocks[block.name] = block;
 				}
 			}
 			this.thread.push({
@@ -100,17 +112,7 @@ var anim = new Animation();
 		this._split = function(row, col) {
 			var thread = this.thread.getThread(arguments);
 
-			var dataset = [];
-
-			for (var i = 0; i < row; i++) {
-				for (var j = 0; j < col; j++) {
-					dataset.push({
-						i: i,
-						j: j,
-						name: 'flower_' + i + '_' + j
-					});
-				}
-			}
+			var dataset = d3.values(this.blocks);
 
 			this.cell_width = this.width / col;
 			this.cell_height = this.height / row;
@@ -252,9 +254,11 @@ var anim = new Animation();
 						var r = d.x + d.width / 2;
 						return r;
 					})
-					.each('end', function() {
+					.each('end', function(d) {
+						var hash = CryptoJS.SHA1(d.name).toString();
+						var nbr = parseInt(hash.substr(0, 4), 16) % self.cryptedNbr;
 						d3.select(this).select('image')
-								.attr('xlink:href', self.crypted.src);
+								.attr('xlink:href', function(d) { console.log(d);return d.src; });
 					})
 					.transition()
 						.duration(self.options.duration.crypt)
@@ -402,7 +406,7 @@ var anim = new Animation();
 				.attr('overflow', 'hidden');
 
 			svg.append('image')
-				.attr('xlink:href', this.crypted.src)
+				.attr('xlink:href', function(d) { return d.src; })
 				.attr('x', function(d) {
 					var offset_x = d.j * self.cell_width;
 					return -offset_x;
