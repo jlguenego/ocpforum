@@ -65,12 +65,13 @@ var anim = new Animation();
 					.attr('y', self.center.y - self.height / 2)
 					.attr('preserveAspectRatio', 'xMinYMin')
 					.style('opacity', 0);
+
 				self.image.transition()
-						.duration(self.options.duration.show)
-						.style('opacity', 1)
-						.each('end', function() {
-							thread._next();
-						});
+					.duration(self.options.duration.show)
+					.style('opacity', 1)
+					.each('end', function() {
+						thread._next();
+					});
 			};
 		};
 

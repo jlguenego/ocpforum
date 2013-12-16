@@ -17,6 +17,7 @@ function Thread(name, parentThread) {
 	this._next = function() {
 		var order = this.orders.shift();
 		if (order) {
+			console.log('Executing order: ' + order.name);
 			if (order.args instanceof Object) {
 				order.args = Array.prototype.slice.call(order.args);
 			}

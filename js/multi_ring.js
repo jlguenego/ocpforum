@@ -268,6 +268,12 @@ var sim = new Simulation();
 							name: 'addLink',
 							object: this
 						});
+						this.thread.unshift({
+							function: this._addLink,
+							args: [ targetNodeName, sourceNodeName ],
+							name: 'addLink',
+							object: this
+						});
 					}
 				}
 			}
