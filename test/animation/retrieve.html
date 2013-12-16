@@ -146,7 +146,7 @@ $('#start').click(function() {
 	var svg = d3.select('#frame').select('svg').remove();
 	var svg = d3.select('#frame').append('svg')
 		.attr('width', 800)
-		.attr('height', 300);
+		.attr('height', 600);
 
 	var main_thread = new Thread('main');
 	var mr = new sim.MultiRingDS(main_thread, svg);
