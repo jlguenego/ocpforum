@@ -162,7 +162,7 @@ $('#start').click(function() {
 	obj.show();
 	obj.sleep($('#sleep').val());
 	obj.split($('#row').val(), $('#col').val());
-	obj.crypt();
+	obj.encrypt();
 	obj.sleep($('#sleep').val());
 	obj.minimize();
 
@@ -170,17 +170,18 @@ $('#start').click(function() {
 
 	console.log(obj.blocks);
 	var list = [];
-	for (var i = 0; i < obj.blocks.length; i++) {
+	var blocks = d3.values(obj.blocks);
+	for (var i = 0; i < blocks.length; i++) {
 		var tname = 't' + i;
 		var t = new Thread(tname, thread);
 		list.push(t);
 
 		ds.thread = t;
 		obj.thread = t;
-		obj.sendBlock(obj.blocks[i].name, ds, 'n3');
-		ds.addObject('n3', obj.blocks[i].name, 'image/test/crypted.jpg');
-		obj.remove(obj.blocks[i].name);
-		ds.store('n3', obj.blocks[i].name);
+		obj.sendBlock(blocks[i].name, ds, 'n3');
+		ds.addObject('n3', blocks[i].name, 'image/test/crypted.jpg');
+		obj.remove(blocks[i].name);
+		ds.store('n3', blocks[i].name);
 		thread.startThread(t);
 	}
 	ds.thread = thread;

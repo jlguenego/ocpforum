@@ -222,7 +222,9 @@ var anim = new Animation();
 							thread._next();
 						});
 				})
-				.remove();
+				.transition()
+					.duration(30)
+					.remove();
 		};
 
 		this.encrypt = function() {
@@ -390,7 +392,6 @@ var anim = new Animation();
 			var coord = node.getAbsoluteCoordSVG();
 
 			var block = this.blocks[block_name];
-			console.log(block);
 
 			var svg = this.group.append('svg').attr('id', block.name).classed('block', true);
 			svg.data([block])

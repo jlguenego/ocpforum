@@ -140,17 +140,18 @@ $('#start').click(function() {
 
 	obj.show();
 	obj.split($('#row').val(), $('#col').val());
-	obj.crypt();
+	obj.encrypt();
 	obj.minimize();
 
 	ds.transform('translate(0, 0) scale(1)');
 
 	console.log(obj.blocks);
-	for (var i = 0; i < obj.blocks.length; i++) {
-		obj.sendBlock(obj.blocks[i].name, ds, 'n3');
-		ds.addObject('n3', obj.blocks[i].name, 'image/test/crypted.jpg');
-		obj.remove(obj.blocks[i].name);
-		ds.store('n3', obj.blocks[i].name);
+	var blocks = d3.values(obj.blocks);
+	for (var i = 0; i < blocks.length; i++) {
+		obj.sendBlock(blocks[i].name, ds, 'n3');
+		ds.addObject('n3', blocks[i].name, 'image/test/crypted.jpg');
+		obj.remove(blocks[i].name);
+		ds.store('n3', blocks[i].name);
 	}
 
 	thread.start();
