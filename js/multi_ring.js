@@ -39,7 +39,7 @@ var sim = new Simulation();
 
 		this.rings = {};
 		this.nodes = {};
-		this.links = [];
+		this.links = {};
 		this.objects = {};
 		this.locator = {};
 
@@ -342,11 +342,11 @@ var sim = new Simulation();
 
 			var source = this.nodes[sourceName];
 			var target = this.nodes[targetName];
-			this.links.push({
+			this.links[source.name + '_' + target.name] = {
 				source: source,
 				target: target,
 				id: source.name + '_' + target.name
-			});
+			};
 
 			target.links.in.push(source);
 			source.links.out.push(target);
@@ -357,7 +357,8 @@ var sim = new Simulation();
 		};
 
 		this.refreshLinks = function(thread) {
-			var dataset = this.links;
+			var doNext = true;
+			var dataset = d3.values(this.links);
 
 			var path = this.links_g.selectAll('path').data(dataset);
 			path.exit().remove();
@@ -397,6 +398,10 @@ var sim = new Simulation();
 						+ ' ' + target_coord.x + ',' + target_coord.y;
 				});
 
+			console.log(new_path.empty());
+			if (new_path.empty()) {
+				thread._next();
+			}
 			new_path.attr('stroke-dasharray', function(d) {
 					var my_path = d3.select('#' + d.id).node();
 					var length = my_path.getTotalLength();
@@ -411,7 +416,10 @@ var sim = new Simulation();
 					.duration(this.options.duration.addLink)
 					.attr('stroke-dashoffset', 0)
 					.each('end', function(d, i) {
-						thread._next();
+						if (doNext) {
+							doNext = false;
+							thread._next();
+						}
 					});
 		};
 
