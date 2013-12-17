@@ -169,9 +169,6 @@ var sim = new Simulation();
 		this._addNode = function(node, sponsorName) {
 			var thread = this.thread.getThread(arguments);
 
-			var rings = d3.values(this.rings);
-			var ring_id = Math.floor(Math.randomize(0, rings.length));
-
 			var sponsor = this.nodes[sponsorName];
 			node.ring = sponsor.getNewRing();
 			console.log(node.name + ' on ' + node.ring);
