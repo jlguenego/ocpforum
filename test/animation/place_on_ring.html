@@ -75,7 +75,7 @@ input, select {
 .links path {
 	fill: none;
 	stroke: #FFD7D7;
-	stroke-width: 0.5;
+	stroke-width: 2;
 }
 
 .clickable {
@@ -103,20 +103,51 @@ input, select {
 				</table>
 				<button id="start">Start</button>
 				<button id="stop">Stop</button>
+				<br/>
+				<button id="add_node">Add Node</button>
+				<div id="stat">
+					<table>
+						<tr>
+							<th>Link quantity</th>
+							<td class="links">0</td>
+						</tr>
+					</table>
+				</div>
 			</div>
 			<div id="frame"></div>
 		</div>
 
 		<script>
+function reset_stats() {
+	$('#stat .links').html(0);
+};
+
+$('#stat').get(0).addEventListener("multi_ring_stat", function(e) {
+	var stats = e.detail;
+	var el = $(this);
+	console.log(e);
+
+	if (stats.hasOwnProperty('add_link')) {
+		var links = parseInt(el.find('.links').html());
+		links += stats.add_link;
+		el.find('.links').html(links);
+	}
+});
+
+var counter = 0;
+var main_thread = null;
+var mr = null;
 $('#start').click(function() {
+	counter = 0;
+	reset_stats();
 	Math.seedrandom('Hello');
-	var svg = d3.select('#frame').select('svg').remove();
+	d3.select('#frame').select('svg').remove();
 	var svg = d3.select('#frame').append('svg')
 		.attr('width', 800)
 		.attr('height', 300);
+	main_thread = new Thread('main');
+	mr = new sim.MultiRingDS(main_thread, svg);
 
-	var main_thread = new Thread('main');
-	var mr = new sim.MultiRingDS(main_thread, svg);
 	mr.options.duration = {
 		refreshRing: 100,
 		addNode: 100,
@@ -125,24 +156,28 @@ $('#start').click(function() {
 		doTransfer: 200,
 		transform: 500
 	};
+	mr.reportElem = $('#stat').get(0);
 
 	var ring_nbr = $('#ring_amount').val();
 	for (var i = 0; i < ring_nbr; i++) {
 		mr.addRing('r' + i, i);
 	}
+	main_thread.start();
+});
 
-	var nbr = $('#node_amount').val();
-	mr.addFirstNode(new sim.Node({
-		name: 'n0',
-		image: 'image/neufbox.png',
-	}));
-	for (var i = 1; i < nbr; i++) {
+$('#add_node').click(function() {
+	if (counter == 0) {
+		mr.addFirstNode(new sim.Node({
+			name: 'n0',
+			image: 'image/neufbox.png',
+		}));
+	} else {
 		mr.addNode(new sim.Node({
-			name: 'n' + i,
+			name: 'n' + counter,
 			image: 'image/neufbox.png',
 		}), 'n0');
 	}
-
+	counter++;
 	main_thread.start();
 });
 
