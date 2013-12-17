@@ -171,10 +171,9 @@ var sim = new Simulation();
 
 			var rings = d3.values(this.rings);
 			var ring_id = Math.floor(Math.randomize(0, rings.length));
-			node.ring = rings[ring_id].name;
 
 			var sponsor = this.nodes[sponsorName];
-
+			node.ring = sponsor.getNewRing();
 			console.log(node.name + ' on ' + node.ring);
 			node.start_address = sponsor.getNewAddress(node.ring);
 
@@ -666,10 +665,38 @@ var sim = new Simulation();
 
 		this.objects = {};
 
+		this.getNewRing = function() {
+			var rings_names = d3.keys(this.parent.rings);
+
+			var rings = {};
+			for (var i = 0; i < rings_names.length; i++) {
+				var name = rings_names[i];
+				rings[name] = 0;
+			}
+
+			var contacts = d3.values(this.links.out);
+			contacts.push(this.toContact());
+			for (var i = 0; i < contacts.length; i++) {
+				var contact = contacts[i];
+				rings[contact.ring]++;
+			}
+
+			var min_value = null;
+			var ring_name = null;
+			for (var name in rings) {
+				if (min_value == null || rings[name] < min_value) {
+					min_value = rings[name];
+					ring_name = name;
+				}
+			}
+			console.log(rings);
+			console.log('ring_name=' + ring_name);
+
+			return ring_name;
+		};
+
 		this.getNewAddress = function(ring) {
-			console.log(this.links);
 			var addressList = d3.values(this.links.out).findAll(function(d) {
-				console.log(d);
 				return d.ring == ring;
 			});
 
@@ -677,7 +704,6 @@ var sim = new Simulation();
 			if (ring == this.ring) {
 				addressList.push(this.start_address);
 			}
-			console.log(addressList);
 			addressList = addressList.map(function(d) {
 				return parseInt(d.substr(0, 4), 16);
 			});
@@ -694,8 +720,6 @@ var sim = new Simulation();
 			var end = addressList[0] + perimeter;
 			addressList.push(end);
 
-			console.log(addressList);
-
 			var max_space = 0;
 			var index = 0;
 			var list = [];
@@ -707,11 +731,8 @@ var sim = new Simulation();
 					index = i;
 				}
 			}
-			console.log(list);
-			console.log('index=' + index);
 
 			var address = (addressList[index] + addressList[index + 1]) / 2;
-			console.log('address=' + address);
 			return address.toString(16).padleft(4, '0') + (new Array(37).join('0'));
 		};
 
