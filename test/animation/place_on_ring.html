@@ -90,7 +90,7 @@ input, select {
 				<table>
 					<tr>
 						<th>Ring amount</th>
-						<td><input type="text" id="ring_amount" value="2" /></td>
+						<td><input type="text" id="ring_amount" value="1" /></td>
 					</tr>
 					<tr>
 						<th>Node amount</th>
@@ -125,7 +125,7 @@ function reset_stats() {
 $('#stat').get(0).addEventListener("multi_ring_stat", function(e) {
 	var stats = e.detail;
 	var el = $(this);
-	console.log(e);
+	//console.log(e);
 
 	if (stats.hasOwnProperty('add_link')) {
 		var links = parseInt(el.find('.links').html());

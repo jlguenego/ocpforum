@@ -686,8 +686,6 @@ var sim = new Simulation();
 					ring_name = name;
 				}
 			}
-			console.log(rings);
-			console.log('ring_name=' + ring_name);
 
 			return ring_name;
 		};
@@ -735,7 +733,6 @@ var sim = new Simulation();
 
 		this.addLinks = function(sponsor) {
 			var contact_list = sponsor.connect(this.toContact());
-			console.log(contact_list);
 
 			for (var name in contact_list) {
 				var contact = contact_list[name];
@@ -747,12 +744,9 @@ var sim = new Simulation();
 				var isNeighbor = false;
 
 				if (contact.ring == this.ring) {
-					isNeighbor = true;
+					isNeighbor = this.isNeighborInsideRing(contact);
 				} else {
 					var responsible_contact = this.getResponsibleContact(contact.ring, this.start_address);
-					console.log('contact');
-					console.log(contact);
-					console.log(responsible_contact);
 					if (responsible_contact.name == contact.name) {
 						isNeighbor = true;
 					}
@@ -762,6 +756,31 @@ var sim = new Simulation();
 					this.addNeighbor(contact);
 				}
 			}
+		};
+
+		this.is2NSuccessor = function(ring, a1, a2) {
+			var i = ring.indexOf(a1);
+			var list_1 = ring.slice(i);
+			var list_2 = ring.slice(0, i);
+			var list = list_1.concat(list_2);
+			console.log(list);
+
+			var index = list.indexOf(a2);
+			var p = Math.log(index) / Math.LN2;
+
+			var result = (p - Math.floor(p)) < 0.001;
+			return result;
+		};
+
+		this.isNeighborInsideRing = function(contact) {
+			var ring = d3.keys(this.rings[contact.ring]);
+			ring.push(this.start_address);
+			ring.sort();
+
+			var r1 = this.is2NSuccessor(ring, this.start_address, contact.start_address);
+			var r2 = this.is2NSuccessor(ring, contact.start_address, this.start_address);
+
+			return r1 || r2;
 		};
 
 		this.connect = function(new_contact) {
@@ -782,12 +801,14 @@ var sim = new Simulation();
 			for (var name in this.neighbors) {
 				var contact = this.neighbors[name];
 				if (contact.ring == this.ring) {
-					continue;
-				}
-
-				var responsible_contact = this.getResponsibleContact(contact.ring, this.start_address);
-				if (responsible_contact.name != contact.name) {
-					this.removeNeighbor(contact);
+					if (!this.isNeighborInsideRing(contact)) {
+						this.removeNeighbor(contact);
+					}
+				} else {
+					var responsible_contact = this.getResponsibleContact(contact.ring, this.start_address);
+					if (responsible_contact.name != contact.name) {
+						this.removeNeighbor(contact);
+					}
 				}
 			}
 		};
@@ -798,7 +819,7 @@ var sim = new Simulation();
 			if (!this.rings[contact.ring]) {
 				this.rings[contact.ring] = {};
 			}
-			this.rings[contact.ring][contact.name] = contact;
+			this.rings[contact.ring][contact.start_address] = contact;
 		};
 
 		this.toContact = function() {
@@ -823,6 +844,8 @@ var sim = new Simulation();
 		};
 
 		this.removeNeighbor = function(contact) {
+			console.log('remove: ' + this.name + '_' + contact.name);
+			console.log(new Error().stack);
 			delete this.neighbors[contact.name];
 			delete this.parent.links[contact.name + '_' + this.name];
 			delete this.parent.links[this.name + '_' + contact.name];
@@ -937,12 +960,11 @@ var sim = new Simulation();
 		this.getResponsibleContact = function(ringName, address) {
 			var contacts = this.rings[ringName];
 			var addressList = [];
-			for (var name in contacts) {
-				var c = contacts[name];
-				if (c.start_address == address) {
-					return c;
+			for (var a in contacts) {
+				if (a == address) {
+					return contacts[a];
 				}
-				addressList.push(c.start_address);
+				addressList.push(a);
 			}
 
 			addressList.push(address);
