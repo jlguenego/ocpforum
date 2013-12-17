@@ -183,7 +183,7 @@ var sim = new Simulation();
 
 		this.refreshNodes = function(thread) {
 			var dataset = d3.values(this.rings);
-			var ring_g = this.svg.selectAll('g.ring').data(dataset);
+			var ring_g = this.svg.selectAll('g.ring').data(dataset, function(d) { return d.name; });
 
 			var node = ring_g.selectAll('g.node')
 				.data(function(d, i) { return d3.values(d.nodes); });
@@ -270,7 +270,7 @@ var sim = new Simulation();
 			var doNext = true;
 			var dataset = d3.values(this.links);
 
-			var path = this.links_g.selectAll('path').data(dataset);
+			var path = this.links_g.selectAll('path').data(dataset, function(d) { return d.id; });
 			path.exit().remove();
 
 			var new_path = path.enter().append('path');
@@ -653,11 +653,6 @@ var sim = new Simulation();
 
 		this.propertiesGroup = null;
 
-		this.links = {
-			in: {},
-			out: {},
-			out_ring: {}
-		};
 		this.contacts = {};
 		this.neighbors = {};
 		this.rings = {};
@@ -758,7 +753,6 @@ var sim = new Simulation();
 
 				if (isNeighbor) {
 					this.addNeighbor(contact);
-					console.log(this.links);
 				}
 			}
 		};
@@ -807,13 +801,6 @@ var sim = new Simulation();
 		this.addNeighbor = function(contact) {
 			this.neighbors[contact.name] = contact;
 
-			this.links.in[contact.name] = contact;
-			this.links.out[contact.name] = contact;
-
-			if (contact.ring == this.ring) {
-				this.links.out_ring[contact.start_address] = contact;
-			}
-
 			this.parent.links[contact.name + '_' + this.name] = {
 				source: contact.getNode(),
 				target: this,
@@ -830,9 +817,6 @@ var sim = new Simulation();
 
 		this.removeNeighbor = function(contact) {
 			delete this.neighbors[contact.name];
-			delete this.links.in[contact.name];
-			delete this.links.out[contact.name];
-			delete this.links.out_ring[contact.start_address];
 			delete this.parent.links[contact.name + '_' + this.name];
 			delete this.parent.links[this.name + '_' + contact.name];
 
@@ -916,7 +900,10 @@ var sim = new Simulation();
 		this.getResponsible = function(objectName) {
 			var object_address = CryptoJS.SHA1(CryptoJS.SHA1(objectName)).toString();
 
-			var ring = this.links.out_ring.map(function(d) { return d.start_address; });
+			var neighbors = d3.values(this.neighbors).findAll(function(d) {
+				return self.ring == d.ring;
+			});
+			var ring = neighbors.map(function(d) { return d.start_address; });
 
 			ring.push(this.start_address);
 			ring.push(object_address);
@@ -933,11 +920,11 @@ var sim = new Simulation();
 				return this;
 			}
 
-			var node = this.links.out_ring.find(function(d) {
+			var contact = neighbors.find(function(d) {
 				return d.start_address == node_address;
 			});
 
-			return node;
+			return contact;
 		};
 
 		this.getResponsibleContact = function(ringName, address) {
@@ -969,8 +956,8 @@ var sim = new Simulation();
 
 		this.getResponsibleForRing = function(ringName, object_address) {
 			var ring = [];
-			for (var nodeName in this.links.out) {
-				var n = this.links.out[nodeName];
+			for (var nodeName in this.contacts) {
+				var n = this.contacts[nodeName];
 				if (n.ring != ringName) {
 					continue;
 				}
@@ -989,7 +976,7 @@ var sim = new Simulation();
 			}
 			var node_address = ring[index - 1];
 
-			var node = this.links.out.find(function(d) {
+			var node = this.contacts.find(function(d) {
 				return (d.start_address == node_address) && (d.ring == ringName);
 			});
 
