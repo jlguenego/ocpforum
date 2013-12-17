@@ -271,7 +271,10 @@ var sim = new Simulation();
 			var dataset = d3.values(this.links);
 
 			var path = this.links_g.selectAll('path').data(dataset, function(d) { return d.id; });
-			path.exit().remove();
+			path.exit().transition()
+				.duration(this.options.duration.addLink)
+				.style('opacity', 0)
+				.remove();
 
 			var new_path = path.enter().append('path');
 			path.attr('id', function(d) { return d.id; })
