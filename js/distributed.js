@@ -171,7 +171,6 @@ var sim = new Simulation();
 
 			var sponsor = this.nodes[sponsorName];
 			node.ring = sponsor.getNewRing();
-			console.log(node.name + ' on ' + node.ring);
 			node.start_address = sponsor.getNewAddress(node.ring);
 
 			this.nodes[node.name] = node;
@@ -659,6 +658,7 @@ var sim = new Simulation();
 			out: {},
 			out_ring: {}
 		};
+		this.contacts = {};
 
 		this.objects = {};
 
@@ -671,7 +671,7 @@ var sim = new Simulation();
 				rings[name] = 0;
 			}
 
-			var contacts = d3.values(this.links.out);
+			var contacts = d3.values(this.contacts);
 			contacts.push(this.toContact());
 			for (var i = 0; i < contacts.length; i++) {
 				var contact = contacts[i];
@@ -693,7 +693,7 @@ var sim = new Simulation();
 		};
 
 		this.getNewAddress = function(ring) {
-			var addressList = d3.values(this.links.out).findAll(function(d) {
+			var addressList = d3.values(this.contacts).findAll(function(d) {
 				return d.ring == ring;
 			});
 
@@ -734,55 +734,40 @@ var sim = new Simulation();
 		};
 
 		this.addLinks = function(sponsor) {
-			var contact_list = sponsor.getContactList();
+			var contact_list = sponsor.connect(this.toContact());
+			console.log(contact_list);
 
-			for (var address in contact_list.in) {
-				this.addContact(contact_list.in[address]);
+			for (var name in contact_list) {
+				this.addContact(contact_list[name]);
+				var isNeighbor = true;
+				if (isNeighbor) {
+					this.addNeighbor(contact_list[name]);
+					console.log(this.links);
+				}
 			}
-
-			sponsor.inform(this.toContact());
-
-			this.addContact(sponsor.toContact());
 		};
 
-		this.getContactList = function(node) {
-			var links = {
-				in: {},
-				out: {},
-				out_ring: {}
-			};
+		this.connect = function(new_contact) {
+			var result = {};
+			for (var name in this.contacts) {
+				var contact = this.contacts[name];
+				result[name] = contact;
+				contact.getNode().addContact(new_contact);
+			}
+			result[this.name] = this.toContact();
+			this.addContact(new_contact);
+			return result;
+		};
 
-			for (var address in this.links.in) {
-				links.in[address] = this.links.in[address];
-			}
-			for (var address in this.links.out) {
-				links.out[address] = this.links.out[address];
-			}
-			for (var address in this.links.out_ring) {
-				links.out_ring[address] = this.links.out_ring[address];
-			}
-			return links;
+		this.addContact = function(contact) {
+			this.contacts[contact.name] = contact;
 		};
 
 		this.toContact = function() {
 			return new sim.Contact(this);
 		};
 
-		this.inform = function(contact) {
-			if (this.links.out[contact.name]) {
-				return;
-			}
-
-			this.addContact(contact);
-
-			var out_links = this.links.out;
-			for (var i = 0; i < out_links.length; i++) {
-				var n = out_links[i];
-				n.inform(contact);
-			}
-		};
-
-		this.addContact = function(contact) {
+		this.addNeighbor = function(contact) {
 			this.links.in[contact.name] = contact;
 			this.links.out[contact.name] = contact;
 
