@@ -173,12 +173,15 @@ var sim = new Simulation();
 			var ring_id = Math.floor(Math.randomize(0, rings.length));
 			node.ring = rings[ring_id].name;
 
-			node.start_address = CryptoJS.SHA1('' + Math.randomize(0, 1000)).toString();
+			var sponsor = this.nodes[sponsorName];
+
+			console.log(node.name);
+			node.start_address = sponsor.getNewAddress();
 
 			this.nodes[node.name] = node;
 			this.rings[node.ring].nodes[node.name] = node;
 
-			node.addLinks(this.nodes[sponsorName]);
+			node.addLinks(sponsor);
 
 			this.refreshNodes(thread);
 		};
@@ -240,102 +243,6 @@ var sim = new Simulation();
 			});
 		};
 
-		this.addLinks = function(topologyName) {
-			this.thread.push({
-				function: this._addLinks,
-				args: arguments,
-				name: 'addLinks',
-				object: this
-			});
-		};
-
-		this._addLinks = function(topologyName) {
-			var thread = this.thread.getThread(arguments);
-
-			if (topologyName == 'topology_all_to_all') {
-				this.addTopoA2A(thread);
-			} else if (topologyName == 'topology_optimum') {
-				this.addTopoOptimum(thread);
-			}
-		};
-
-		this.addTopoA2A = function(thread) {
-			var nodeName_a = d3.keys(this.nodes);
-			for (var i = 0; i < nodeName_a.length; i++) {
-				for (var j = 0; j < nodeName_a.length; j++) {
-					if (i == j) {
-						continue;
-					}
-					this.thread.unshift({
-						function: this._addLink,
-						args: [ nodeName_a[i], nodeName_a[j] ],
-						name: 'addLink',
-						object: this
-					});
-				}
-			}
-			thread._next();
-		};
-
-		this.addTopoOptimum = function(thread) {
-			for (var ringName in this.rings) {
-				var ring = this.rings[ringName];
-
-				var addressMap = {};
-				var addressList = [];
-				for (var nodeName in ring.nodes) {
-					var node = ring.nodes[nodeName];
-					addressMap[node.start_address] = node.name;
-					addressList.push(node.start_address);
-				}
-
-				addressList.sort();
-				var nbr = addressList.length;
-				for (var i = 0; i < nbr; i++) {
-					for (var j = 1; j <= nbr; j = j * 2) {
-						var j2 = (i + j) % nbr;
-						var sourceNodeName = addressMap[addressList[i]];
-						var targetNodeName = addressMap[addressList[j2]];
-
-						this.thread.unshift({
-							function: this._addLink,
-							args: [ sourceNodeName, targetNodeName ],
-							name: 'addLink',
-							object: this
-						});
-						this.thread.unshift({
-							function: this._addLink,
-							args: [ targetNodeName, sourceNodeName ],
-							name: 'addLink',
-							object: this
-						});
-					}
-				}
-			}
-
-			for (var nodeName in this.nodes) {
-				var node = this.nodes[nodeName];
-				var start_address = node.start_address;
-
-				for (var ringName in this.rings) {
-					if (node.ring == ringName) {
-						continue;
-					}
-
-					var ringNode = this.getNodeResponsibleForRing(ringName, start_address);
-					this.thread.unshift({
-						function: this._addLink,
-						args: [ nodeName, ringNode.name ],
-						name: 'addLink',
-						object: this
-					});
-				}
-			}
-
-
-			thread._next();
-		};
-
 		this.getNodeResponsibleForRing = function(ringName, address) {
 			var nodes = this.rings[ringName].nodes;
 			var addressList = [];
@@ -361,34 +268,6 @@ var sim = new Simulation();
 			});
 
 			return node;
-		};
-
-		this.addLink = function(sourceName, targetName) {
-			this.thread.push({
-				function: this._addLink,
-				args: arguments,
-				name: 'addLink',
-				object: this
-			});
-		};
-
-		this._addLink = function(sourceName, targetName) {
-			var thread = this.thread.getThread(arguments);
-
-			var source = this.nodes[sourceName];
-			var target = this.nodes[targetName];
-			this.links[source.name + '_' + target.name] = {
-				source: source,
-				target: target,
-				id: source.name + '_' + target.name
-			};
-
-			target.links.in.push(source);
-			source.links.out.push(target);
-			if (source.ring == target.ring) {
-				source.links.out_ring.push(target);
-			}
-			this.refreshLinks(thread);
 		};
 
 		this.refreshLinks = function(thread) {
@@ -761,6 +640,7 @@ var sim = new Simulation();
 				});
 
 				self.thread.start();
+
 			};
 			nodes.on('click', retrieve);
 		};
@@ -784,6 +664,41 @@ var sim = new Simulation();
 		};
 
 		this.objects = {};
+
+		this.getNewAddress = function() {
+			var addressList = d3.keys(this.links.in);
+			addressList.push(this.start_address);
+			addressList = addressList.map(function(d) {
+				return parseInt(d.substr(0, 4), 16);
+			});
+			addressList.sort(function(a, b) {
+				return a - b;
+			});
+
+			var perimeter = parseInt('1' + (new Array(5).join('0')), 16);
+			var end = addressList[0] + perimeter;
+			addressList.push(end);
+
+			console.log(addressList);
+
+			var max_space = 0;
+			var index = 0;
+			var list = [];
+			for (var i = 0; i < addressList.length - 1; i++) {
+				var space = addressList[i + 1] - addressList[i];
+				list.push(space);
+				if (max_space < space) {
+					max_space = space;
+					index = i;
+				}
+			}
+			console.log(list);
+			console.log('index=' + index);
+
+			var address = (addressList[index] + addressList[index + 1]) / 2;
+			console.log('address=' + address);
+			return address.toString(16).padleft(4, '0') + (new Array(37).join('0'));
+		};
 
 		this.addLinks = function(sponsor) {
 			var contact_list = sponsor.getContactList();

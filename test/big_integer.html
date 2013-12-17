@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<base href="../" />
+		<meta charset="utf-8" />
+
+		<script src="_ext/d3.v3.min.js"></script>
+		<script src="_ext/jquery-1.10.2.min.js"></script>
+		<script src="_ext/sha1.js"></script>
+		<script src="_ext/seedrandom-min.js"></script>
+		<script src="js/jlg_commons.js"></script>
+		<script src="js/distributed.js"></script>
+		<script src="js/processus.js"></script>
+
+		<style>
+html, body {
+	width: 100%;
+	height: 100%;
+	margin: 0px;
+	padding: 0px;
+}
+
+#param {
+	float: left;
+	padding: 5px;
+
+	background-color: #E6F2FF;
+}
+
+svg {
+	border: 1px solid black;
+}
+
+table {
+	width: 200px;
+}
+
+table th, table td {
+	vertical-align: middle;
+	text-align: center;
+}
+
+th {
+	width: 100px;
+	font-size: 14px;
+	font-weight: 400;
+}
+
+input, select {
+	width: 100%;
+	font-size: 14px;
+	font-weight: 400;
+
+	box-sizing: border-box;
+}
+
+#row, #col {
+	width: 30px;
+}
+
+#row {
+	float: left;
+}
+
+#col {
+	float: right;
+}
+
+.ring circle {
+	fill: none;
+	stroke: #EEEEEE;
+	stroke-width: 2;
+}
+
+.links path {
+	fill: none;
+	stroke: #FFD7D7;
+	stroke-width: 0.5;
+}
+
+.clickable {
+	cursor: pointer;
+}
+		</style>
+	</head>
+
+	<body>
+		<script>
+var a = CryptoJS.SHA1('hello').toString();
+console.log('a=' + a);
+var b = parseInt(a, 16);
+console.log('b=' + b);
+var c = a.toString(16);
+console.log('c=' + c);
+		</script>
+	</body>
+</html>
