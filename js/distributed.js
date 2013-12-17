@@ -175,8 +175,8 @@ var sim = new Simulation();
 
 			var sponsor = this.nodes[sponsorName];
 
-			console.log(node.name);
-			node.start_address = sponsor.getNewAddress();
+			console.log(node.name + ' on ' + node.ring);
+			node.start_address = sponsor.getNewAddress(node.ring);
 
 			this.nodes[node.name] = node;
 			this.rings[node.ring].nodes[node.name] = node;
@@ -230,6 +230,7 @@ var sim = new Simulation();
 				.style('opacity', 1)
 				.each('end', function() {
 					self.refreshLinks(thread);
+					console.log(self.nodes);
 				});
 
 			node.attr('transform', function(d) {
@@ -665,12 +666,26 @@ var sim = new Simulation();
 
 		this.objects = {};
 
-		this.getNewAddress = function() {
-			var addressList = d3.keys(this.links.in);
-			addressList.push(this.start_address);
+		this.getNewAddress = function(ring) {
+			console.log(this.links);
+			var addressList = d3.values(this.links.out).findAll(function(d) {
+				console.log(d);
+				return d.ring == ring;
+			});
+
+			addressList = addressList.map(function(d) { return d.start_address; });
+			if (ring == this.ring) {
+				addressList.push(this.start_address);
+			}
+			console.log(addressList);
 			addressList = addressList.map(function(d) {
 				return parseInt(d.substr(0, 4), 16);
 			});
+
+			if (addressList.length == 0) {
+				return new Array(41).join('0');
+			}
+
 			addressList.sort(function(a, b) {
 				return a - b;
 			});
@@ -736,7 +751,7 @@ var sim = new Simulation();
 		};
 
 		this.inform = function(contact) {
-			if (this.links.out[contact.start_address]) {
+			if (this.links.out[contact.name]) {
 				return;
 			}
 
@@ -750,8 +765,8 @@ var sim = new Simulation();
 		};
 
 		this.addContact = function(contact) {
-			this.links.in[contact.start_address] = contact;
-			this.links.out[contact.start_address] = contact;
+			this.links.in[contact.name] = contact;
+			this.links.out[contact.name] = contact;
 
 			if (contact.ring == this.ring) {
 				this.links.out_ring[contact.start_address] = contact;
