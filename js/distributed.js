@@ -737,6 +737,10 @@ var sim = new Simulation();
 			for (var name in contact_list) {
 				var contact = contact_list[name];
 				this.addContact(contact);
+			}
+
+			for (var name in contact_list) {
+				var contact = contact_list[name];
 				var isNeighbor = false;
 
 				if (contact.ring == this.ring) {
