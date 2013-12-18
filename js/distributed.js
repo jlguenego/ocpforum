@@ -183,6 +183,8 @@ var sim = new Simulation();
 			var thread = this.thread.getThread(arguments);
 
 			var sponsor = this.nodes[sponsorName];
+			console.log(sponsor);
+			sponsor.refreshNeighbors();
 			node.ring = sponsor.getNewRing();
 			node.start_address = sponsor.getNewAddress(node.ring);
 
@@ -216,6 +218,7 @@ var sim = new Simulation();
 					delete this.links[name];
 				}
 			}
+
 			console.log(this.links);
 
 			var node = this.nodes[nodeName];
@@ -825,8 +828,41 @@ var sim = new Simulation();
 				this.addContact(contact);
 			}
 
-			for (var name in contact_list) {
-				var contact = contact_list[name];
+			while (true) {
+				var neighbors = this.computeNeighbors();
+				var okForAll = true;
+				for (var i = 0; i < neighbors.length; i++) {
+					var contact = neighbors[i];
+					if (this.ping(contact)) {
+						this.addNeighbor(contact);
+					} else {
+						okForAll = false;
+						break;
+					}
+				}
+				console.log('okForAll=' + okForAll);
+				if (okForAll) {
+					break;
+				}
+			}
+		};
+
+		this.ping = function(contact) {
+			var result = true;
+			console.log('ping');
+			console.log(contact);
+			if (!this.parent.nodes[contact.name]) {
+				this.removeContact(contact.name);
+				this.removeNeighbor(contact);
+				result = false;
+			}
+			return result;
+		};
+
+		this.computeNeighbors = function() {
+			var result = [];
+			for (var name in this.contacts) {
+				var contact = this.contacts[name];
 				var isNeighbor = false;
 
 				if (contact.ring == this.ring) {
@@ -839,9 +875,10 @@ var sim = new Simulation();
 				}
 
 				if (isNeighbor) {
-					this.addNeighbor(contact);
+					result.push(contact);
 				}
 			}
+			return result;
 		};
 
 		this.is2NSuccessor = function(ring, a1, a2) {
@@ -871,21 +908,23 @@ var sim = new Simulation();
 
 		this.connect = function(new_contact) {
 			var result = {};
+			this.refreshNeighbors();
 			for (var name in this.contacts) {
 				var contact = this.contacts[name];
 				result[name] = contact;
 				var node = contact.getNode();
 				node.addContact(new_contact);
-				node.refreshNeighbor();
+				node.refreshNeighbors();
 			}
 			result[this.name] = this.toContact();
 			this.addContact(new_contact);
 			return result;
 		};
 
-		this.refreshNeighbor = function() {
+		this.refreshNeighbors = function() {
 			for (var name in this.neighbors) {
 				var contact = this.neighbors[name];
+				this.ping(contact);
 				if (contact.ring == this.ring) {
 					if (!this.isNeighborInsideRing(contact)) {
 						this.removeNeighbor(contact);
@@ -908,12 +947,27 @@ var sim = new Simulation();
 			this.rings[contact.ring][contact.start_address] = contact;
 		};
 
+		this.removeContact = function(contactName) {
+			console.log('remove Contact');
+			if (!this.contacts[contactName]) {
+				return;
+			}
+			delete this.contacts[contactName];
+			delete this.neighbors[contactName];
+
+			for (var name in this.neighbors) {
+				var contact = this.neighbors[name];
+				contact.getNode().removeContact(contactName);
+			}
+		};
+
 		this.toContact = function() {
 			return new sim.Contact(this);
 		};
 
 		this.addNeighbor = function(contact) {
 			this.neighbors[contact.name] = contact;
+			contact.getNode().neighbors[this.name] = this.toContact();
 
 			this.parent.links[contact.name + '_' + this.name] = {
 				source: contact.getNode(),
@@ -930,6 +984,9 @@ var sim = new Simulation();
 		};
 
 		this.removeNeighbor = function(contact) {
+			if (!this.neighbors[contact.name]) {
+				return;
+			}
 			console.log('remove: ' + this.name + '_' + contact.name);
 			console.log(new Error().stack);
 			delete this.neighbors[contact.name];

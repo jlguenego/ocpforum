@@ -104,7 +104,7 @@ input, select {
 				<button id="start">Start</button>
 				<button id="stop">Stop</button>
 				<br/>
-				<button id="add_node">Add Node</button>
+				<button id="add_node" disabled="disabled">Add Node</button>
 				<button id="rm_node" disabled="disabled">Remove Node</button>
 				<div id="stat">
 					<table>
@@ -140,6 +140,7 @@ var nodeIndex = 0;
 var main_thread = null;
 var mr = null;
 $('#start').click(function() {
+	$('#add_node').attr('disabled', null);
 	counter = 0;
 	reset_stats();
 	Math.seedrandom('Hello');
@@ -162,6 +163,7 @@ $('#start').click(function() {
 
 	mr.options.callback.onNodeSelected = function(node) {
 		$('#rm_node').attr('disabled', false);
+		console.log(node);
 	};
 	mr.options.callback.onNodeDeselected = function(node) {
 		$('#rm_node').attr('disabled', true);
@@ -196,6 +198,7 @@ $('#rm_node').click(function() {
 	mr.removeNode(nodeName);
 	main_thread.start();
 	counter--;
+	$(this).attr('disabled', true);
 });
 
 $('#stop').click(function() {
