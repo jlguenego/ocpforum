@@ -105,7 +105,7 @@ input, select {
 				<button id="stop">Stop</button>
 				<br/>
 				<button id="add_node">Add Node</button>
-				<button id="rm_node" disabled>Remove Node</button>
+				<button id="rm_node" disabled="disabled">Remove Node</button>
 				<div id="stat">
 					<table>
 						<tr>
@@ -136,6 +136,7 @@ $('#stat').get(0).addEventListener("multi_ring_stat", function(e) {
 });
 
 var counter = 0;
+var nodeIndex = 0;
 var main_thread = null;
 var mr = null;
 $('#start').click(function() {
@@ -159,18 +160,12 @@ $('#start').click(function() {
 	};
 	mr.reportElem = $('#stat').get(0);
 
-	mr.options.callback = {
-		onNodeClick: function(d) {
-			if ($('#rm_node').attr('data-node') == d.name) {
-				var disabled = !!$('#rm_node').attr('disabled');
-				$('#rm_node').attr('disabled', !disabled);
-			} else {
-				$('#rm_node').attr('data-node', d.name);
-				$('#rm_node').attr('disabled', false);
-			}
-			console.log(d);
-		}
-	}
+	mr.options.callback.onNodeSelected = function(node) {
+		$('#rm_node').attr('disabled', false);
+	};
+	mr.options.callback.onNodeDeselected = function(node) {
+		$('#rm_node').attr('disabled', true);
+	};
 
 	var ring_nbr = $('#ring_amount').val();
 	for (var i = 0; i < ring_nbr; i++) {
@@ -187,17 +182,20 @@ $('#add_node').click(function() {
 		}));
 	} else {
 		mr.addNode(new sim.Node({
-			name: 'n' + counter,
+			name: 'n' + nodeIndex,
 			image: 'image/neufbox.png',
 		}), 'n0');
 	}
 	counter++;
+	nodeIndex++;
 	main_thread.start();
 });
 
 $('#rm_node').click(function() {
-	var nodeName = $(this).attr('data-node');
-	console.log(nodeName);
+	var nodeName = mr.selectedNodeName;
+	mr.removeNode(nodeName);
+	main_thread.start();
+	counter--;
 });
 
 $('#stop').click(function() {

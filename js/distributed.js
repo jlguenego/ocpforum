@@ -14,6 +14,14 @@ var sim = new Simulation();
 			y: svg.attr('height')
 		};
 		this.defs = this.svg.append('defs');
+		this.defs.append('filter')
+			.attr('id', 'darker')
+			.append('feColorMatrix')
+				.attr('type', 'matrix')
+				.attr('in', 'SourceGraphic')
+				.attr('values', '0.8 0 0 0 -0.2 0 0.8 0 0 -0.2 0 0 0.8 0 -0.2 0 0 0 1 0');
+
+
 		this.group = this.svg.insert('g', ':first-child').classed('main', true)
 			.attr('transform', 'translate(0, ' + (this.svgbox.y / 2) + ')');
 		this.links_g = this.group.insert('g', ':first-child').classed('links', true);
@@ -36,7 +44,8 @@ var sim = new Simulation();
 			},
 			storage_method: 'redundancy_first',
 			callback: {
-				onNodeClick: function() {}
+				onNodeSelected: function(node) {},
+				onNodeDeselected: function(node) {}
 			}
 		};
 
@@ -44,9 +53,10 @@ var sim = new Simulation();
 		this.nodes = {};
 		this.links = {};
 		this.objects = {};
-		this.locator = {};
 
 		this.scale = 1;
+
+		this.selectedNodeName = null;
 
 		this.ring_cx = function(d) {
 			var width = self.options.ring.radius * 2 + 200;
@@ -159,7 +169,7 @@ var sim = new Simulation();
 			this.refreshNodes(thread);
 		};
 
-		this.addNode = function(node) {
+		this.addNode = function(node, sponsorName) {
 			node.parent = this;
 			this.thread.push({
 				function: this._addNode,
@@ -184,13 +194,52 @@ var sim = new Simulation();
 			this.refreshNodes(thread);
 		};
 
+		this.removeNode = function(nodeName) {
+			this.thread.push({
+				function: this._removeNode,
+				args: arguments,
+				name: 'removeNode',
+				object: this
+			});
+		};
+
+		this._removeNode = function(nodeName) {
+			var thread = this.thread.getThread(arguments);
+
+			this.selectedNodeName = null;
+
+			for (var name in this.links) {
+				var toBeDeleted = (this.links[name].source.name == nodeName)
+					|| (this.links[name].target.name == nodeName)
+
+				if (toBeDeleted) {
+					delete this.links[name];
+				}
+			}
+			console.log(this.links);
+
+			var node = this.nodes[nodeName];
+			var ring = this.rings[node.ring];
+			delete ring.nodes[nodeName];
+			delete this.nodes[nodeName];
+
+			console.log(this.nodes);
+			console.log(this.rings);
+
+
+			this.refreshNodes(thread);
+		};
+
 		this.refreshNodes = function(thread) {
 			var dataset = d3.values(this.rings);
 			var ring_g = this.svg.selectAll('g.ring').data(dataset, function(d) { return d.name; });
 
 			var node = ring_g.selectAll('g.node')
-				.data(function(d, i) { return d3.values(d.nodes); });
-			node.exit().remove();
+				.data(function(d, i) { return d3.values(d.nodes); }, function(d) { return d.name; });
+			node.exit().transition()
+				.duration(this.options.duration.addNode)
+				.style('opacity', 0)
+				.remove();
 
 			var new_g = node.enter().append('g')
 				.classed('node', true)
@@ -216,7 +265,13 @@ var sim = new Simulation();
 							.duration(200)
 							.style('opacity', 0);
 				})
-				.on('click', this.options.callback.onNodeClick);
+				.on('click', function(d) {
+					if (self.isSelected(d)) {
+						self.unselect(thread, d);
+					}else {
+						self.select(thread, d);
+					}
+				});
 
 			new_g.append('image')
 				.attr('xlink:href', function(d) { return d.image; })
@@ -224,6 +279,10 @@ var sim = new Simulation();
 				.attr('width', 50)
 				.attr('height', 50);
 
+			if (new_g.empty()) {
+				console.log('no new node');
+				self.refreshLinks(thread);
+			}
 			new_g.transition()
 				.duration(this.options.duration.addNode)
 				.style('opacity', 1)
@@ -241,6 +300,13 @@ var sim = new Simulation();
 				var y = - r * Math.sin(angle);
 				return 'translate(' + x + ', ' + y + ') scale(' + self.options.ring.node.scale + ')';
 			});
+
+			node.attr('filter', function(d) {
+				if (d.name == self.selectedNodeName) {
+					return 'url(' + window.location.href + '#darker)';
+				}
+				return null;
+			})
 		};
 
 		this.getNodeResponsibleForRing = function(ringName, address) {
@@ -646,6 +712,22 @@ var sim = new Simulation();
 
 			};
 			nodes.on('click', retrieve);
+		};
+
+		this.isSelected = function(d) {
+			return this.selectedNodeName == d.name;
+		};
+
+		this.select = function(thread, d) {
+			this.selectedNodeName = d.name;
+			this.refreshNodes(thread);
+			this.options.callback.onNodeSelected(d);
+		};
+
+		this.unselect = function(thread, d) {
+			this.selectedNodeName = null;
+			this.refreshNodes(thread);
+			this.options.callback.onNodeDeselected(d);
 		};
 	};
 

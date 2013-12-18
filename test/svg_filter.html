@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<base href="../" />
+		<meta charset="utf-8" />
+
+		<script src="_ext/d3.v3.min.js"></script>
+		<script src="_ext/jquery-1.10.2.min.js"></script>
+
+		<style>
+html, body {
+	width: 100%;
+	height: 100%;
+	margin: 0px;
+	padding: 0px;
+}
+
+svg {
+	border: 1px solid black;
+}
+		</style>
+	</head>
+
+	<body>
+		<div id="frame"></div>
+
+		<script>
+var svg = d3.select('#frame').append('svg')
+	.attr('width', 200)
+	.attr('height', 200);
+
+var filter = svg.append('defs').append('filter')
+	.attr('id', 'filter');
+filter.append('feColorMatrix')
+	.attr('type', 'matrix')
+	.attr('in', 'SourceGraphic')
+	.attr('values', '0.8 0 0 0 -0.2 0 0.8 0 0 -0.2 0 0 0.8 0 -0.2 0 0 0 1 0');
+
+var g = svg.append('g')
+	.attr('fill', 'red');
+g.append('image')
+	.attr('xlink:href', 'image/neufbox.png')
+	.attr('transform', 'translate(-50, -50)')
+	.attr('width', 100)
+	.attr('height', 100)
+	.attr('x', 100)
+	.attr('y', 100)
+	.on('mouseover', function() {
+		d3.select(this).attr('filter', 'url(' + window.location.href + '#filter)');
+	})
+	.on('mouseout', function() {
+		d3.select(this).attr('filter', false);
+	});
+		</script>
+	</body>
+</html>
