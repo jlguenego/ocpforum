@@ -177,17 +177,10 @@ $('#start').click(function() {
 });
 
 $('#add_node').click(function() {
-	if (counter == 0) {
-		mr.addFirstNode(new sim.Node({
-			name: 'n0',
-			image: 'image/neufbox.png',
-		}));
-	} else {
-		mr.addNode(new sim.Node({
-			name: 'n' + nodeIndex,
-			image: 'image/neufbox.png',
-		}), 'n0');
-	}
+	mr.addNode(new sim.Node({
+		name: 'n' + nodeIndex,
+		image: 'image/neufbox.png',
+	}));
 	counter++;
 	nodeIndex++;
 	main_thread.start();

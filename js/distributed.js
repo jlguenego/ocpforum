@@ -169,7 +169,7 @@ var sim = new Simulation();
 			this.refreshNodes(thread);
 		};
 
-		this.addNode = function(node, sponsorName) {
+		this.addNode = function(node) {
 			node.parent = this;
 			this.thread.push({
 				function: this._addNode,
@@ -179,12 +179,17 @@ var sim = new Simulation();
 			});
 		};
 
-		this._addNode = function(node, sponsorName) {
+		this._addNode = function(node) {
 			var thread = this.thread.getThread(arguments);
 
-			var sponsor = this.nodes[sponsorName];
+			var nodeNames = d3.keys(mr.nodes);
+			if (nodeNames.length == 0) {
+				this._addFirstNode(thread, node);
+				return;
+			}
+			var sponsor = this.nodes[nodeNames[0]];
+
 			console.log(sponsor);
-			sponsor.refreshNeighbors();
 			node.ring = sponsor.getNewRing();
 			node.start_address = sponsor.getNewAddress(node.ring);
 
@@ -752,6 +757,8 @@ var sim = new Simulation();
 		this.objects = {};
 
 		this.getNewRing = function() {
+			this.refreshNeighbors();
+
 			var rings_names = d3.keys(this.parent.rings);
 
 			var rings = {};
@@ -780,11 +787,13 @@ var sim = new Simulation();
 		};
 
 		this.getNewAddress = function(ring) {
-			var addressList = d3.values(this.contacts).findAll(function(d) {
+			this.refreshNeighbors();
+
+			var contactList = d3.values(this.contacts).findAll(function(d) {
 				return d.ring == ring;
 			});
 
-			addressList = addressList.map(function(d) { return d.start_address; });
+			var addressList = contactList.map(function(d) { return d.start_address; });
 			if (ring == this.ring) {
 				addressList.push(this.start_address);
 			}
@@ -798,11 +807,12 @@ var sim = new Simulation();
 
 			addressList.sort(function(a, b) {
 				return a - b;
-			});
+			})
 
 			var perimeter = parseInt('1' + (new Array(5).join('0')), 16);
 			var end = addressList[0] + perimeter;
 			addressList.push(end);
+			console.log(addressList);
 
 			var max_space = 0;
 			var index = 0;
@@ -815,8 +825,11 @@ var sim = new Simulation();
 					index = i;
 				}
 			}
+			console.log(list);
 
 			var address = (addressList[index] + addressList[index + 1]) / 2;
+			address = address % perimeter;
+			console.log('address=' + address);
 			return address.toString(16).padleft(4, '0') + (new Array(37).join('0'));
 		};
 
