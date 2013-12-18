@@ -68,8 +68,8 @@ input, select {
 
 .ring circle {
 	fill: none;
-	stroke: #EEEEEE;
-	stroke-width: 2;
+	stroke: #AAAAAA;
+	stroke-width: 3;
 }
 
 .links path {
@@ -105,6 +105,7 @@ input, select {
 				<button id="stop">Stop</button>
 				<br/>
 				<button id="add_node">Add Node</button>
+				<button id="rm_node" disabled>Remove Node</button>
 				<div id="stat">
 					<table>
 						<tr>
@@ -158,6 +159,19 @@ $('#start').click(function() {
 	};
 	mr.reportElem = $('#stat').get(0);
 
+	mr.options.callback = {
+		onNodeClick: function(d) {
+			if ($('#rm_node').attr('data-node') == d.name) {
+				var disabled = !!$('#rm_node').attr('disabled');
+				$('#rm_node').attr('disabled', !disabled);
+			} else {
+				$('#rm_node').attr('data-node', d.name);
+				$('#rm_node').attr('disabled', false);
+			}
+			console.log(d);
+		}
+	}
+
 	var ring_nbr = $('#ring_amount').val();
 	for (var i = 0; i < ring_nbr; i++) {
 		mr.addRing('r' + i, i);
@@ -179,6 +193,11 @@ $('#add_node').click(function() {
 	}
 	counter++;
 	main_thread.start();
+});
+
+$('#rm_node').click(function() {
+	var nodeName = $(this).attr('data-node');
+	console.log(nodeName);
 });
 
 $('#stop').click(function() {

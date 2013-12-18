@@ -34,7 +34,10 @@ var sim = new Simulation();
 					scale: 2
 				}
 			},
-			storage_method: 'redundancy_first'
+			storage_method: 'redundancy_first',
+			callback: {
+				onNodeClick: function() {}
+			}
 		};
 
 		this.rings = {};
@@ -212,7 +215,8 @@ var sim = new Simulation();
 						.transition()
 							.duration(200)
 							.style('opacity', 0);
-				});
+				})
+				.on('click', this.options.callback.onNodeClick);
 
 			new_g.append('image')
 				.attr('xlink:href', function(d) { return d.image; })
