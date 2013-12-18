@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<base href="../../" />
+		<meta charset="utf-8" />
+
+		<script src="_ext/d3.v3.min.js"></script>
+		<script src="_ext/jquery-1.10.2.min.js"></script>
+		<script src="_ext/sha1.js"></script>
+		<script src="_ext/seedrandom-min.js"></script>
+		<script src="js/jlg_commons.js"></script>
+		<script src="js/distributed.js"></script>
+		<script src="js/processus.js"></script>
+		<script src="js/address_picker.js"></script>
+
+		<style>
+html, body {
+	width: 100%;
+	height: 100%;
+	margin: 0px;
+	padding: 0px;
+}
+
+#param {
+	float: left;
+	padding: 5px;
+
+	background-color: #E6F2FF;
+}
+
+svg {
+	border: 1px solid black;
+}
+
+table {
+	width: 200px;
+}
+
+table th, table td {
+	vertical-align: middle;
+	text-align: center;
+}
+
+th {
+	width: 100px;
+	font-size: 14px;
+	font-weight: 400;
+}
+
+input, select, table button {
+	width: 100%;
+	font-size: 14px;
+	font-weight: 400;
+
+	box-sizing: border-box;
+}
+
+#row, #col {
+	width: 30px;
+}
+
+#row {
+	float: left;
+}
+
+#col {
+	float: right;
+}
+
+.ring circle {
+	pointer-events: all;
+
+	fill: none;
+	stroke: #AAAAAA;
+	stroke-width: 3;
+}
+
+.links path {
+	fill: none;
+	stroke: #FFD7D7;
+	stroke-width: 2;
+}
+
+.clickable {
+	cursor: pointer;
+}
+
+.address_picker {
+	stroke: #FFD7D7;
+	stroke-width: 1;
+}
+		</style>
+	</head>
+
+	<body>
+		<div>
+			<div id="param">
+				<table>
+					<tr>
+						<th>Ring amount</th>
+						<td><input type="text" id="ring_amount" value="1" /></td>
+					</tr>
+					<tr>
+						<th>Node amount</th>
+						<td><input type="text" id="node_amount" value="8" /></td>
+					</tr>
+					<tr>
+						<th>Linkage duration (ms)</th>
+						<td><input type="text" id="linkage" value="500" /></td>
+					</tr>
+					<tr>
+						<th colspan="2">
+							<button id="address_picker" disabled="disabled">Pick address</button>
+						</th>
+					</tr>
+					<tr>
+						<td colspan="2">
+							<input type="text" id="address" disabled/>
+						</td>
+					</tr>
+				</table>
+				<button id="start">Start</button>
+				<button id="stop">Stop</button>
+				<br/>
+				<button id="add_node" disabled="disabled">Add Node</button>
+				<button id="rm_node" disabled="disabled">Remove Node</button><br/>
+				<button id="add_object" disabled="disabled">Add Object</button>
+				<div id="stat">
+					<table>
+						<tr>
+							<th>Link quantity</th>
+							<td class="links">0</td>
+						</tr>
+					</table>
+				</div>
+			</div>
+			<div id="frame"></div>
+		</div>
+
+		<script>
+function reset_stats() {
+	$('#stat .links').html(0);
+};
+
+$('#stat').get(0).addEventListener("multi_ring_stat", function(e) {
+	var stats = e.detail;
+	var el = $(this);
+	//console.log(e);
+
+	if (stats.hasOwnProperty('add_link')) {
+		var links = parseInt(el.find('.links').html());
+		links += stats.add_link;
+		el.find('.links').html(links);
+	}
+});
+
+var counter = 0;
+var nodeIndex = 0;
+var main_thread = null;
+var mr = null;
+$('#start').click(function() {
+	$('#add_node').attr('disabled', null);
+	$('#address_picker').attr('disabled', null);
+
+	counter = 0;
+	reset_stats();
+	Math.seedrandom('Hello');
+	d3.select('#frame').select('svg').remove();
+	var svg = d3.select('#frame').append('svg')
+		.attr('width', 800)
+		.attr('height', 300);
+	main_thread = new Thread('main');
+	mr = new sim.MultiRingDS(main_thread, svg);
+
+	refresh_options();
+
+	mr.reportElem = $('#stat').get(0);
+
+	mr.options.callback.onNodeSelected = function(node) {
+		$('#rm_node').attr('disabled', false);
+		if ($('#address').val() != '') {
+			$('#add_object').attr('disabled', false);
+		}
+		console.log(node);
+	};
+	mr.options.callback.onNodeDeselected = function(node) {
+		$('#rm_node').attr('disabled', true);
+		$('#add_object').attr('disabled', true);
+	};
+
+	var ring_nbr = $('#ring_amount').val();
+	for (var i = 0; i < ring_nbr; i++) {
+		mr.addRing('r' + i, i);
+	}
+	main_thread.start();
+});
+
+$('#add_node').click(function() {
+	refresh_options();
+	mr.addNode(new sim.Node({
+		name: 'n' + nodeIndex,
+		image: 'image/neufbox.png',
+	}));
+	counter++;
+	nodeIndex++;
+	main_thread.start();
+});
+
+$('#rm_node').click(function() {
+	refresh_options();
+	var nodeName = mr.selectedNodeName;
+	mr.removeNode(nodeName);
+	main_thread.start();
+	counter--;
+	$(this).attr('disabled', true);
+});
+
+$('#address_picker').click(function() {
+	var address_picker = new sim.AddressPicker(mr, '#address');
+	address_picker.activate();
+});
+
+$('#add_object').click(function() {
+	refresh_options();
+	var nodeName = mr.selectedNodeName;
+	mr.unselect(main_thread);
+
+	var address = $('#address').val();
+	mr.addObject(nodeName, address, 'image/test/crypted.jpg');
+	mr.store(nodeName, address);
+
+	main_thread.start();
+});
+
+$('#stop').click(function() {
+	window.location.reload();
+});
+
+function refresh_options() {
+	mr.options.duration = {
+		refreshRing: 100,
+		addNode: 100,
+		addLink: $('#linkage').val(),
+		addObject: 100,
+		doTransfer: 200,
+		transform: 500
+	};
+}
+		</script>
+	</body>
+</html>

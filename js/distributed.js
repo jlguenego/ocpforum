@@ -121,7 +121,8 @@ var sim = new Simulation();
 			ring_g.exit().remove();
 
 			var new_ring_g = ring_g.enter().append('g')
-				.classed('ring', true);
+				.classed('ring', true)
+				.attr('data-name', function(d) { return d.name; });
 			new_ring_g.append('circle')
 					.attr('r', 0);
 
@@ -422,16 +423,16 @@ var sim = new Simulation();
 			});
 		};
 
-		this._addObject = function(nodeName, name, source, duration) {
+		this._addObject = function(nodeName, address, source, duration) {
 			var thread = this.thread.getThread(arguments);
 
 			var node = this.nodes[nodeName];
 			var obj = {
-				name: name,
+				address: address,
 				source: source
 			};
-			node.objects[obj.name] = obj;
-			this.objects[obj.name] = obj;
+			node.objects[obj.address] = obj;
+			this.objects[obj.address] = obj;
 
 			this.refreshObjects(thread, duration);
 		};
@@ -445,7 +446,7 @@ var sim = new Simulation();
 			symbols.exit().remove();
 			symbols.enter().append('symbol')
 				.attr('id', function(d) {
-					return d.name;
+					return d.address;
 				})
 				.append('image')
 					.attr('xlink:href', function(d) { return d.source; })
@@ -460,11 +461,18 @@ var sim = new Simulation();
 			if (new_objects.empty()) {
 				thread._next();
 			}
-			new_objects.append('use')
+			new_objects.append('rect')
 				.classed('object', true)
-				.attr('xlink:href', function(d) { return '#' + d.name; })
+				.attr('xlink:href', function(d) { return '#' + d.address; })
+				.attr('width', 25)
+				.attr('height', 25)
 				.attr('x', 0)
 				.attr('y', 0)
+				.attr('fill', function(d) {
+					var perimeter = parseInt('1' + new Array(41).join('0'), 16);
+					var hue = (parseInt(d.address, 16) / perimeter) * 360;
+					return 'hsl(' + hue + ', 100%, 90%)';
+				})
 				.style('opacity', 0)
 				.transition()
 					.duration(duration)
@@ -475,7 +483,7 @@ var sim = new Simulation();
 
 		};
 
-		this.store = function(nodeName, objectName) {
+		this.store = function(nodeName, objectAddress) {
 			this.thread.push({
 				function: this._store,
 				args: arguments,
@@ -484,41 +492,40 @@ var sim = new Simulation();
 			});
 		};
 
-		this._store = function(nodeName, objectName) {
+		this._store = function(nodeName, objectAddress) {
 			var thread = this.thread.getThread(arguments);
 
 			if (this.options.storage_method == 'redundancy_first') {
-				this._storeRF(thread, nodeName, objectName);
+				this._storeRF(thread, nodeName, objectAddress);
 			} else if (this.options.storage_method == 'redundancy_last') {
-				this._storeRL(thread, nodeName, objectName);
+				this._storeRL(thread, nodeName, objectAddress);
 			}
 		};
 
-		this._storeRF = function(nodeName, objectName) {
+		this._storeRF = function(nodeName, objectAddress) {
 			var thread = this.thread.getThread(arguments);
 
 			var node = this.nodes[nodeName];
-			node.store(thread, objectName);
+			node.store(thread, objectAddress);
 
-			this.sendToOtherRings(thread, node, objectName);
+			this.sendToOtherRings(thread, node, objectAddress);
 
 		};
 
-		this._storeRL = function(nodeName, objectName) {
+		this._storeRL = function(nodeName, objectAddress) {
 			var thread = this.thread.getThread(arguments);
 
-			var node = this.nodes[nodeName];
-			node.store(thread, objectName, { initial_ring: node.ring });
+			var node = this.nodes[objectAddress];
+			node.store(thread, objectAddress, { initial_ring: node.ring });
 		};
 
-		this.sendToOtherRings = function(thread, node, objectName) {
+		this.sendToOtherRings = function(thread, node, objectAddress) {
 			for (var ringName in this.rings) {
 				if (ringName == node.ring) {
 					continue;
 				}
 
-				var object_address = CryptoJS.SHA1(CryptoJS.SHA1(objectName)).toString();
-				var ringNode = node.getResponsibleForRing(ringName, object_address);
+				var ringNode = node.getResponsibleForRing(ringName, objectAddress);
 
 				if (!ringNode) {
 					continue;
@@ -526,10 +533,10 @@ var sim = new Simulation();
 
 				var tname = objectName + '_' + ringName;
 				var new_thread = new Thread(tname, thread);
-				this.doTransfer(new_thread, node.name, ringNode.name, objectName);
+				this.doTransfer(new_thread, node.name, ringNode.name, objectAddress);
 				new_thread.push({
 					function: this._storeRec,
-					args: [ ringNode.name, objectName, {} ],
+					args: [ ringNode.name, objectAddress, {} ],
 					name: '_storeRec',
 					object: this
 				});
@@ -537,13 +544,13 @@ var sim = new Simulation();
 			}
 		};
 
-		this._storeRec = function(nodeName, objectName, context) {
+		this._storeRec = function(nodeName, objectAddress, context) {
 			var thread = this.thread.getThread(arguments);
 			var node = this.nodes[nodeName];
-			node.store(thread, objectName, context);
+			node.store(thread, objectAddress, context);
 		};
 
-		this.retrieve = function(nodeName, objectName) {
+		this.retrieve = function(nodeName, objectAddress) {
 			this.thread.push({
 				function: this._retrieve,
 				args: arguments,
@@ -552,30 +559,30 @@ var sim = new Simulation();
 			});
 		};
 
-		this._retrieve = function(nodeName, objectName) {
+		this._retrieve = function(nodeName, objectAddress) {
 			var thread = this.thread.getThread(arguments);
 
 			var node = this.nodes[nodeName];
-			node.retrieve(thread, objectName, { initial: true });
+			node.retrieve(thread, objectAddress, { initial: true });
 		};
 
-		this.doTransfer = function(thread, sourceName, targetName, objectName) {
+		this.doTransfer = function(thread, sourceName, targetName, objectAddress) {
 			thread.unshift({
 				function: this._doTransfer,
-				args: [ sourceName, targetName, objectName ],
+				args: [ sourceName, targetName, objectAddress ],
 				name: 'doTransfer',
 				object: this
 			});
 		};
 
-		this._doTransfer = function(sourceName, targetName, objectName) {
+		this._doTransfer = function(sourceName, targetName, objectAddress) {
 			var thread = this.thread.getThread(arguments);
 			var source = this.nodes[sourceName];
 			var target = this.nodes[targetName];
 			var transfer = {
 				source: source,
 				target: target,
-				object: this.objects[objectName]
+				object: this.objects[objectAddress]
 			};
 
 			this.performTransfer(thread, transfer);
@@ -596,7 +603,7 @@ var sim = new Simulation();
 					var p = pathNode.getPointAtLength(0)
 					return 'translate(' + [p.x, p.y] + ') scale(' + self.options.ring.node.scale + ')';
 				})
-				.attr('xlink:href', '#' + transfer.object.name)
+				.attr('xlink:href', '#' + transfer.object.address)
 				.transition()
 					.duration(duration)
 					.ease("linear")
@@ -608,7 +615,7 @@ var sim = new Simulation();
 					})
 				.each('end', function() {
 					g_obj.remove();
-					self._addObject(thread, transfer.target.name, transfer.object.name, transfer.object.source, 0);
+					self._addObject(thread, transfer.target.name, transfer.object.address, transfer.object.source, 0);
 
 					self.report({ add_transfer: 1 });
 				});
@@ -1041,50 +1048,49 @@ var sim = new Simulation();
 			return result;
 		};
 
-		this.store = function(thread, objectName, context) {
-			var next_node = this.getResponsible(objectName);
+		this.store = function(thread, objectAddress, context) {
+			var next_node = this.getResponsible(objectAddress);
 
 			if (this == next_node) {
 				// This is the responsible node.
 				if (this.parent.options.storage_method == 'redundancy_last') {
 					if (context.initial_ring == this.ring) {
-						this.parent.sendToOtherRings(thread, this, objectName);
+						this.parent.sendToOtherRings(thread, this, objectAddress);
 					}
 				}
 				thread._next();
 			} else {
 				thread.unshift({
 					function: this.parent._storeRec,
-					args: [ next_node.name, objectName, context ],
+					args: [ next_node.name, objectAddress, context ],
 					name: '_storeRec',
 					object: this.parent
 				});
-				this.parent._doTransfer(thread, this.name, next_node.name, objectName);
+				this.parent._doTransfer(thread, this.name, next_node.name, objectAddress);
 			}
 		};
 
-		this.retrieve = function(thread, objectName, context) {
-			if (this.objects[objectName]) {
+		this.retrieve = function(thread, objectAddress, context) {
+			if (this.objects[objectAddress]) {
 				thread._next();
 				return;
 			}
 
-			var next_node = this.getResponsible(objectName);
+			var next_node = this.getResponsible(objectAddress);
 
 			if (this == next_node) {
 				// This is the responsible node.
-				if (!this.objects[objectName]) {
-					throw new Error('Object not found on ' + this.name + ': ' + objectName);
+				if (!this.objects[objectAddress]) {
+					throw new Error('Object not found on ' + this.name + ': ' + objectAddress);
 				}
 				thread._next();
 			} else {
-				this.parent.doTransfer(thread, next_node.name, this.name, objectName);
-				next_node.retrieve(thread, objectName, { initial: false });
+				this.parent.doTransfer(thread, next_node.name, this.name, objectAddress);
+				next_node.retrieve(thread, objectAddress, { initial: false });
 			}
 		};
 
-		this.getResponsible = function(objectName) {
-			var object_address = CryptoJS.SHA1(CryptoJS.SHA1(objectName)).toString();
+		this.getResponsible = function(objectAddress) {
 
 			var neighbors = d3.values(this.neighbors).findAll(function(d) {
 				return self.ring == d.ring;
@@ -1092,10 +1098,10 @@ var sim = new Simulation();
 			var ring = neighbors.map(function(d) { return d.start_address; });
 
 			ring.push(this.start_address);
-			ring.push(object_address);
+			ring.push(objectAddress);
 
 			ring.sort();
-			var index = ring.indexOf(object_address);
+			var index = ring.indexOf(objectAddress);
 			if (index == 0) {
 				index = ring.length;
 			}
@@ -1139,23 +1145,23 @@ var sim = new Simulation();
 			return contact;
 		};
 
-		this.getResponsibleForRing = function(ringName, object_address) {
+		this.getResponsibleForRing = function(ringName, objectAddress) {
 			var ring = [];
 			for (var nodeName in this.contacts) {
 				var n = this.contacts[nodeName];
 				if (n.ring != ringName) {
 					continue;
 				}
-				if (n.start_address == object_address) {
+				if (n.start_address == objectAddress) {
 					return n;
 				}
 				ring.push(n.start_address);
 			}
 
-			ring.push(object_address);
+			ring.push(objectAddress);
 
 			ring.sort();
-			var index = ring.indexOf(object_address);
+			var index = ring.indexOf(objectAddress);
 			if (index == 0) {
 				index = ring.length;
 			}
