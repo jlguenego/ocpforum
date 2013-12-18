@@ -531,7 +531,7 @@ var sim = new Simulation();
 					continue;
 				}
 
-				var tname = objectName + '_' + ringName;
+				var tname = objectAddress + '_' + ringName;
 				var new_thread = new Thread(tname, thread);
 				this.doTransfer(new_thread, node.name, ringNode.name, objectAddress);
 				new_thread.push({
@@ -1147,8 +1147,8 @@ var sim = new Simulation();
 
 		this.getResponsibleForRing = function(ringName, objectAddress) {
 			var ring = [];
-			for (var nodeName in this.contacts) {
-				var n = this.contacts[nodeName];
+			for (var nodeName in this.neighbors) {
+				var n = this.neighbors[nodeName];
 				if (n.ring != ringName) {
 					continue;
 				}
@@ -1167,7 +1167,7 @@ var sim = new Simulation();
 			}
 			var node_address = ring[index - 1];
 
-			var node = this.contacts.find(function(d) {
+			var node = d3.values(this.neighbors).find(function(d) {
 				return (d.start_address == node_address) && (d.ring == ringName);
 			});
 
