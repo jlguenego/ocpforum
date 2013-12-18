@@ -563,6 +563,7 @@ var sim = new Simulation();
 			var thread = this.thread.getThread(arguments);
 
 			var node = this.nodes[nodeName];
+
 			node.retrieve(thread, objectAddress, { initial: true });
 		};
 
@@ -590,6 +591,7 @@ var sim = new Simulation();
 
 		this.performTransfer = function(thread, transfer) {
 			var duration = this.options.duration.doTransfer;
+			console.log(transfer);
 
 			var pathNode = d3.select('#' + transfer.source.name + '_' + transfer.target.name).node();
 			var pathLength = pathNode.getTotalLength();
@@ -1049,6 +1051,7 @@ var sim = new Simulation();
 		};
 
 		this.store = function(thread, objectAddress, context) {
+
 			var next_node = this.getResponsible(objectAddress);
 
 			if (this == next_node) {
@@ -1091,7 +1094,7 @@ var sim = new Simulation();
 		};
 
 		this.getResponsible = function(objectAddress) {
-
+			this.refreshNeighbors();
 			var neighbors = d3.values(this.neighbors).findAll(function(d) {
 				return self.ring == d.ring;
 			});
