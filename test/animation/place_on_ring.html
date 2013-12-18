@@ -177,6 +177,14 @@ $('#start').click(function() {
 });
 
 $('#add_node').click(function() {
+	mr.options.duration = {
+		refreshRing: 100,
+		addNode: 100,
+		addLink: $('#linkage').val(),
+		addObject: 100,
+		doTransfer: 200,
+		transform: 500
+	};
 	mr.addNode(new sim.Node({
 		name: 'n' + nodeIndex,
 		image: 'image/neufbox.png',
@@ -187,6 +195,14 @@ $('#add_node').click(function() {
 });
 
 $('#rm_node').click(function() {
+	mr.options.duration = {
+		refreshRing: 100,
+		addNode: 100,
+		addLink: $('#linkage').val(),
+		addObject: 100,
+		doTransfer: 200,
+		transform: 500
+	};
 	var nodeName = mr.selectedNodeName;
 	mr.removeNode(nodeName);
 	main_thread.start();

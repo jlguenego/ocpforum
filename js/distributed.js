@@ -350,7 +350,7 @@ var sim = new Simulation();
 
 			var path = this.links_g.selectAll('path').data(dataset, function(d) { return d.id; });
 			path.exit().transition()
-				.duration(this.options.duration.addLink)
+				.duration(this.options.duration.addNode)
 				.style('opacity', 0)
 				.remove();
 
