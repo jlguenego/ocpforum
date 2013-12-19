@@ -189,15 +189,10 @@ var sim = new Simulation();
 				return;
 			}
 			var sponsor = this.nodes[nodeNames[0]];
+			node.connectTo(sponsor);
 
-			console.log(sponsor);
-			node.ring = sponsor.getNewRing();
-			node.start_address = sponsor.getNewAddress(node.ring);
 
-			this.nodes[node.name] = node;
-			this.rings[node.ring].nodes[node.name] = node;
 
-			node.addLinks(sponsor);
 
 			this.refreshNodes(thread);
 		};
@@ -765,6 +760,18 @@ var sim = new Simulation();
 
 		this.objects = {};
 
+		this.connectTo = function(sponsor) {
+			console.log(sponsor);
+			this.ring = sponsor.getNewRing();
+			this.start_address = sponsor.getNewAddress(this.ring);
+
+			// update the global view.
+			this.parent.nodes[this.name] = this;
+			this.parent.rings[this.ring].nodes[this.name] = this;
+
+			this.addLinks(sponsor);
+		}
+
 		this.getNewRing = function() {
 			this.refreshNeighbors();
 
@@ -843,7 +850,7 @@ var sim = new Simulation();
 		};
 
 		this.addLinks = function(sponsor) {
-			var contact_list = sponsor.connect(this.toContact());
+			var contact_list = sponsor.accept(this.toContact());
 
 			for (var name in contact_list) {
 				var contact = contact_list[name];
@@ -928,7 +935,7 @@ var sim = new Simulation();
 			return r1 || r2;
 		};
 
-		this.connect = function(new_contact) {
+		this.accept = function(new_contact) {
 			var result = {};
 			this.refreshNeighbors();
 			for (var name in this.contacts) {
