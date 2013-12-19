@@ -220,10 +220,9 @@ $('#rm_node').click(function() {
 $('#refresh_neighbors').click(function() {
 	refresh_options();
 	var nodeName = mr.selectedNodeName;
-	mr._unselect(main_thread);
-	var node = mr.nodes[nodeName];
-	node.refreshNeighbors();
-	mr.refreshNodes(main_thread);
+	mr.unselect();
+	mr.refreshNode(nodeName);
+	main_thread.start();
 });
 
 $('#address_picker').click(function() {

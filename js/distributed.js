@@ -230,6 +230,23 @@ var sim = new Simulation();
 			this.refreshNodes(thread);
 		};
 
+		this.refreshNode = function(nodeName) {
+			this.thread.push({
+				function: this._refreshNode,
+				args: arguments,
+				name: '_refreshNode',
+				object: this
+			});
+		};
+
+		this._refreshNode = function(nodeName) {
+			var thread = this.thread.getThread(arguments);
+
+			var node = this.nodes[nodeName];
+			node.refreshNeighbors();
+			this.refreshNodes(thread);
+		};
+
 		this.refreshNodes = function(thread) {
 			var dataset = d3.values(this.rings);
 			var ring_g = this.svg.selectAll('g.ring').data(dataset, function(d) { return d.name; });
@@ -494,18 +511,16 @@ var sim = new Simulation();
 		this._storeRF = function(nodeName, objectAddress) {
 			var thread = this.thread.getThread(arguments);
 
-			var node = this.nodes[nodeName];
-			node.store(thread, objectAddress);
+			this._storeRec(thread, nodeName, objectAddress, {});
 
-			this.sendToOtherRings(thread, node, objectAddress);
+			this.sendToOtherRings(thread, this.nodes[nodeName], objectAddress);
 
 		};
 
 		this._storeRL = function(nodeName, objectAddress) {
 			var thread = this.thread.getThread(arguments);
 
-			var node = this.nodes[objectAddress];
-			node.store(thread, objectAddress, { initial_ring: node.ring });
+			this._storeRec(thread, nodeName, objectAddress, { initial_ring: node.ring });
 		};
 
 		this.sendToOtherRings = function(thread, node, objectAddress) {
@@ -535,8 +550,48 @@ var sim = new Simulation();
 
 		this._storeRec = function(nodeName, objectAddress, context) {
 			var thread = this.thread.getThread(arguments);
+			// there are 2 visual steps (->thread):
+			// 1) refresh node
+			// 2) do the effective store
+			thread.unshift({
+				function: this._refreshNode,
+				args: [ nodeName ],
+				name: '_refreshNode',
+				object: this
+			});
+			thread.unshift({
+				function: this._storeOperation,
+				args: arguments,
+				name: '_storeOperation',
+				object: this
+			});
+			thread._next();
+		}
+
+		this._storeOperation = function(nodeName, objectAddress, context) {
+			var thread = this.thread.getThread(arguments);
+
 			var node = this.nodes[nodeName];
-			node.store(thread, objectAddress, context);
+			console.log('objectAddress=' + objectAddress);
+			var next_node = node.getResponsible(objectAddress);
+
+			if (node.name == next_node.name) {
+				// This is the responsible node.
+				if (this.options.storage_method == 'redundancy_last') {
+					if (context.initial_ring == node.ring) {
+						this.sendToOtherRings(thread, this, objectAddress);
+					}
+				}
+				thread._next();
+			} else {
+				thread.unshift({
+					function: this._storeRec,
+					args: [ next_node.name, objectAddress, context ],
+					name: '_storeRec',
+					object: this
+				});
+				this._doTransfer(thread, node.name, next_node.name, objectAddress);
+			}
 		};
 
 		this.retrieve = function(nodeName, objectAddress) {
@@ -1114,29 +1169,6 @@ var sim = new Simulation();
 			return result;
 		};
 
-		this.store = function(thread, objectAddress, context) {
-
-			var next_node = this.getResponsible(objectAddress);
-
-			if (this == next_node) {
-				// This is the responsible node.
-				if (this.parent.options.storage_method == 'redundancy_last') {
-					if (context.initial_ring == this.ring) {
-						this.parent.sendToOtherRings(thread, this, objectAddress);
-					}
-				}
-				thread._next();
-			} else {
-				thread.unshift({
-					function: this.parent._storeRec,
-					args: [ next_node.name, objectAddress, context ],
-					name: '_storeRec',
-					object: this.parent
-				});
-				this.parent._doTransfer(thread, this.name, next_node.name, objectAddress);
-			}
-		};
-
 		this.retrieve = function(thread, objectAddress, context) {
 			if (this.objects[objectAddress]) {
 				thread._next();
@@ -1158,7 +1190,6 @@ var sim = new Simulation();
 		};
 
 		this.getResponsible = function(objectAddress) {
-			this.refreshNeighbors();
 			var neighbors = d3.values(this.neighbors).findAll(function(d) {
 				return self.ring == d.ring;
 			});
