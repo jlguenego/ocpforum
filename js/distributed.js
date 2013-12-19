@@ -161,7 +161,7 @@ var sim = new Simulation();
 		this._addFirstNode = function(node) {
 			var thread = this.thread.getThread(arguments);
 
-			node.start_address = new Array(41).join('0');
+			node.start_address = node.getAddressFromAngle(10);
 			node.ring = d3.values(this.rings).find(function(d) { return d.index == 0; }).name;
 
 			this.nodes[node.name] = node;
@@ -170,7 +170,7 @@ var sim = new Simulation();
 			this.refreshNodes(thread);
 		};
 
-		this.addNode = function(node) {
+		this.addNode = function(node, sponsorName) {
 			node.parent = this;
 			this.thread.push({
 				function: this._addNode,
@@ -180,7 +180,7 @@ var sim = new Simulation();
 			});
 		};
 
-		this._addNode = function(node) {
+		this._addNode = function(node, sponsorName) {
 			var thread = this.thread.getThread(arguments);
 
 			var nodeNames = d3.keys(mr.nodes);
@@ -189,11 +189,13 @@ var sim = new Simulation();
 				return;
 			}
 			var sponsor = this.nodes[nodeNames[0]];
+			if (sponsorName) {
+				sponsor = this.nodes[sponsorName];
+			}
+			if (!sponsor) {
+				throw new Error('sponsor not defined.');
+			}
 			node.connectTo(sponsor);
-
-
-
-
 			this.refreshNodes(thread);
 		};
 
@@ -220,16 +222,10 @@ var sim = new Simulation();
 				}
 			}
 
-			console.log(this.links);
-
 			var node = this.nodes[nodeName];
 			var ring = this.rings[node.ring];
 			delete ring.nodes[nodeName];
 			delete this.nodes[nodeName];
-
-			console.log(this.nodes);
-			console.log(this.rings);
-
 
 			this.refreshNodes(thread);
 		};
@@ -271,9 +267,9 @@ var sim = new Simulation();
 				})
 				.on('click', function(d) {
 					if (self.isSelected(d)) {
-						self.unselect(thread, d);
+						self._unselect(thread, d);
 					}else {
-						self.select(thread, d);
+						self._select(thread, d);
 					}
 				});
 
@@ -284,7 +280,6 @@ var sim = new Simulation();
 				.attr('height', 50);
 
 			if (new_g.empty()) {
-				console.log('no new node');
 				self.refreshLinks(thread);
 			}
 			new_g.transition()
@@ -292,7 +287,6 @@ var sim = new Simulation();
 				.style('opacity', 1)
 				.each('end', function() {
 					self.refreshLinks(thread);
-					console.log(self.nodes);
 				});
 
 			node.attr('transform', function(d) {
@@ -586,7 +580,6 @@ var sim = new Simulation();
 
 		this.performTransfer = function(thread, transfer) {
 			var duration = this.options.duration.doTransfer;
-			console.log(transfer);
 
 			var pathNode = d3.select('#' + transfer.source.name + '_' + transfer.target.name).node();
 			var pathLength = pathNode.getTotalLength();
@@ -730,13 +723,33 @@ var sim = new Simulation();
 			return this.selectedNodeName == d.name;
 		};
 
-		this.select = function(thread, d) {
+		this.select = function(d) {
+			this.thread.push({
+				function: this._select,
+				args: arguments,
+				name: '_select',
+				object: this
+			});
+		};
+
+		this._select = function(d) {
+			var thread = this.thread.getThread(arguments);
 			this.selectedNodeName = d.name;
 			this.refreshNodes(thread);
 			this.options.callback.onNodeSelected(d);
 		};
 
-		this.unselect = function(thread, d) {
+		this.unselect = function(d) {
+			this.thread.push({
+				function: this._unselect,
+				args: arguments,
+				name: '_unselect',
+				object: this
+			});
+		};
+
+		this._unselect = function(d) {
+			var thread = this.thread.getThread(arguments);
 			this.selectedNodeName = null;
 			this.refreshNodes(thread);
 			this.options.callback.onNodeDeselected(d);
@@ -761,7 +774,6 @@ var sim = new Simulation();
 		this.objects = {};
 
 		this.connectTo = function(sponsor) {
-			console.log(sponsor);
 			this.ring = sponsor.getNewRing();
 			this.start_address = sponsor.getNewAddress(this.ring);
 
@@ -802,6 +814,13 @@ var sim = new Simulation();
 			return ring_name;
 		};
 
+		this.getAddressFromAngle = function(angle, perimeter) {
+			perimeter = perimeter || 360;
+			var new_perimeter = parseInt('1' + new Array(41).join('0'), 16);
+			var address = (angle / perimeter) * new_perimeter;
+			return address.toString(16).padleft(40, '0');
+		}
+
 		this.getNewAddress = function(ring) {
 			this.refreshNeighbors();
 
@@ -818,7 +837,8 @@ var sim = new Simulation();
 			});
 
 			if (addressList.length == 0) {
-				return new Array(41).join('0');
+				console.log('first node ?');
+				return this.getAddressFromAngle(10);
 			}
 
 			addressList.sort(function(a, b) {
@@ -828,7 +848,6 @@ var sim = new Simulation();
 			var perimeter = parseInt('1' + (new Array(5).join('0')), 16);
 			var end = addressList[0] + perimeter;
 			addressList.push(end);
-			console.log(addressList);
 
 			var max_space = 0;
 			var index = 0;
@@ -841,11 +860,9 @@ var sim = new Simulation();
 					index = i;
 				}
 			}
-			console.log(list);
 
 			var address = (addressList[index] + addressList[index + 1]) / 2;
 			address = address % perimeter;
-			console.log('address=' + address);
 			return address.toString(16).padleft(4, '0') + (new Array(37).join('0'));
 		};
 
@@ -869,7 +886,6 @@ var sim = new Simulation();
 						break;
 					}
 				}
-				console.log('okForAll=' + okForAll);
 				if (okForAll) {
 					break;
 				}
@@ -878,8 +894,6 @@ var sim = new Simulation();
 
 		this.ping = function(contact) {
 			var result = true;
-			console.log('ping');
-			console.log(contact);
 			if (!this.parent.nodes[contact.name]) {
 				this.removeContact(contact.name);
 				this.removeNeighbor(contact);
@@ -915,7 +929,6 @@ var sim = new Simulation();
 			var list_1 = ring.slice(i);
 			var list_2 = ring.slice(0, i);
 			var list = list_1.concat(list_2);
-			console.log(list);
 
 			var index = list.indexOf(a2);
 			var p = Math.log(index) / Math.LN2;
@@ -961,9 +974,22 @@ var sim = new Simulation();
 				} else {
 					var responsible_contact = this.getResponsibleContact(contact.ring, this.start_address);
 					if (responsible_contact.name != contact.name) {
-						this.removeNeighbor(contact);
+						var c = contact.getNode().getResponsibleContact(this.ring, contact.start_address);
+						if (c.name != this.name) {
+							this.removeNeighbor(contact);
+						}
 					}
 				}
+			}
+			// add neighbors from unconnected rings.
+			console.log('maintaining neighbors on other rings.');
+			for (var ring in this.parent.rings) {
+				if (ring == this.ring) {
+					continue;
+				}
+				console.log('handling ring: ' + ring);
+				//if (this.isNeighborsForRing()) {
+				//}
 			}
 		};
 
@@ -977,7 +1003,6 @@ var sim = new Simulation();
 		};
 
 		this.removeContact = function(contactName) {
-			console.log('remove Contact');
 			if (!this.contacts[contactName]) {
 				return;
 			}
@@ -1016,8 +1041,7 @@ var sim = new Simulation();
 			if (!this.neighbors[contact.name]) {
 				return;
 			}
-			console.log('remove: ' + this.name + '_' + contact.name);
-			console.log(new Error().stack);
+			console.log(this.name + 'removes neighbors ' + contact.name);
 			delete this.neighbors[contact.name];
 			delete this.parent.links[contact.name + '_' + this.name];
 			delete this.parent.links[this.name + '_' + contact.name];

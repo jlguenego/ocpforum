@@ -121,6 +121,7 @@ input, select, table button {
 				<button id="add_node" disabled="disabled">Add Node</button>
 				<button id="rm_node" disabled="disabled">Remove Node</button><br/>
 				<button id="add_object" disabled="disabled">Add Object</button>
+				<button id="refresh_neighbors" disabled="disabled">Refresh Neighbors</button>
 				<div id="stat">
 					<table>
 						<tr>
@@ -174,6 +175,7 @@ $('#start').click(function() {
 
 	mr.options.callback.onNodeSelected = function(node) {
 		$('#rm_node').attr('disabled', false);
+		$('#refresh_neighbors').attr('disabled', false);
 		if ($('#address').val() != '') {
 			$('#add_object').attr('disabled', false);
 		}
@@ -182,6 +184,7 @@ $('#start').click(function() {
 	mr.options.callback.onNodeDeselected = function(node) {
 		$('#rm_node').attr('disabled', true);
 		$('#add_object').attr('disabled', true);
+		$('#refresh_neighbors').attr('disabled', true);
 	};
 
 	var ring_nbr = $('#ring_amount').val();
@@ -193,10 +196,12 @@ $('#start').click(function() {
 
 $('#add_node').click(function() {
 	refresh_options();
+	var nodeName = mr.selectedNodeName;
+	mr.unselect();
 	mr.addNode(new sim.Node({
 		name: 'n' + nodeIndex,
 		image: 'image/neufbox.png',
-	}));
+	}), nodeName);
 	counter++;
 	nodeIndex++;
 	main_thread.start();
@@ -205,10 +210,19 @@ $('#add_node').click(function() {
 $('#rm_node').click(function() {
 	refresh_options();
 	var nodeName = mr.selectedNodeName;
+	mr.unselect();
 	mr.removeNode(nodeName);
 	main_thread.start();
 	counter--;
 	$(this).attr('disabled', true);
+});
+
+$('#refresh_neighbors').click(function() {
+	refresh_options();
+	var nodeName = mr.selectedNodeName;
+	mr._unselect(main_thread);
+	var node = mr.nodes[nodeName];
+	node.refreshNeighbors();
 });
 
 $('#address_picker').click(function() {
@@ -219,7 +233,7 @@ $('#address_picker').click(function() {
 $('#add_object').click(function() {
 	refresh_options();
 	var nodeName = mr.selectedNodeName;
-	mr.unselect(main_thread);
+	mr.unselect();
 
 	var address = $('#address').val();
 	mr.addObject(nodeName, address, 'image/test/crypted.jpg');
