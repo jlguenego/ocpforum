@@ -210,9 +210,10 @@ var sim = new Simulation();
 
 		this._removeNode = function(nodeName) {
 			var thread = this.thread.getThread(arguments);
-
+			// to be sure there will be no selection afterwards.
 			this.selectedNodeName = null;
 
+			// remove the links inside the global view.
 			for (var name in this.links) {
 				var toBeDeleted = (this.links[name].source.name == nodeName)
 					|| (this.links[name].target.name == nodeName)
@@ -221,12 +222,13 @@ var sim = new Simulation();
 					delete this.links[name];
 				}
 			}
-
+			// remove the node inside the global view.
 			var node = this.nodes[nodeName];
 			var ring = this.rings[node.ring];
 			delete ring.nodes[nodeName];
 			delete this.nodes[nodeName];
 
+			// refresh the painting.
 			this.refreshNodes(thread);
 		};
 
@@ -243,7 +245,9 @@ var sim = new Simulation();
 			var thread = this.thread.getThread(arguments);
 
 			var node = this.nodes[nodeName];
+			// for the time being, we just refresh the neighbors.
 			node.refreshNeighbors();
+			// and the painting.
 			this.refreshNodes(thread);
 		};
 
