@@ -502,25 +502,14 @@ var sim = new Simulation();
 			var thread = this.thread.getThread(arguments);
 
 			if (this.options.storage_method == 'redundancy_first') {
-				this._storeRF(thread, nodeName, objectAddress);
+				this._storeRec(thread, nodeName, objectAddress, {
+					send_to_other_rings: true
+				});
 			} else if (this.options.storage_method == 'redundancy_last') {
-				this._storeRL(thread, nodeName, objectAddress);
+				this._storeRec(thread, nodeName, objectAddress, {
+					initial_ring: node.ring
+				});
 			}
-		};
-
-		this._storeRF = function(nodeName, objectAddress) {
-			var thread = this.thread.getThread(arguments);
-
-			this._storeRec(thread, nodeName, objectAddress, {});
-
-			this.sendToOtherRings(thread, this.nodes[nodeName], objectAddress);
-
-		};
-
-		this._storeRL = function(nodeName, objectAddress) {
-			var thread = this.thread.getThread(arguments);
-
-			this._storeRec(thread, nodeName, objectAddress, { initial_ring: node.ring });
 		};
 
 		this.sendToOtherRings = function(thread, node, objectAddress) {
@@ -554,17 +543,18 @@ var sim = new Simulation();
 			// 1) refresh node
 			// 2) do the effective store
 			thread.unshift({
-				function: this._refreshNode,
-				args: [ nodeName ],
-				name: '_refreshNode',
-				object: this
-			});
-			thread.unshift({
 				function: this._storeOperation,
 				args: arguments,
 				name: '_storeOperation',
 				object: this
 			});
+			thread.unshift({
+				function: this._refreshNode,
+				args: [ nodeName ],
+				name: '_refreshNode',
+				object: this
+			});
+
 			thread._next();
 		}
 
@@ -572,6 +562,11 @@ var sim = new Simulation();
 			var thread = this.thread.getThread(arguments);
 
 			var node = this.nodes[nodeName];
+			if (context.send_to_other_rings == true) {
+				this.sendToOtherRings(thread, this.nodes[nodeName], objectAddress);
+				delete context.send_to_other_rings;
+			}
+
 			console.log('objectAddress=' + objectAddress);
 			var next_node = node.getResponsible(objectAddress);
 
