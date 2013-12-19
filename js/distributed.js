@@ -893,13 +893,12 @@ var sim = new Simulation();
 		};
 
 		this.ping = function(contact) {
-			var result = true;
 			if (!this.parent.nodes[contact.name]) {
-				this.removeContact(contact.name);
 				this.removeNeighbor(contact);
-				result = false;
+				this.removeContact(contact.name);
+				return false;
 			}
-			return result;
+			return true;
 		};
 
 		this.computeNeighbors = function() {
@@ -988,8 +987,38 @@ var sim = new Simulation();
 					continue;
 				}
 				console.log('handling ring: ' + ring);
-				//if (this.isNeighborsForRing()) {
-				//}
+				if (!this.isNeighborsForRing(ring)) {
+					this.createNeighborForRing(ring);
+				}
+			}
+		};
+
+		this.isNeighborsForRing = function(ring) {
+			for (var name in this.neighbors) {
+				var n = this.neighbors[name];
+				if (n.ring == ring) {
+					return true;
+				}
+			}
+			return false;
+		};
+
+		this.createNeighborForRing = function(ring) {
+			while (true) {
+				console.log('entering loop');
+				var contact = this.getResponsibleContact(ring, this.start_address);
+				if (!contact) {
+					console.log(this.name + ': I have no contact for ring ' + ring);
+					return;
+				}
+				console.log('contact = ' + contact.name);
+				if (this.ping(contact)) {
+					console.log('ping ok');
+					this.addNeighbor(contact);
+					break;
+				} else {
+					console.log('cannot ping ' + contact.name);
+				}
 			}
 		};
 
@@ -1006,6 +1035,10 @@ var sim = new Simulation();
 			if (!this.contacts[contactName]) {
 				return;
 			}
+			var contact = this.contacts[contactName];
+			var r_contacts = this.rings[contact.ring];
+			delete r_contacts[contact.start_address];
+
 			delete this.contacts[contactName];
 			delete this.neighbors[contactName];
 

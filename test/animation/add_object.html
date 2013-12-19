@@ -223,6 +223,7 @@ $('#refresh_neighbors').click(function() {
 	mr._unselect(main_thread);
 	var node = mr.nodes[nodeName];
 	node.refreshNeighbors();
+	mr.refreshNodes(main_thread);
 });
 
 $('#address_picker').click(function() {
