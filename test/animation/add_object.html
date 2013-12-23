@@ -117,7 +117,7 @@ input, select, table button {
 	line-height: 28px;
 
 	cursor: pointer;
-
+	background-color: #FBFDFF
 }
 
 .menu .button:hover {
@@ -125,11 +125,15 @@ input, select, table button {
 }
 
 .menu .disabled {
-	color: gray;
+	color: #DDDDDD;
 	cursor: default;
 }
 
 .menu .disabled:hover {
+	background-color: #FBFDFF;
+}
+
+.menu .selected {
 	background-color: transparent;
 }
 
@@ -138,7 +142,7 @@ input, select, table button {
 	height: 225px;
 }
 
-.body div {
+.body > div {
 	width: 100%;
 	height: 100%;
 }
@@ -152,6 +156,19 @@ input, select, table button {
 .body .node {
 }
 
+#address_cache {
+}
+
+.body .object {
+	display: inline-block;
+	vertical-align: middle;
+	width: 20px;
+	height: 20px;
+	margin: 2px;
+	border: 1px solid black;
+	cursor: pointer;
+}
+
 		</style>
 	</head>
 
@@ -159,8 +176,8 @@ input, select, table button {
 		<div>
 			<div id="param">
 				<div class="menu">
-					<div class="button disabled" data-body="address">Address</div>
 					<div class="button" data-body="settings">Settings</div>
+					<div class="button disabled" data-body="address">Address</div>
 					<div class="button disabled" data-body="node">Node</div>
 				</div>
 				<div class="body">
@@ -177,6 +194,9 @@ input, select, table button {
 								</td>
 							</tr>
 						</table>
+						<div id="address_cache">
+
+						</div>
 					</div>
 
 					<div class="param_body settings">
@@ -203,9 +223,9 @@ input, select, table button {
 
 					<div class="param_body node">
 						<button id="rm_node" disabled="disabled">Remove Node</button><br/>
-						<button id="add_object" disabled="disabled">Add Object</button>
+						<button id="add_object" disabled="disabled">Add Object</button><div class="object"></div>
 						<button id="refresh_neighbors" disabled="disabled">Refresh Neighbors</button><br/>
-						<button id="retrieve_object" disabled="disabled">Retrieve Object:</button>
+						<button id="retrieve_object" disabled="disabled">Retrieve Object</button><div class="object"></div>
 						<div id="object_list">
 						</div>
 					</div>
@@ -247,6 +267,7 @@ var counter = 0;
 var nodeIndex = 0;
 var main_thread = null;
 var mr = null;
+var address_picker = null;
 $('#start').click(function() {
 	$('.menu [data-body=address]').removeClass('disabled');
 	$('#add_node').attr('disabled', null);
@@ -261,6 +282,7 @@ $('#start').click(function() {
 		.attr('height', 300);
 	main_thread = new Thread('main');
 	mr = new sim.MultiRingDS(main_thread, svg);
+	address_picker = new sim.AddressPicker(mr, '#address', '#address_cache');
 
 	refresh_options();
 
@@ -323,7 +345,6 @@ $('#refresh_neighbors').click(function() {
 });
 
 $('#address_picker').click(function() {
-	var address_picker = new sim.AddressPicker(mr, '#address');
 	address_picker.activate();
 });
 
@@ -337,9 +358,6 @@ $('#add_object').click(function() {
 	mr.store(nodeName, address);
 
 	main_thread.start();
-
-//	$('#object_list').append('input')
-//		.val();
 });
 
 $('#stop').click(function() {
@@ -360,15 +378,32 @@ function refresh_options() {
 
 $(document).ready(function() {
 	$('.param_body').hide();
-	$('.body .settings').show();
+	$('.menu [data-body=settings]').click();
 });
 
 $('.menu .button').click(function() {
 	if ($(this).hasClass('disabled')) {
 		return;
 	}
+
+	if ($(this).attr('data-body') == 'node') {
+		console.log('refresh objects');
+		var address = $('#address').val();
+		console.log('address=' + address);
+
+		$('.body .node .object').attr('title', address)
+			.css('background-color', mr.getColorFromAddress(address));
+	}
+
+	if ($(this).attr('data-body') == 'address') {
+		address_picker.refreshCache();
+	}
+
 	var body = $(this).attr('data-body');
 	$('.param_body').hide();
+	$('.menu .button').removeClass('selected');
+
+	$(this).addClass('selected');
 	$('.body .' + body).show();
 });
 		</script>

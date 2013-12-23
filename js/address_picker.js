@@ -1,9 +1,13 @@
 (function(sim, undefined) {
-	sim.AddressPicker = function(mr, field) {
+	sim.AddressPicker = function(mr, field, cache) {
 		var self = this;
 		this.mr = mr;
-		this.angle = 0;
+		this.address = null;
 		this.field = $(field);
+		this.cache_dataset = [];
+		this.cache = d3.select(cache);
+
+
 
 		this.activate = function() {
 			var rings = this.mr.svg.selectAll('g.ring');
@@ -25,6 +29,8 @@
 						.on('mouseout', null)
 						.on('click', null);
 					self.refresh();
+					self.cache_dataset.push(self.address);
+					self.refreshCache();
 				});
 		};
 
@@ -63,8 +69,27 @@
 				return 'M0,0 ' + x1 + ',' + y1;
 			});
 			this.field.val(address);
-			var hue = (parseInt(address, 16) / perimeter) * 360;
-			this.field.css('background-color', 'hsl(' + hue + ', 100%, 90%)')
+			this.field.css('background-color', this.mr.getColorFromAddress(address));
+			this.address = address;
 		};
+
+		this.refreshCache = function() {
+			var address = this.cache.selectAll('div.object').data(this.cache_dataset);
+			address.exit().remove();
+
+			address.enter().append('div');
+
+			address.classed('object', true)
+				.attr('title', function(d) { console.log(d);return d; })
+				.style('background-color', function(d) { return self.mr.getColorFromAddress(d); })
+				.on('click', function(d) {
+					self.field.val(d)
+						.css('background-color', self.mr.getColorFromAddress(d));
+				});
+		};
+
+		this.refreshCache();
+		this.field.val('');
+		this.field.css('background-color', '');
 	};
 })(sim)
