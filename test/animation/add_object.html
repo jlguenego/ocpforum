@@ -224,7 +224,7 @@ input, select, table button {
 					<div class="param_body node">
 						<button id="rm_node" disabled="disabled">Remove Node</button><br/>
 						<button id="add_object" disabled="disabled">Add Object</button><div class="object"></div>
-						<button id="refresh_neighbors" disabled="disabled">Refresh Neighbors</button><br/>
+						<button id="refresh_node" disabled="disabled">Refresh Node</button><br/>
 						<button id="retrieve_object" disabled="disabled">Retrieve Object</button><div class="object"></div>
 						<div id="object_list">
 						</div>
@@ -294,7 +294,7 @@ $('#start').click(function() {
 	mr.options.callback.onNodeSelected = function(node) {
 		$('.menu [data-body=node]').click();
 		$('#rm_node').attr('disabled', false);
-		$('#refresh_neighbors').attr('disabled', false);
+		$('#refresh_node').attr('disabled', false);
 		if ($('#address').val() != '') {
 			$('#add_object').attr('disabled', false);
 			$('#retrieve_object').attr('disabled', false);
@@ -304,7 +304,7 @@ $('#start').click(function() {
 	mr.options.callback.onNodeDeselected = function(node) {
 		$('#rm_node').attr('disabled', true);
 		$('#add_object').attr('disabled', true);
-		$('#refresh_neighbors').attr('disabled', true);
+		$('#refresh_node').attr('disabled', true);
 		$('#retrieve_object').attr('disabled', true);
 	};
 
@@ -338,7 +338,7 @@ $('#rm_node').click(function() {
 	$(this).attr('disabled', true);
 });
 
-$('#refresh_neighbors').click(function() {
+$('#refresh_node').click(function() {
 	refresh_options();
 	var nodeName = mr.selectedNodeName;
 	mr.unselect();
@@ -402,6 +402,10 @@ $('.menu .button').click(function() {
 	if ($(this).attr('data-body') == 'node') {
 		console.log('refresh objects');
 		var address = $('#address').val();
+		if (address && mr.selectedNodeName) {
+			$('#add_object').attr('disabled', false);
+			$('#retrieve_object').attr('disabled', false);
+		}
 		console.log('address=' + address);
 
 		$('.body .node .object').attr('title', address)

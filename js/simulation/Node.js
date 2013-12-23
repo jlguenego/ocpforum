@@ -219,7 +219,6 @@
 
 		this.refreshNeighbors = function() {
 			//console.log(this.name + ': refresh neighbors');
-
 			this.addNeighbors();
 
 			for (var name in this.neighbors) {
@@ -255,6 +254,35 @@
 			}
 			//console.log(this.name + ': refreshed neighbor list=' + d3.keys(this.neighbors).join(' '));
 			//console.log(this.name + ': end refresh neighbors');
+		};
+
+		this.isSuccessorDown = function() {
+			var contact = this.getNeighbor(1);
+			var b = this.ping(contact);
+			console.log(this.name + ': ping ' + contact.name + '? ' + b);
+			return !b;
+		};
+
+		this.getNeighbor = function(rank) {
+			var contacts = d3.values(this.rings[this.ring]);
+			contacts.push(this.toContact());
+			rank = rank % contacts.length;
+			var list = contacts.map(function(d) { return d.start_address; });
+			list.sort();
+
+			var address = list[rank - 1];
+			var contact = contacts.find(function(d) {
+				return d.start_address == address;
+			});
+			console.log(this.name + ': getNeighbor(' + rank + ')=' + contact.name);
+			return contact;
+		};
+
+		this.retrieveSuccessorInterval = function() {
+			return {
+				start: this.getNeighbor(1).start_address,
+				stop: this.getNeighbor(2).start_address
+			};
 		};
 
 		this.isNeighborsForRing = function(ring) {

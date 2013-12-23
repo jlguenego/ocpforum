@@ -242,10 +242,26 @@
 			var thread = this.thread.getThread(arguments);
 
 			var node = this.nodes[nodeName];
+//			if (node.isSuccessorDown()) {
+//				var interval = node.retrieveSuccessorInterval();
+//				this.thread.unshift({
+//					function: this._retrieveInterval,
+//					args: [ interval ],
+//					name: '_retrieveInterval',
+//					object: this
+//				});
+//			}
+
 			// for the time being, we just refresh the neighbors.
 			node.refreshNeighbors();
 			// and the painting.
 			this.refreshNodes(thread);
+		};
+
+		this._retrieveInterval = function(interval) {
+			var thread = this.thread.getThread(arguments);
+			console.log('Retrieve interval: ' + interval.start + ' ' + interval.stop);
+			thread._next();
 		};
 
 		this.refreshNodes = function(thread) {
