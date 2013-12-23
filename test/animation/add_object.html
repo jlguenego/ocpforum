@@ -9,8 +9,11 @@
 		<script src="_ext/sha1.js"></script>
 		<script src="_ext/seedrandom-min.js"></script>
 		<script src="js/jlg_commons.js"></script>
-		<script src="js/distributed.js"></script>
 		<script src="js/processus.js"></script>
+		<script src="js/simulation/main.js"></script>
+		<script src="js/simulation/MultiRingDS.js"></script>
+		<script src="js/simulation/Node.js"></script>
+		<script src="js/simulation/Contact.js"></script>
 		<script src="js/address_picker.js"></script>
 
 		<style>
@@ -23,7 +26,7 @@ html, body {
 
 #param {
 	float: left;
-	padding: 5px;
+	width: 200px;
 
 	background-color: #E6F2FF;
 }
@@ -33,7 +36,7 @@ svg {
 }
 
 table {
-	width: 200px;
+	width: 100%;
 }
 
 table th, table td {
@@ -89,51 +92,127 @@ input, select, table button {
 	stroke: #FFD7D7;
 	stroke-width: 1;
 }
+
+#stat * {
+	font-size: 12px;
+}
+
+.menu {
+	width: 100%;
+	height: 30px;
+
+	text-align: center;
+	font-size: 0;
+
+	border-bottom: 1px solid black;
+}
+
+.menu .button {
+	display: inline-block;
+	vertical-align: middle;
+	width: 66px;
+	height: 100%;
+
+	font-size: 18px;
+	line-height: 28px;
+
+	cursor: pointer;
+
+}
+
+.menu .button:hover {
+	background-color: #CECECE;
+}
+
+.menu .disabled {
+	color: gray;
+	cursor: default;
+}
+
+.menu .disabled:hover {
+	background-color: transparent;
+}
+
+.body {
+	width: 100%;
+	height: 225px;
+}
+
+.body div {
+	width: 100%;
+	height: 100%;
+}
+
+.body .address {
+}
+
+.body .settings {
+}
+
+.body .node {
+}
+
 		</style>
 	</head>
 
 	<body>
 		<div>
 			<div id="param">
-				<table>
-					<tr>
-						<th>Storage method</th>
-						<td>
-							<select id="storage_method">
-								<option value="redundancy_first">Red. first</option>
-								<option value="redundancy_last" selected>Red. last</option>
-							</select>
-						</td>
-					</tr>
-					<tr>
-						<th>Ring amount</th>
-						<td><input type="text" id="ring_amount" value="2" /></td>
-					</tr>
-					<tr>
-						<th>Linkage duration (ms)</th>
-						<td><input type="text" id="linkage" value="5000" /></td>
-					</tr>
-					<tr>
-						<th colspan="2">
-							<button id="address_picker" disabled="disabled">Pick address</button>
-						</th>
-					</tr>
-					<tr>
-						<td colspan="2">
-							<input type="text" id="address" disabled/>
-						</td>
-					</tr>
-				</table>
+				<div class="menu">
+					<div class="button disabled" data-body="address">Address</div>
+					<div class="button" data-body="settings">Settings</div>
+					<div class="button disabled" data-body="node">Node</div>
+				</div>
+				<div class="body">
+					<div class="param_body address">
+						<table>
+							<tr>
+								<th colspan="2">
+									<button id="address_picker" disabled="disabled">Pick address</button>
+								</th>
+							</tr>
+							<tr>
+								<td colspan="2">
+									<input type="text" id="address" disabled/>
+								</td>
+							</tr>
+						</table>
+					</div>
+
+					<div class="param_body settings">
+						<table>
+							<tr>
+								<th>Storage method</th>
+								<td>
+									<select id="storage_method">
+										<option value="redundancy_first">Red. first</option>
+										<option value="redundancy_last" selected>Red. last</option>
+									</select>
+								</td>
+							</tr>
+							<tr>
+								<th>Ring amount</th>
+								<td><input type="text" id="ring_amount" value="2" /></td>
+							</tr>
+							<tr>
+								<th>Linkage duration (ms)</th>
+								<td><input type="text" id="linkage" value="5000" /></td>
+							</tr>
+						</table>
+					</div>
+
+					<div class="param_body node">
+						<button id="rm_node" disabled="disabled">Remove Node</button><br/>
+						<button id="add_object" disabled="disabled">Add Object</button>
+						<button id="refresh_neighbors" disabled="disabled">Refresh Neighbors</button><br/>
+						<button id="retrieve_object" disabled="disabled">Retrieve Object:</button>
+						<div id="object_list">
+						</div>
+					</div>
+				</div>
 				<button id="start">Start</button>
 				<button id="stop">Stop</button>
-				<br/>
 				<button id="add_node" disabled="disabled">Add Node</button>
-				<button id="rm_node" disabled="disabled">Remove Node</button><br/>
-				<button id="add_object" disabled="disabled">Add Object</button>
-				<button id="refresh_neighbors" disabled="disabled">Refresh Neighbors</button><br/>
-				<button id="retrieve_object" disabled="disabled">Retrieve Object:</button>
-				<div id="object_list">
-				</div>
 
 				<div id="stat">
 					<table>
@@ -169,6 +248,7 @@ var nodeIndex = 0;
 var main_thread = null;
 var mr = null;
 $('#start').click(function() {
+	$('.menu [data-body=address]').removeClass('disabled');
 	$('#add_node').attr('disabled', null);
 	$('#address_picker').attr('disabled', null);
 
@@ -187,6 +267,8 @@ $('#start').click(function() {
 	mr.reportElem = $('#stat').get(0);
 
 	mr.options.callback.onNodeSelected = function(node) {
+		$('.menu [data-body=node]').removeClass('disabled');
+		$('.menu [data-body=node]').click();
 		$('#rm_node').attr('disabled', false);
 		$('#refresh_neighbors').attr('disabled', false);
 		if ($('#address').val() != '') {
@@ -195,6 +277,8 @@ $('#start').click(function() {
 		console.log(node);
 	};
 	mr.options.callback.onNodeDeselected = function(node) {
+		$('.menu [data-body=node]').addClass('disabled');
+		$('.menu [data-body=settings]').click();
 		$('#rm_node').attr('disabled', true);
 		$('#add_object').attr('disabled', true);
 		$('#refresh_neighbors').attr('disabled', true);
@@ -273,6 +357,20 @@ function refresh_options() {
 	};
 	mr.options.storage_method = $('#storage_method').val();
 }
+
+$(document).ready(function() {
+	$('.param_body').hide();
+	$('.body .settings').show();
+});
+
+$('.menu .button').click(function() {
+	if ($(this).hasClass('disabled')) {
+		return;
+	}
+	var body = $(this).attr('data-body');
+	$('.param_body').hide();
+	$('.body .' + body).show();
+});
 		</script>
 	</body>
 </html>
