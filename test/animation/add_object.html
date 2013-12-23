@@ -212,11 +212,11 @@ input, select, table button {
 							</tr>
 							<tr>
 								<th>Ring amount</th>
-								<td><input type="text" id="ring_amount" value="2" /></td>
+								<td><input type="text" id="ring_amount" value="1" /></td>
 							</tr>
 							<tr>
 								<th>Linkage duration (ms)</th>
-								<td><input type="text" id="linkage" value="5000" /></td>
+								<td><input type="text" id="linkage" value="500" /></td>
 							</tr>
 						</table>
 					</div>
@@ -295,6 +295,7 @@ $('#start').click(function() {
 		$('#refresh_neighbors').attr('disabled', false);
 		if ($('#address').val() != '') {
 			$('#add_object').attr('disabled', false);
+			$('#retrieve_object').attr('disabled', false);
 		}
 		console.log(node);
 	};
@@ -304,6 +305,7 @@ $('#start').click(function() {
 		$('#rm_node').attr('disabled', true);
 		$('#add_object').attr('disabled', true);
 		$('#refresh_neighbors').attr('disabled', true);
+		$('#retrieve_object').attr('disabled', true);
 	};
 
 	var ring_nbr = $('#ring_amount').val();
@@ -360,6 +362,17 @@ $('#add_object').click(function() {
 	main_thread.start();
 });
 
+$('#retrieve_object').click(function() {
+	refresh_options();
+	var nodeName = mr.selectedNodeName;
+	mr.unselect();
+
+	var address = $('#address').val();
+	mr.retrieve(nodeName, address);
+	main_thread.start();
+	console.log(nodeName + ' retrieve ' + address);
+});
+
 $('#stop').click(function() {
 	window.location.reload();
 });
@@ -370,7 +383,7 @@ function refresh_options() {
 		addNode: 100,
 		addLink: $('#linkage').val(),
 		addObject: 100,
-		doTransfer: 3000,
+		doTransfer: 300,
 		transform: 500
 	};
 	mr.options.storage_method = $('#storage_method').val();

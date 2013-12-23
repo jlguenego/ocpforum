@@ -357,26 +357,6 @@
 			return result;
 		};
 
-		this.retrieve = function(thread, objectAddress, context) {
-			if (this.objects[objectAddress]) {
-				thread._next();
-				return;
-			}
-
-			var next_node = this.getResponsible(objectAddress);
-
-			if (this == next_node) {
-				// This is the responsible node.
-				if (!this.objects[objectAddress]) {
-					throw new Error('Object not found on ' + this.name + ': ' + objectAddress);
-				}
-				thread._next();
-			} else {
-				this.parent.doTransfer(thread, next_node.name, this.name, objectAddress);
-				next_node.retrieve(thread, objectAddress, { initial: false });
-			}
-		};
-
 		this.getResponsible = function(objectAddress) {
 			var neighbors = d3.values(this.neighbors).findAll(function(d) {
 				return self.ring == d.ring;

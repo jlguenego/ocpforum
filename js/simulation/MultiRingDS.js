@@ -623,10 +623,62 @@
 
 		this._retrieve = function(nodeName, objectAddress) {
 			var thread = this.thread.getThread(arguments);
+			try {
+				this._retrieveRec(thread, nodeName, objectAddress, { initial: true });
+			} catch (e) {
+				console.log(e.message);
+			}
+		};
 
+		this._retrieveRec = function(nodeName, objectAddress, context) {
+			var thread = this.thread.getThread(arguments);
+			// there are 2 visual steps (->thread):
+			// 1) refresh node
+			// 2) do the effective store
+			thread.unshift({
+				function: this._retrieveOperation,
+				args: arguments,
+				name: '_retrieveOperation',
+				object: this
+			});
+			thread.unshift({
+				function: this._refreshNode,
+				args: [ nodeName ],
+				name: '_refreshNode',
+				object: this
+			});
+
+			console.log(thread.orders.slice());
+			console.log('_retrieveRec: _next');
+			thread._next();
+		};
+
+		this._retrieveOperation = function(nodeName, objectAddress, context) {
+			var thread = this.thread.getThread(arguments);
 			var node = this.nodes[nodeName];
 
-			node.retrieve(thread, objectAddress, { initial: true });
+			if (node.objects[objectAddress]) {
+				thread._next();
+				return;
+			}
+
+			var next_node = node.getResponsible(objectAddress);
+
+			if (node == next_node) {
+				// This is the responsible node.
+				if (!node.objects[objectAddress]) {
+					throw new Error('Object not found on ' + node.name + ': ' + objectAddress);
+				}
+			} else {
+				this.doTransfer(thread, next_node.name, node.name, objectAddress);
+				thread.unshift({
+					function: this._retrieveRec,
+					args: [ next_node.name, objectAddress, { initial: false } ],
+					name: '_retrieveRec',
+					object: this
+				});
+			}
+			thread._next();
 		};
 
 		this.doTransfer = function(thread, sourceName, targetName, objectAddress) {
