@@ -26,7 +26,7 @@ function Thread(name, parentThread) {
 			order.function.apply(order.object, order.args);
 		} else {
 			this.isFinished = true;
-			//console.log(this.name + ': No order anymore.');
+			console.log(this.name + ': No order anymore.');
 		}
 	}
 

@@ -301,13 +301,19 @@ var sim = new Simulation();
 				.attr('height', 50);
 
 			if (new_g.empty()) {
+				console.log('No new node: refreshLinks.');
 				self.refreshLinks(thread);
 			}
+			var doNext = true;
 			new_g.transition()
 				.duration(this.options.duration.addNode)
 				.style('opacity', 1)
 				.each('end', function() {
-					self.refreshLinks(thread);
+					if (doNext) {
+						console.log('New node: refreshLinks.');
+						self.refreshLinks(thread);
+						doNext = false;
+					}
 				});
 
 			node.attr('transform', function(d) {
@@ -401,6 +407,7 @@ var sim = new Simulation();
 				});
 
 			if (new_path.empty()) {
+				console.log('new path is empty');
 				thread._next();
 			}
 			new_path.attr('stroke-dasharray', function(d) {
@@ -418,6 +425,7 @@ var sim = new Simulation();
 					.attr('stroke-dashoffset', 0)
 					.each('end', function(d, i) {
 						if (doNext) {
+							console.log('refreshLinks: _next');
 							doNext = false;
 							thread._next();
 						}
@@ -473,15 +481,12 @@ var sim = new Simulation();
 			}
 			new_objects.append('rect')
 				.classed('object', true)
-				.attr('xlink:href', function(d) { return '#' + d.address; })
 				.attr('width', 25)
 				.attr('height', 25)
 				.attr('x', 0)
 				.attr('y', 0)
 				.attr('fill', function(d) {
-					var perimeter = parseInt('1' + new Array(41).join('0'), 16);
-					var hue = (parseInt(d.address, 16) / perimeter) * 360;
-					return 'hsl(' + hue + ', 100%, 90%)';
+					return self.getColorFromAddress(d.address);
 				})
 				.style('opacity', 0)
 				.transition()
@@ -510,6 +515,7 @@ var sim = new Simulation();
 					send_to_other_rings: true
 				});
 			} else if (this.options.storage_method == 'redundancy_last') {
+				var node = this.nodes[nodeName];
 				this._storeRec(thread, nodeName, objectAddress, {
 					initial_ring: node.ring
 				});
@@ -521,6 +527,8 @@ var sim = new Simulation();
 				if (ringName == node.ring) {
 					continue;
 				}
+
+				console.log(node);
 
 				var ringNode = node.getResponsibleForRing(ringName, objectAddress);
 
@@ -537,7 +545,14 @@ var sim = new Simulation();
 					name: '_storeRec',
 					object: this
 				});
-				new_thread.start();
+				thread.unshift({
+					function: function() {
+						new_thread.start();
+					},
+					args: [],
+					name: 'new thread',
+					object: this
+				});
 			}
 		};
 
@@ -559,6 +574,7 @@ var sim = new Simulation();
 				object: this
 			});
 
+			console.log(thread.orders.slice());
 			thread._next();
 		}
 
@@ -578,7 +594,7 @@ var sim = new Simulation();
 				// This is the responsible node.
 				if (this.options.storage_method == 'redundancy_last') {
 					if (context.initial_ring == node.ring) {
-						this.sendToOtherRings(thread, this, objectAddress);
+						this.sendToOtherRings(thread, node, objectAddress);
 					}
 				}
 				thread._next();
@@ -642,12 +658,13 @@ var sim = new Simulation();
 				.attr('transform', 'translate(-12, -12)');
 
 
-			g_obj.append('use')
-				.attr('transform', function(d) {
-					var p = pathNode.getPointAtLength(0)
-					return 'translate(' + [p.x, p.y] + ') scale(' + self.options.ring.node.scale + ')';
-				})
-				.attr('xlink:href', '#' + transfer.object.address)
+			g_obj.append('rect')
+				.classed('object', true)
+				.attr('width', 25)
+				.attr('height', 25)
+				.attr('x', 0)
+				.attr('y', 0)
+				.attr('fill', this.getColorFromAddress(transfer.object.address))
 				.transition()
 					.duration(duration)
 					.ease("linear")
@@ -807,6 +824,12 @@ var sim = new Simulation();
 			this.selectedNodeName = null;
 			this.refreshNodes(thread);
 			this.options.callback.onNodeDeselected(d);
+		};
+
+		this.getColorFromAddress = function(address) {
+			var perimeter = parseInt('1' + new Array(41).join('0'), 16);
+			var hue = (parseInt(address, 16) / perimeter) * 360;
+			return 'hsl(' + hue + ', 100%, 90%)';
 		};
 	};
 

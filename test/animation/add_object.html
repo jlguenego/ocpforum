@@ -97,12 +97,21 @@ input, select, table button {
 			<div id="param">
 				<table>
 					<tr>
+						<th>Storage method</th>
+						<td>
+							<select id="storage_method">
+								<option value="redundancy_first">Red. first</option>
+								<option value="redundancy_last" selected>Red. last</option>
+							</select>
+						</td>
+					</tr>
+					<tr>
 						<th>Ring amount</th>
-						<td><input type="text" id="ring_amount" value="1" /></td>
+						<td><input type="text" id="ring_amount" value="2" /></td>
 					</tr>
 					<tr>
 						<th>Linkage duration (ms)</th>
-						<td><input type="text" id="linkage" value="500" /></td>
+						<td><input type="text" id="linkage" value="5000" /></td>
 					</tr>
 					<tr>
 						<th colspan="2">
@@ -121,7 +130,11 @@ input, select, table button {
 				<button id="add_node" disabled="disabled">Add Node</button>
 				<button id="rm_node" disabled="disabled">Remove Node</button><br/>
 				<button id="add_object" disabled="disabled">Add Object</button>
-				<button id="refresh_neighbors" disabled="disabled">Refresh Neighbors</button>
+				<button id="refresh_neighbors" disabled="disabled">Refresh Neighbors</button><br/>
+				<button id="retrieve_object" disabled="disabled">Retrieve Object:</button>
+				<div id="object_list">
+				</div>
+
 				<div id="stat">
 					<table>
 						<tr>
@@ -240,6 +253,9 @@ $('#add_object').click(function() {
 	mr.store(nodeName, address);
 
 	main_thread.start();
+
+//	$('#object_list').append('input')
+//		.val();
 });
 
 $('#stop').click(function() {
@@ -252,9 +268,10 @@ function refresh_options() {
 		addNode: 100,
 		addLink: $('#linkage').val(),
 		addObject: 100,
-		doTransfer: 200,
+		doTransfer: 3000,
 		transform: 500
 	};
+	mr.options.storage_method = $('#storage_method').val();
 }
 		</script>
 	</body>
