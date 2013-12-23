@@ -28,6 +28,7 @@
 		}
 
 		this.getNewRing = function() {
+			//console.log(this.name + ': get new ring: refresh neighbors');
 			this.refreshNeighbors();
 
 			var rings_names = d3.keys(this.parent.rings);
@@ -65,8 +66,6 @@
 		}
 
 		this.getNewAddress = function(ring) {
-			this.refreshNeighbors();
-
 			var contactList = d3.values(this.contacts).findAll(function(d) {
 				return d.ring == ring;
 			});
@@ -80,7 +79,7 @@
 			});
 
 			if (addressList.length == 0) {
-				console.log('first node ?');
+				//console.log(this.name + ': first node ?');
 				return this.getAddressFromAngle(10);
 			}
 
@@ -111,12 +110,17 @@
 
 		this.addLinks = function(sponsor) {
 			var contact_list = sponsor.accept(this.toContact());
+			console.log(this.name + ': contact list=' + d3.keys(contact_list).join(' '));
 
 			for (var name in contact_list) {
 				var contact = contact_list[name];
 				this.addContact(contact);
 			}
 
+			this.addNeighbors();
+		};
+
+		this.addNeighbors = function() {
 			while (true) {
 				var neighbors = this.computeNeighbors();
 				var okForAll = true;
@@ -183,6 +187,8 @@
 			var ring = d3.keys(this.rings[contact.ring]);
 			ring.push(this.start_address);
 			ring.sort();
+			//console.log(this.name + ': ring=');
+			//console.log(ring);
 
 			var r1 = this.is2NSuccessor(ring, this.start_address, contact.start_address);
 			var r2 = this.is2NSuccessor(ring, contact.start_address, this.start_address);
@@ -192,25 +198,36 @@
 
 		this.accept = function(new_contact) {
 			var result = {};
+			result[this.name] = this.toContact();
+			this.addContact(new_contact);
+			//console.log(this.name + ': refresh neighbors myself');
 			this.refreshNeighbors();
+			for (var name in this.neighbors) {
+				var contact = this.neighbors[name];
+				var node = contact.getNode();
+				node.addContact(new_contact);
+				//console.log(this.name + ': refresh neighbors of ' + node.name);
+				node.refreshNeighbors();
+			}
+
 			for (var name in this.contacts) {
 				var contact = this.contacts[name];
 				result[name] = contact;
-				var node = contact.getNode();
-				node.addContact(new_contact);
-				node.refreshNeighbors();
 			}
-			result[this.name] = this.toContact();
-			this.addContact(new_contact);
 			return result;
 		};
 
 		this.refreshNeighbors = function() {
+			//console.log(this.name + ': refresh neighbors');
+
+			this.addNeighbors();
+
 			for (var name in this.neighbors) {
 				var contact = this.neighbors[name];
 				this.ping(contact);
 				if (contact.ring == this.ring) {
 					if (!this.isNeighborInsideRing(contact)) {
+						//console.log(this.name + ': is not neighbor with ' + contact.name);
 						this.removeNeighbor(contact);
 					}
 				} else {
@@ -224,16 +241,18 @@
 				}
 			}
 			// add neighbors from unconnected rings.
-			console.log('maintaining neighbors on other rings.');
+			//console.log(this.name + ': maintaining neighbors on other rings.');
 			for (var ring in this.parent.rings) {
 				if (ring == this.ring) {
 					continue;
 				}
-				console.log('handling ring: ' + ring);
+				//console.log(this.name + ': handling ring: ' + ring);
 				if (!this.isNeighborsForRing(ring)) {
 					this.createNeighborForRing(ring);
 				}
 			}
+			//console.log(this.name + ': refreshed neighbor list=' + d3.keys(this.neighbors).join(' '));
+			//console.log(this.name + ': end refresh neighbors');
 		};
 
 		this.isNeighborsForRing = function(ring) {
@@ -248,30 +267,43 @@
 
 		this.createNeighborForRing = function(ring) {
 			while (true) {
-				console.log('entering loop');
+				//console.log(this.name + ': entering loop');
 				var contact = this.getResponsibleContact(ring, this.start_address);
 				if (!contact) {
-					console.log(this.name + ': I have no contact for ring ' + ring);
+					//console.log(this.name + ': I have no contact for ring ' + ring);
 					return;
 				}
-				console.log('contact = ' + contact.name);
+				//console.log(this.name + ': contact = ' + contact.name);
 				if (this.ping(contact)) {
-					console.log('ping ok');
+					//console.log(this.name + ': ping ok');
 					this.addNeighbor(contact);
 					break;
 				} else {
-					console.log('cannot ping ' + contact.name);
+					//console.log(this.name + ': cannot ping ' + contact.name);
 				}
 			}
 		};
 
 		this.addContact = function(contact) {
+			if (this.contacts[contact.name] || this.name == contact.name) {
+				// Already in contact.
+				return;
+			}
+			//console.log(this.name + ': add contact ' + contact.name);
 			this.contacts[contact.name] = contact;
+			//console.log(this.name + ': contact list=' + d3.keys(this.contacts).join(' '));
 
 			if (!this.rings[contact.ring]) {
 				this.rings[contact.ring] = {};
 			}
 			this.rings[contact.ring][contact.start_address] = contact;
+			// Forward info to all neighbors.
+			for (var name in this.neighbors) {
+				var c = this.neighbors[name];
+				c.getNode().addContact(contact);
+			}
+			// Then refresh myself.
+			this.refreshNeighbors();
 		};
 
 		this.removeContact = function(contactName) {
@@ -317,7 +349,7 @@
 			if (!this.neighbors[contact.name]) {
 				return;
 			}
-			console.log(this.name + 'removes neighbors ' + contact.name);
+			//console.log(this.name + 'removes neighbors ' + contact.name);
 			delete this.neighbors[contact.name];
 			delete this.parent.links[contact.name + '_' + this.name];
 			delete this.parent.links[this.name + '_' + contact.name];

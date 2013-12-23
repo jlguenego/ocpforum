@@ -269,6 +269,8 @@ var main_thread = null;
 var mr = null;
 var address_picker = null;
 $('#start').click(function() {
+	counter = 0;
+	nodeIndex = 0;
 	$('.menu [data-body=address]').removeClass('disabled');
 	$('#add_node').attr('disabled', null);
 	$('#address_picker').attr('disabled', null);
@@ -317,7 +319,7 @@ $('#start').click(function() {
 
 $('#add_node').click(function() {
 	refresh_options();
-	var nodeName = mr.selectedNodeName;
+	var nodeName = mr.selectedNodeName || 'n0';
 	mr.unselect();
 	mr.addNode(new sim.Node({
 		name: 'n' + nodeIndex,
