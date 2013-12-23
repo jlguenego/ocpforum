@@ -212,7 +212,7 @@ input, select, table button {
 							</tr>
 							<tr>
 								<th>Ring amount</th>
-								<td><input type="text" id="ring_amount" value="3" /></td>
+								<td><input type="text" id="ring_amount" value="2" /></td>
 							</tr>
 							<tr>
 								<th>Linkage duration (ms)</th>
@@ -272,6 +272,7 @@ $('#start').click(function() {
 	counter = 0;
 	nodeIndex = 0;
 	$('.menu [data-body=address]').removeClass('disabled');
+		$('.menu [data-body=node]').removeClass('disabled');
 	$('#add_node').attr('disabled', null);
 	$('#address_picker').attr('disabled', null);
 
@@ -291,7 +292,6 @@ $('#start').click(function() {
 	mr.reportElem = $('#stat').get(0);
 
 	mr.options.callback.onNodeSelected = function(node) {
-		$('.menu [data-body=node]').removeClass('disabled');
 		$('.menu [data-body=node]').click();
 		$('#rm_node').attr('disabled', false);
 		$('#refresh_neighbors').attr('disabled', false);
@@ -302,8 +302,6 @@ $('#start').click(function() {
 		console.log(node);
 	};
 	mr.options.callback.onNodeDeselected = function(node) {
-		$('.menu [data-body=node]').addClass('disabled');
-		$('.menu [data-body=settings]').click();
 		$('#rm_node').attr('disabled', true);
 		$('#add_object').attr('disabled', true);
 		$('#refresh_neighbors').attr('disabled', true);
@@ -319,7 +317,7 @@ $('#start').click(function() {
 
 $('#add_node').click(function() {
 	refresh_options();
-	var nodeName = mr.selectedNodeName || 'n0';
+	var nodeName = mr.selectedNodeName || mr.firstNodeName || 'n0';
 	mr.unselect();
 	mr.addNode(new sim.Node({
 		name: 'n' + nodeIndex,

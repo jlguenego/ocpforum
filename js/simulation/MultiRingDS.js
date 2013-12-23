@@ -21,6 +21,7 @@
 			.attr('transform', 'translate(0, ' + (this.svgbox.y / 2) + ')');
 		this.links_g = this.group.insert('g', ':first-child').classed('links', true);
 		this.reportElem = null;
+		this.firstNodeName = null;
 
 		this.options = {
 			duration: {
@@ -163,6 +164,7 @@
 			this.rings[node.ring].nodes[node.name] = node;
 
 			this.refreshNodes(thread);
+			this.firstNodeName = node.name;
 		};
 
 		this.addNode = function(node, sponsorName) {
