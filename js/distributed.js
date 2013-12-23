@@ -407,7 +407,7 @@ var sim = new Simulation();
 				});
 
 			if (new_path.empty()) {
-				console.log('new path is empty');
+				console.log('refreshLinks: new path is empty: thread._next');
 				thread._next();
 			}
 			new_path.attr('stroke-dasharray', function(d) {
@@ -477,8 +477,10 @@ var sim = new Simulation();
 			objects.exit().remove();
 			var new_objects = objects.enter();
 			if (new_objects.empty()) {
+				console.log('refreshObjects empty: _next');
 				thread._next();
 			}
+			var doNext = true;
 			new_objects.append('rect')
 				.classed('object', true)
 				.attr('width', 25)
@@ -493,7 +495,11 @@ var sim = new Simulation();
 					.duration(duration)
 					.style('opacity', 1)
 					.each('end', function() {
-						thread._next();
+						if (doNext) {
+							console.log('refreshObjects: _next');
+							doNext = false;
+							thread._next();
+						}
 					});
 
 		};
@@ -575,6 +581,7 @@ var sim = new Simulation();
 			});
 
 			console.log(thread.orders.slice());
+			console.log('_storeRec: _next');
 			thread._next();
 		}
 
@@ -597,6 +604,7 @@ var sim = new Simulation();
 						this.sendToOtherRings(thread, node, objectAddress);
 					}
 				}
+				console.log('_storeOperation responsible node: _next');
 				thread._next();
 			} else {
 				thread.unshift({
