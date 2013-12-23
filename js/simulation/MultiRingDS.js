@@ -547,10 +547,13 @@
 					object: this
 				});
 				thread.unshift({
-					function: function() {
-						new_thread.start();
+					function: function(t) {
+						var thread = this.thread.getThread(arguments);
+						t.start();
+						console.log(thread.name + ': ' + t.name + ' started: go next.');
+						thread._next();
 					},
-					args: [],
+					args: [ new_thread ],
 					name: 'new thread',
 					object: this
 				});

@@ -232,10 +232,12 @@
 					}
 				} else {
 					var responsible_contact = this.getResponsibleContact(contact.ring, this.start_address);
-					if (responsible_contact.name != contact.name) {
-						var c = contact.getNode().getResponsibleContact(this.ring, contact.start_address);
-						if (c.name != this.name) {
-							this.removeNeighbor(contact);
+					if (responsible_contact) {
+						if (responsible_contact.name != contact.name) {
+							var c = contact.getNode().getResponsibleContact(this.ring, contact.start_address);
+							if (c.name != this.name) {
+								this.removeNeighbor(contact);
+							}
 						}
 					}
 				}
