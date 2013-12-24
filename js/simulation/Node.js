@@ -509,7 +509,7 @@
 
 		this.showProperties = function() {
 			var svg = this.parent.svg;
-			var x = this.parent.svgbox.x - 200;
+			var x = this.parent.svgbox.x - 150;
 			var y = 25;
 			this.propertiesGroup = svg.append('g')
 				.classed('node_properties', true)
@@ -517,11 +517,15 @@
 
 			var g = this.propertiesGroup.selectAll('use.object').data(d3.values(this.objects));
 			g.exit().remove();
-			g.enter().append('use')
+			g.enter().append('rect')
 				.classed('object', true)
-				.attr('xlink:href', function(d, i) { return '#' + d.name; })
+				.attr('width', 15)
+				.attr('height', 15)
 				.attr('x', function(d, i) { return i % 5 * 30})
-				.attr('y', function(d, i) { return Math.floor(i / 5) * 30});
+				.attr('y', function(d, i) { return Math.floor(i / 5) * 30})
+				.attr('fill', function(d) {
+					return self.parent.getColorFromAddress(d.address);
+				});
 		};
 
 		this.hideProperties = function() {

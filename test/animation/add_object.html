@@ -35,6 +35,11 @@ svg {
 	border: 1px solid black;
 }
 
+.node_properties rect.object {
+	stroke-width: 0.5;
+	stroke: #CCCCCC;
+}
+
 table {
 	width: 100%;
 }
@@ -317,7 +322,9 @@ $('#start').click(function() {
 
 $('#add_node').click(function() {
 	refresh_options();
-	var nodeName = mr.selectedNodeName || mr.firstNodeName || 'n0';
+	console.log('mr.selectedNodeName=' + mr.selectedNodeName);
+	console.log('mr.firstNodeName=' + mr.firstNodeName);
+	var nodeName = mr.selectedNodeName || mr.firstNodeName;
 	mr.unselect();
 	mr.addNode(new sim.Node({
 		name: 'n' + nodeIndex,

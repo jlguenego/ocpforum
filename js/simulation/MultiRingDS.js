@@ -186,6 +186,7 @@
 				return;
 			}
 			var sponsor = this.nodes[nodeNames[0]];
+			console.log(sponsorName);
 			if (sponsorName) {
 				sponsor = this.nodes[sponsorName];
 			}
@@ -224,6 +225,15 @@
 			var ring = this.rings[node.ring];
 			delete ring.nodes[nodeName];
 			delete this.nodes[nodeName];
+
+			// Maintain the firstNodeName.
+			if (this.firstNodeName == node.name) {
+				if (this.nodes.length > 0) {
+					this.firstNodeName = d3.values(this.nodes)[0].name;
+				} else {
+					this.firstNodeName = null;
+				}
+			}
 
 			// refresh the painting.
 			this.refreshNodes(thread);
