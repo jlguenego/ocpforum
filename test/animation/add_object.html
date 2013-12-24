@@ -321,7 +321,7 @@ $('#start').click(function() {
 
 	var ring_nbr = $('#ring_amount').val();
 	for (var i = 0; i < ring_nbr; i++) {
-		mr.addRing('r' + i, i);
+		mr.addRing(main_thread, 'r' + i, i);
 	}
 	main_thread.start();
 });

@@ -65,18 +65,25 @@
 			return self.options.ring.radius;
 		};
 
-		this.addRing = function(name) {
-			this.thread.push({
+		this.addRing = function(thread, name, i) {
+			thread.push({
 				function: this._addRing,
-				args: arguments,
+				args: [ name, i ],
 				name: 'addRing',
 				object: this
 			});
 		};
 
-		this._addRing = function(name, i) {
-			var thread = this.thread.getThread(arguments);
+		this.do_addRing = function(thread, name, i) {
+			thread.unshift({
+				function: this._addRing,
+				args: [ name, i ],
+				name: 'addRing',
+				object: this
+			});
+		};
 
+		this._addRing = function(thread, name, i) {
 			this.rings[name] = {
 				name: name,
 				index: i,
