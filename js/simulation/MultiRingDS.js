@@ -165,6 +165,7 @@
 
 			this.refreshNodes(thread);
 			this.firstNodeName = node.name;
+			node.addContact(node.toContact());
 		};
 
 		this.addNode = function(node, sponsorName) {
@@ -252,8 +253,9 @@
 			var thread = this.thread.getThread(arguments);
 
 			var node = this.nodes[nodeName];
-			var interval = node.retrieveSuccessorInterval();
-			if (node.isSuccessorDown()) {
+			var interval = node.getRecoveryInterval();
+
+			if (interval) {
 				this.thread.unshift({
 					function: this._retrieveInterval,
 					args: [ interval ],
@@ -270,7 +272,7 @@
 
 		this._retrieveInterval = function(interval) {
 			var thread = this.thread.getThread(arguments);
-			console.log('Retrieve interval: ' + interval.start + ' ' + interval.stop);
+			console.log('Retrieve interval: ' + interval.start_address + ' ' + interval.end_address);
 			thread._next();
 		};
 
