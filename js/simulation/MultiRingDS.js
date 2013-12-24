@@ -254,6 +254,7 @@
 
 			var node = this.nodes[nodeName];
 			var interval = node.getRecoveryInterval();
+			console.log(interval);
 
 			if (interval) {
 				this.thread.unshift({
@@ -756,6 +757,7 @@
 				this._retrieveRec(thread, nodeName, objectAddress, { initial: true });
 			} catch (e) {
 				console.log(e.message);
+				thread._next();
 			}
 		};
 

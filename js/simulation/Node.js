@@ -149,6 +149,7 @@
 		};
 
 		this.ping = function(contact) {
+			console.log(this.name + ': pinging ' + contact.name);
 			if (!this.parent.nodes[contact.name]) {
 				this.removeNeighbor(contact);
 				this.removeContact(contact.name);
@@ -385,7 +386,8 @@
 
 			for (var name in this.neighbors) {
 				var contact = this.neighbors[name];
-				contact.getNode().removeContact(contactName);
+				// Todo later, this action have visual impacts.
+				//contact.getNode().removeContact(contactName);
 			}
 			this.refreshSortedRing();
 		};
