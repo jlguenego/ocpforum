@@ -284,7 +284,7 @@
 				list.push(t);
 				t.push({
 					function: this._copy,
-					args: [ node_list[i], nodeName ],
+					args: [ node_list[i], nodeName, interval ],
 					name: 'copy',
 					object: this
 				});
@@ -302,7 +302,7 @@
 			new_thread.start();
 		};
 
-		this.copy = function(sourceName, targetName) {
+		this.copy = function(sourceName, targetName, interval) {
 			this.thread.push({
 				function: this._copy,
 				args: arguments,
@@ -311,7 +311,7 @@
 			});
 		};
 
-		this._copy = function(sourceName, targetName) {
+		this._copy = function(sourceName, targetName, interval) {
 			var thread = this.thread.getThread(arguments);
 			console.log(thread.name + ': Copy from ' + sourceName + ' to ' + targetName);
 			var source = this.nodes[sourceName];
@@ -328,7 +328,7 @@
 			this.repaintNodes(thread);
 		};
 
-		this._performBulkTransfer = function(sourceName, targetName) {
+		this._performBulkTransfer = function(sourceName, targetName, interval) {
 			var thread = this.thread.getThread(arguments);
 			var duration = this.options.duration.doTransfer;
 
@@ -363,6 +363,9 @@
 					g_obj.remove();
 					console.log(source);
 					for (var address in source.objects) {
+						if (!source.isInsideInterval(address, interval)) {
+							continue;
+						}
 						var object = source.objects[address];
 						target.objects[address] = object;
 					}

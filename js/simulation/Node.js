@@ -266,13 +266,6 @@
 			var result = [];
 			console.log(interval);
 
-			var start = this.getAngleFromAddress(interval.start_address);
-			var end = this.getAngleFromAddress(interval.end_address);
-			var normal = start <= end;
-			console.log(this.name + ': start=' + start);
-			console.log(this.name + ': end=' + end);
-			console.log(this.name + ': normal? ' + normal);
-
 			for (var ring in this.rings) {
 				if (ring == this.ring) {
 					continue;
@@ -280,17 +273,8 @@
 
 				for (var address in this.rings[ring]) {
 					var contact = this.rings[ring][address];
-					var angle = this.getAngleFromAddress(address);
-					if (normal) {
-						if (angle > start && angle < end){
-							console.log(this.name + ': push ' + contact.name);
-							result.push(contact.name);
-						}
-					} else {
-						if (!(angle >= end && angle <= start)) {
-							console.log(this.name + ': push ' + contact.name);
-							result.push(contact.name);
-						}
+					if (this.isInsideInterval(address, interval) && address != interval.start_address) {
+						result.push(contact.name);
 					}
 				}
 				var c = this.getResponsibleContact(ring, interval.start_address);
@@ -298,6 +282,24 @@
 			}
 
 			return result;
+		};
+
+		this.isInsideInterval = function(address, interval) {
+			var start = this.getAngleFromAddress(interval.start_address);
+			var end = this.getAngleFromAddress(interval.end_address);
+			var normal = start <= end;
+
+			var angle = this.getAngleFromAddress(address);
+			if (normal) {
+				if (angle >= start && angle < end){
+					return true;
+				}
+			} else {
+				if (!(angle >= end && angle < start)) {
+					return true;
+				}
+			}
+			return false;
 		};
 
 		this.getRecoveryInterval = function() {
