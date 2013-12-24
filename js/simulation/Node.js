@@ -70,7 +70,14 @@
 			var new_perimeter = parseInt('1' + new Array(41).join('0'), 16);
 			var address = (angle / perimeter) * new_perimeter;
 			return address.toString(16).padleft(40, '0');
-		}
+		};
+
+		this.getAngleFromAddress = function(address, perimeter) {
+			perimeter = perimeter || 360;
+			var address_perimeter = parseInt('1' + new Array(41).join('0'), 16);
+			var angle = (parseInt(address, 16) / address_perimeter) * perimeter;
+			return angle;
+		};
 
 		this.getNewAddress = function(ring) {
 			var addressList = d3.keys(this.rings[ring]);
@@ -252,6 +259,44 @@
 			}
 			//console.log(this.name + ': refreshed neighbor list=' + d3.keys(this.neighbors).join(' '));
 			//console.log(this.name + ': end refresh neighbors');
+		};
+
+		this.getRecoveryNodes = function(interval) {
+			var result = [];
+			console.log(interval);
+
+			var start = this.getAngleFromAddress(interval.start_address);
+			var end = this.getAngleFromAddress(interval.end_address);
+			var normal = start <= end;
+			console.log(this.name + ': start=' + start);
+			console.log(this.name + ': end=' + end);
+			console.log(this.name + ': normal? ' + normal);
+
+			for (var ring in this.rings) {
+				if (ring == this.ring) {
+					continue;
+				}
+
+				for (var address in this.rings[ring]) {
+					var contact = this.rings[ring][address];
+					var angle = this.getAngleFromAddress(address);
+					if (normal) {
+						if (angle > start && angle < end){
+							console.log(this.name + ': push ' + contact.name);
+							result.push(contact.name);
+						}
+					} else {
+						if (!(angle >= end && angle <= start)) {
+							console.log(this.name + ': push ' + contact.name);
+							result.push(contact.name);
+						}
+					}
+				}
+				var c = this.getResponsibleContact(ring, interval.start_address);
+				result.push(c.name);
+			}
+
+			return result;
 		};
 
 		this.getRecoveryInterval = function() {
@@ -497,11 +542,11 @@
 			}
 			var node_address = ring[index - 1];
 
-			var node = d3.values(this.neighbors).find(function(d) {
+			var contact = d3.values(this.neighbors).find(function(d) {
 				return (d.start_address == node_address) && (d.ring == ringName);
 			});
 
-			return node;
+			return contact;
 		};
 
 		this.showProperties = function() {

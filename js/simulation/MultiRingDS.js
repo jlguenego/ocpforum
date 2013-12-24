@@ -258,7 +258,7 @@
 			if (interval) {
 				this.thread.unshift({
 					function: this._retrieveInterval,
-					args: [ interval ],
+					args: [ node.name, interval ],
 					name: '_retrieveInterval',
 					object: this
 				});
@@ -270,10 +270,36 @@
 			this.refreshNodes(thread);
 		};
 
-		this._retrieveInterval = function(interval) {
+		this._retrieveInterval = function(nodeName, interval) {
 			var thread = this.thread.getThread(arguments);
 			console.log('Retrieve interval: ' + interval.start_address + ' ' + interval.end_address);
+			var node_list = this.nodes[nodeName].getRecoveryNodes(interval);
+			for (var i = 0; i < node_list.length; i++) {
+				this._copy(thread, node_list[i], nodeName);
+			}
 			thread._next();
+		};
+
+		this.copy = function(sourceName, targetName) {
+			this.thread.push({
+				function: this._copy,
+				args: arguments,
+				name: 'copy',
+				object: this
+			});
+		};
+
+		this._copy = function(sourceName, targetName) {
+			var thread = this.thread.getThread(arguments);
+			console.log(thread.name + ': Copy from ' + sourceName + ' to ' + targetName);
+			var source = this.nodes[sourceName];
+			var target = this.nodes[targetName];
+			target.addNeighbor(source.toContact());
+
+			var objects = d3.values(this.objects);
+			for (var i = 0; i < objects.length; i++) {
+				var object = objects[i];
+			}
 		};
 
 		this.refreshNodes = function(thread) {
