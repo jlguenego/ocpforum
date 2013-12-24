@@ -75,7 +75,7 @@
 				addressList.push(this.start_address);
 			}
 			addressList = addressList.map(function(d) {
-				return parseInt(d.substr(0, 4), 16);
+				return parseInt(d, 16);
 			});
 
 			if (addressList.length == 0) {
@@ -87,7 +87,7 @@
 				return a - b;
 			})
 
-			var perimeter = parseInt('1' + (new Array(5).join('0')), 16);
+			var perimeter = parseInt('1' + (new Array(41).join('0')), 16);
 			var end = addressList[0] + perimeter;
 			addressList.push(end);
 
@@ -105,7 +105,7 @@
 
 			var address = (addressList[index] + addressList[index + 1]) / 2;
 			address = address % perimeter;
-			return address.toString(16).padleft(4, '0') + (new Array(37).join('0'));
+			return address.toString(16).padleft(40, '0');
 		};
 
 		this.addLinks = function(sponsor) {
@@ -266,11 +266,16 @@
 		this.getNeighbor = function(rank) {
 			var contacts = d3.values(this.rings[this.ring]);
 			contacts.push(this.toContact());
-			rank = rank % contacts.length;
 			var list = contacts.map(function(d) { return d.start_address; });
 			list.sort();
 
-			var address = list[rank - 1];
+			var i = list.indexOf(this.start_address);
+			var list_1 = list.slice(i);
+			var list_2 = list.slice(0, i);
+			list = list_1.concat(list_2);
+
+			var index = rank % contacts.length;
+			var address = list[index];
 			var contact = contacts.find(function(d) {
 				return d.start_address == address;
 			});

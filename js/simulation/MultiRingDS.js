@@ -242,15 +242,15 @@
 			var thread = this.thread.getThread(arguments);
 
 			var node = this.nodes[nodeName];
-//			if (node.isSuccessorDown()) {
-//				var interval = node.retrieveSuccessorInterval();
-//				this.thread.unshift({
-//					function: this._retrieveInterval,
-//					args: [ interval ],
-//					name: '_retrieveInterval',
-//					object: this
-//				});
-//			}
+			var interval = node.retrieveSuccessorInterval();
+			if (node.isSuccessorDown()) {
+				this.thread.unshift({
+					function: this._retrieveInterval,
+					args: [ interval ],
+					name: '_retrieveInterval',
+					object: this
+				});
+			}
 
 			// for the time being, we just refresh the neighbors.
 			node.refreshNeighbors();
