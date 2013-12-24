@@ -311,7 +311,7 @@
 					break;
 				}
 			}
-			if (!recovery_end_address) {
+			if (recovery_end_address == recovery_start_address) {
 				return null;
 			}
 			return {

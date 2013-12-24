@@ -82,10 +82,10 @@
 				index: i,
 				nodes: {}
 			};
-			this.refreshRings(thread);
+			this.repaintRings(thread);
 		};
 
-		this.refreshMain = function(thread) {
+		this.repaintMain = function(thread) {
 			var bbox = this.group.node().getBBox();
 			if (bbox.width == 0) {
 				return;
@@ -110,7 +110,7 @@
 				});
 		};
 
-		this.refreshRings = function(thread) {
+		this.repaintRings = function(thread) {
 			var dataset = d3.values(this.rings);
 
 			var ring_g = this.group.selectAll('g.ring').data(dataset);
@@ -136,7 +136,7 @@
 				})
 				.each('end', function(d) {
 					if (doNext) {
-						self.refreshMain(thread);
+						self.repaintMain(thread);
 						doNext = false;
 					}
 				});
@@ -163,7 +163,7 @@
 			this.nodes[node.name] = node;
 			this.rings[node.ring].nodes[node.name] = node;
 
-			this.refreshNodes(thread);
+			this.repaintNodes(thread);
 			this.firstNodeName = node.name;
 			node.addContact(node.toContact());
 		};
@@ -195,7 +195,7 @@
 				throw new Error('sponsor not defined.');
 			}
 			node.connectTo(sponsor);
-			this.refreshNodes(thread);
+			this.repaintNodes(thread);
 		};
 
 		this.removeNode = function(nodeName) {
@@ -237,7 +237,7 @@
 			}
 
 			// refresh the painting.
-			this.refreshNodes(thread);
+			this.repaintNodes(thread);
 		};
 
 		this.refreshNode = function(nodeName) {
@@ -267,17 +267,38 @@
 			// for the time being, we just refresh the neighbors.
 			node.refreshNeighbors();
 			// and the painting.
-			this.refreshNodes(thread);
+			this.repaintNodes(thread);
 		};
 
 		this._retrieveInterval = function(nodeName, interval) {
 			var thread = this.thread.getThread(arguments);
 			console.log('Retrieve interval: ' + interval.start_address + ' ' + interval.end_address);
 			var node_list = this.nodes[nodeName].getRecoveryNodes(interval);
+
+			var new_thread = new Thread('retrieve_interval', thread);
+
+			var list = [];
 			for (var i = 0; i < node_list.length; i++) {
-				this._copy(thread, node_list[i], nodeName);
+				var t = new Thread('copy_' + node_list[i] + '_' + nodeName, new_thread);
+				list.push(t);
+				t.push({
+					function: this._copy,
+					args: [ node_list[i], nodeName ],
+					name: 'copy',
+					object: this
+				});
+				new_thread.startThread(t);
 			}
-			thread._next();
+			new_thread.wait.apply(new_thread, list);
+			new_thread.push({
+				function: function() {
+					thread._next();
+				},
+				args: [],
+				name: 'thread._next',
+				object: this
+			});
+			new_thread.start();
 		};
 
 		this.copy = function(sourceName, targetName) {
@@ -296,13 +317,62 @@
 			var target = this.nodes[targetName];
 			target.addNeighbor(source.toContact());
 
-			var objects = d3.values(this.objects);
-			for (var i = 0; i < objects.length; i++) {
-				var object = objects[i];
-			}
+			thread.unshift({
+				function: this._performBulkTransfer,
+				args: arguments,
+				name: '_performBulkTransfer',
+				object: this
+			});
+
+			this.repaintNodes(thread);
 		};
 
-		this.refreshNodes = function(thread) {
+		this._performBulkTransfer = function(sourceName, targetName) {
+			var thread = this.thread.getThread(arguments);
+			var duration = this.options.duration.doTransfer;
+
+			var source = this.nodes[sourceName];
+			var target = this.nodes[targetName];
+
+			var pathNode = d3.select('#' + sourceName + '_' + targetName).node();
+			var pathLength = pathNode.getTotalLength();
+			var g_obj = this.group.append('g')
+				.classed('transfer', true);
+
+
+			var circle = g_obj.append('circle')
+				.classed('bulk_object', true)
+				.attr('cx', 0)
+				.attr('cy', 0)
+				.attr('r', 15);
+//			g_obj.append('text')
+//				.text('B')
+//				.attr('x', 20)
+//				.attr('y', 20);
+			g_obj.transition()
+				.duration(duration)
+				.ease("linear")
+				.attrTween("transform", function (d, i) {
+					return function (t) {
+						var p = pathNode.getPointAtLength(pathLength*t);
+						return 'translate(' + [p.x, p.y] + ') scale(' + self.options.ring.node.scale + ')';
+					}
+				})
+				.each('end', function() {
+					g_obj.remove();
+					console.log(source);
+					for (var address in source.objects) {
+						var object = source.objects[address];
+						target.objects[address] = object;
+					}
+
+					self.repaintObjects(thread, duration);
+
+					self.report({ add_transfer: 1 });
+				});
+		};
+
+		this.repaintNodes = function(thread) {
 			var dataset = d3.values(this.rings);
 			var ring_g = this.svg.selectAll('g.ring').data(dataset, function(d) { return d.name; });
 
@@ -352,8 +422,8 @@
 				.attr('height', 50);
 
 			if (new_g.empty()) {
-				console.log('No new node: refreshLinks.');
-				self.refreshLinks(thread);
+				console.log('No new node: repaintLinks.');
+				self.repaintLinks(thread);
 			}
 			var doNext = true;
 			new_g.transition()
@@ -361,8 +431,8 @@
 				.style('opacity', 1)
 				.each('end', function() {
 					if (doNext) {
-						console.log('New node: refreshLinks.');
-						self.refreshLinks(thread);
+						console.log('New node: repaintLinks.');
+						self.repaintLinks(thread);
 						doNext = false;
 					}
 				});
@@ -412,7 +482,7 @@
 			return node;
 		};
 
-		this.refreshLinks = function(thread) {
+		this.repaintLinks = function(thread) {
 			var doNext = true;
 			var dataset = d3.values(this.links);
 
@@ -458,7 +528,7 @@
 				});
 
 			if (new_path.empty()) {
-				console.log('refreshLinks: new path is empty: thread._next');
+				console.log('repaintLinks: new path is empty: thread._next');
 				thread._next();
 			}
 			new_path.attr('stroke-dasharray', function(d) {
@@ -476,7 +546,7 @@
 					.attr('stroke-dashoffset', 0)
 					.each('end', function(d, i) {
 						if (doNext) {
-							console.log('refreshLinks: _next');
+							console.log('repaintLinks: _next');
 							doNext = false;
 							thread._next();
 						}
@@ -503,10 +573,10 @@
 			node.objects[obj.address] = obj;
 			this.objects[obj.address] = obj;
 
-			this.refreshObjects(thread, duration);
+			this.repaintObjects(thread, duration);
 		};
 
-		this.refreshObjects = function(thread, duration) {
+		this.repaintObjects = function(thread, duration) {
 			if (duration === undefined) {
 				duration = this.options.duration.addObject;
 			}
@@ -528,7 +598,7 @@
 			objects.exit().remove();
 			var new_objects = objects.enter();
 			if (new_objects.empty()) {
-				console.log('refreshObjects empty: _next');
+				console.log('repaintObjects empty: _next');
 				thread._next();
 			}
 			var doNext = true;
@@ -547,7 +617,7 @@
 					.style('opacity', 1)
 					.each('end', function() {
 						if (doNext) {
-							console.log('refreshObjects: _next');
+							console.log('repaintObjects: _next');
 							doNext = false;
 							thread._next();
 						}
@@ -768,26 +838,25 @@
 			var pathNode = d3.select('#' + transfer.source.name + '_' + transfer.target.name).node();
 			var pathLength = pathNode.getTotalLength();
 			var g_obj = this.group.append('g')
-				.classed('transfer', true)
-				.attr('transform', 'translate(-12, -12)');
+				.classed('transfer', true);
 
 
 			g_obj.append('rect')
 				.classed('object', true)
 				.attr('width', 25)
 				.attr('height', 25)
-				.attr('x', 0)
-				.attr('y', 0)
-				.attr('fill', this.getColorFromAddress(transfer.object.address))
-				.transition()
-					.duration(duration)
-					.ease("linear")
-					.attrTween("transform", function (d, i) {
-						return function (t) {
-							var p = pathNode.getPointAtLength(pathLength*t);
-							return 'translate(' + [p.x, p.y] + ') scale(' + self.options.ring.node.scale + ')';
-						}
-					})
+				.attr('x', -12)
+				.attr('y', -12)
+				.attr('fill', this.getColorFromAddress(transfer.object.address));
+			g_obj.transition()
+				.duration(duration)
+				.ease("linear")
+				.attrTween("transform", function (d, i) {
+					return function (t) {
+						var p = pathNode.getPointAtLength(pathLength*t);
+						return 'translate(' + [p.x, p.y] + ') scale(' + self.options.ring.node.scale + ')';
+					}
+				})
 				.each('end', function() {
 					g_obj.remove();
 					self._addObject(thread, transfer.target.name, transfer.object.address, transfer.object.source, 0);
@@ -920,7 +989,7 @@
 		this._select = function(d) {
 			var thread = this.thread.getThread(arguments);
 			this.selectedNodeName = d.name;
-			this.refreshNodes(thread);
+			this.repaintNodes(thread);
 			this.options.callback.onNodeSelected(d);
 		};
 
@@ -936,7 +1005,7 @@
 		this._unselect = function(d) {
 			var thread = this.thread.getThread(arguments);
 			this.selectedNodeName = null;
-			this.refreshNodes(thread);
+			this.repaintNodes(thread);
 			this.options.callback.onNodeDeselected(d);
 		};
 
