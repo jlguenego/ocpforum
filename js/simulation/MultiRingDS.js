@@ -195,6 +195,26 @@
 				throw new Error('sponsor not defined.');
 			}
 			node.connectTo(sponsor);
+
+			if (node.sorted_ring.length > 1) {
+				var predecessor_address = node.sorted_ring[node.sorted_ring.length - 1];
+				var predecessor_contact = node.rings[node.ring][predecessor_address];
+
+				var successor_address = node.sorted_ring[1 % node.sorted_ring.length];
+
+				var interval = {
+					start_address: node.start_address,
+					end_address: successor_address
+				};
+
+				thread.unshift({
+					function: this._copy,
+					args: [ predecessor_contact.name, node.name, interval ],
+					name: '_copy',
+					object: this
+				});
+			}
+
 			this.repaintNodes(thread);
 		};
 
