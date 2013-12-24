@@ -5,16 +5,23 @@
 		this.name = n.name;
 		this.image = n.image;
 		this.start_address = n.start_address;
+		this.end_address = null;
 		this.parent = null;
 		this.ring = n.ring;
 
 		this.propertiesGroup = null;
 
+		// Store all contacts including myself
 		this.contacts = {};
 		this.neighbors = {};
-		this.rings = {};
+
 
 		this.objects = {};
+
+		// Contact array sorted by address, starting at the node.
+		this.sorted_ring = [];
+		// For all rings gives an assoc array: address => contact
+		this.rings = {};
 
 		this.connectTo = function(sponsor) {
 			this.ring = sponsor.getNewRing();
@@ -337,6 +344,7 @@
 				var c = this.neighbors[name];
 				c.getNode().addContact(contact);
 			}
+			this.refreshSortedRing();
 			// Then refresh myself.
 			this.refreshNeighbors();
 		};
@@ -356,6 +364,18 @@
 				var contact = this.neighbors[name];
 				contact.getNode().removeContact(contactName);
 			}
+			this.refreshSortedRing();
+		};
+
+		this.refreshSortedRing = function() {
+			var address_list = d3.keys(this.rings[this.ring]);
+			address_list.push(this.start_address);
+			address_list.sort();
+			var i = address_list.indexOf(this.start_address);
+			var list_1 = address_list.slice(i);
+			var list_2 = address_list.slice(0, i);
+			this.sorted_ring = list_1.concat(list_2);
+			console.log(this.name + ': sorted_ring=' + this.sorted_ring.join(' '));
 		};
 
 		this.toContact = function() {
