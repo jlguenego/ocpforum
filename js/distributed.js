@@ -162,7 +162,7 @@ var sim = new Simulation();
 			var thread = this.thread.getThread(arguments);
 
 			node.start_address = node.getAddressFromAngle(10);
-			node.ring = d3.values(this.rings).find(function(d) { return d.index == 0; }).name;
+			node.ring = jlg.find(d3.values(this.rings), function(d) { return d.index == 0; }).name;
 
 			this.nodes[node.name] = node;
 			this.rings[node.ring].nodes[node.name] = node;
@@ -180,10 +180,9 @@ var sim = new Simulation();
 			});
 		};
 
-		this._addNode = function(node, sponsorName) {
-			var thread = this.thread.getThread(arguments);
+		this._addNode = function(thread, node, sponsorName) {
 
-			var nodeNames = d3.keys(mr.nodes);
+			var nodeNames = d3.keys(this.nodes);
 			if (nodeNames.length == 0) {
 				this._addFirstNode(thread, node);
 				return;
@@ -354,7 +353,7 @@ var sim = new Simulation();
 			}
 			var node_address = addressList[index - 1];
 
-			var node = d3.values(nodes).find(function(d) {
+			var node = jlg.find(d3.values(nodes), function(d) {
 				return d.start_address == node_address;
 			});
 
@@ -909,7 +908,7 @@ var sim = new Simulation();
 		this.getNewAddress = function(ring) {
 			this.refreshNeighbors();
 
-			var contactList = d3.values(this.contacts).findAll(function(d) {
+			var contactList = jlg.findAll(d3.values(this.contacts), function(d) {
 				return d.ring == ring;
 			});
 
@@ -1220,7 +1219,7 @@ var sim = new Simulation();
 		};
 
 		this.getResponsible = function(objectAddress) {
-			var neighbors = d3.values(this.neighbors).findAll(function(d) {
+			var neighbors = jlg.findAll(d3.values(this.neighbors), function(d) {
 				return self.ring == d.ring;
 			});
 			var ring = neighbors.map(function(d) { return d.start_address; });
@@ -1240,7 +1239,7 @@ var sim = new Simulation();
 				return this;
 			}
 
-			var contact = neighbors.find(function(d) {
+			var contact = jlg.find(neighbors, function(d) {
 				return d.start_address == node_address;
 			});
 
@@ -1266,7 +1265,7 @@ var sim = new Simulation();
 			}
 			var contact_address = addressList[index - 1];
 
-			var contact = d3.values(contacts).find(function(d) {
+			var contact = jlg.find(d3.values(contacts), function(d) {
 				return d.start_address == contact_address;
 			});
 
@@ -1295,7 +1294,7 @@ var sim = new Simulation();
 			}
 			var node_address = ring[index - 1];
 
-			var node = d3.values(this.neighbors).find(function(d) {
+			var node = jlg.find(d3.values(this.neighbors), function(d) {
 				return (d.start_address == node_address) && (d.ring == ringName);
 			});
 

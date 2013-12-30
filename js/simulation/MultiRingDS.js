@@ -165,7 +165,7 @@
 			var thread = this.thread.getThread(arguments);
 
 			node.start_address = node.getAddressFromAngle(10);
-			node.ring = d3.values(this.rings).find(function(d) { return d.index == 0; }).name;
+			node.ring = jlg.find(d3.values(this.rings), function(d) { return d.index == 0; }).name;
 
 			this.nodes[node.name] = node;
 			this.rings[node.ring].nodes[node.name] = node;
@@ -506,7 +506,7 @@
 			}
 			var node_address = addressList[index - 1];
 
-			var node = d3.values(nodes).find(function(d) {
+			var node = jlg.find(d3.values(nodes), function(d) {
 				return d.start_address == node_address;
 			});
 

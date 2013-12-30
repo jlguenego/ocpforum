@@ -323,7 +323,7 @@ var sim = new Simulation();
 			}
 			var node_address = addressList[index - 1];
 
-			var node = d3.values(nodes).find(function(d) {
+			var node = jlg.find(d3.values(nodes), function(d) {
 				return d.start_address == node_address;
 			});
 
@@ -846,7 +846,7 @@ var sim = new Simulation();
 				return this;
 			}
 
-			var node = this.links.out_ring.find(function(d) {
+			var node = jlg.find(this.links.out_ring, function(d) {
 				return d.start_address == node_address;
 			});
 
@@ -875,7 +875,7 @@ var sim = new Simulation();
 			}
 			var node_address = ring[index - 1];
 
-			var node = this.links.out.find(function(d) {
+			var node = jlg.find(this.links.out, function(d) {
 				return (d.start_address == node_address) && (d.ring == ringName);
 			});
 

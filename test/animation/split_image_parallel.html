@@ -179,7 +179,7 @@ $('#start').click(function() {
 		ds.thread = t;
 		obj.thread = t;
 		obj.sendBlock(blocks[i].name, ds, 'n3');
-		ds.addObject('n3', blocks[i].name, 'image/test/crypted.jpg');
+		ds.addObject('n3', blocks[i].name, blocks[i].src);
 		obj.remove(blocks[i].name);
 		ds.store('n3', blocks[i].name);
 		thread.startThread(t);

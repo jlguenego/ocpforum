@@ -58,12 +58,13 @@ function Thread(name, parentThread) {
 			function: function(t) {
 				var thread = this.getThread(arguments);
 				t.start();
-				thread.next();
+				self.next();
 			},
 			args: arguments,
 			name: 'startThread',
 			object: this
 		});
+		console.log('push start thread');
 	};
 
 	this.getThread = function() {

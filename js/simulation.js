@@ -512,7 +512,7 @@ var sim = new Simulation();
 				return this;
 			}
 
-			var node = this.links.out.find(function(d) {
+			var node = jlg.find(this.links.out, function(d) {
 				return d.start_address == node_address;
 			});
 

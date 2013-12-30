@@ -10,7 +10,7 @@
 		<script src="js/jlg_commons.js"></script>
 		<script src="js/animation.js"></script>
 		<script src="js/simulation.js"></script>
-		<script src="js/scenario.js"></script>
+		<script src="js/processus.js"></script>
 
 		<style>
 html, body {
@@ -101,9 +101,9 @@ $('#start').click(function() {
 		.attr('width', 800)
 		.attr('height', 600);
 
-	var scenario = new Scenario();
+	var thread = new Thread('main');
 
-	var ds = new sim.DistributedSystem(scenario, svg);
+	var ds = new sim.DistributedSystem(thread, svg);
 	ds.options.duration = {
 		addNode: 20,
 		addLink: $('#linkage').val(),
@@ -135,7 +135,7 @@ $('#start').click(function() {
 	ds.addObject('n8', 'flower', 'image/test/flower.jpg');
 	ds.store('n8', 'flower');
 
-	scenario.start();
+	thread.start();
 });
 
 $('#stop').click(function() {

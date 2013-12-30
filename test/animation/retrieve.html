@@ -225,7 +225,7 @@ $('#start').click(function() {
 		mr.thread = t;
 		obj.thread = t;
 		obj.sendBlock(blocks[i].name, mr, store_node);
-		mr.addObject(store_node, blocks[i].name, 'image/test/crypted.jpg');
+		mr.addObject(store_node, blocks[i].name, blocks[i].src);
 		obj.remove(blocks[i].name);
 		mr.store(store_node, blocks[i].name);
 		main_thread.startThread(t);

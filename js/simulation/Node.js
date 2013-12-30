@@ -471,7 +471,7 @@
 		};
 
 		this.getResponsible = function(objectAddress) {
-			var neighbors = d3.values(this.neighbors).findAll(function(d) {
+			var neighbors = jlg.findAll(d3.values(this.neighbors), function(d) {
 				return self.ring == d.ring;
 			});
 			var ring = neighbors.map(function(d) { return d.start_address; });
@@ -491,7 +491,7 @@
 				return this;
 			}
 
-			var contact = neighbors.find(function(d) {
+			var contact = jlg.find(neighbors, function(d) {
 				return d.start_address == node_address;
 			});
 
@@ -517,7 +517,7 @@
 			}
 			var contact_address = addressList[index - 1];
 
-			var contact = d3.values(contacts).find(function(d) {
+			var contact = jlg.find(d3.values(contacts), function(d) {
 				return d.start_address == contact_address;
 			});
 
@@ -546,7 +546,7 @@
 			}
 			var node_address = ring[index - 1];
 
-			var contact = d3.values(this.neighbors).find(function(d) {
+			var contact = jlg.find(d3.values(this.neighbors), function(d) {
 				return (d.start_address == node_address) && (d.ring == ringName);
 			});
 
