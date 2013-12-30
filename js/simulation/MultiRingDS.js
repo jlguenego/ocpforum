@@ -1,8 +1,7 @@
 (function(sim, undefined) {
-	sim.MultiRingDS = function(thread, svg) {
+	sim.MultiRingDS = function(svg) {
 		var self = this;
 
-		this.thread = thread;
 		this.svg = svg;
 		this.svgbox = {
 			x: svg.attr('width'),
@@ -68,16 +67,7 @@
 		this.addRing = function(thread, name, i) {
 			thread.push({
 				function: this._addRing,
-				args: [ name, i ],
-				name: 'addRing',
-				object: this
-			});
-		};
-
-		this.do_addRing = function(thread, name, i) {
-			thread.unshift({
-				function: this._addRing,
-				args: [ name, i ],
+				args: arguments,
 				name: 'addRing',
 				object: this
 			});
@@ -151,9 +141,9 @@
 
 		};
 
-		this.addFirstNode = function(node) {
+		this.addFirstNode = function(thread, node) {
 			node.parent = this;
-			this.thread.push({
+			thread.push({
 				function: this._addFirstNode,
 				args: arguments,
 				name: 'addFirstNode',
@@ -161,9 +151,7 @@
 			});
 		};
 
-		this._addFirstNode = function(node) {
-			var thread = this.thread.getThread(arguments);
-
+		this._addFirstNode = function(thread, node) {
 			node.start_address = node.getAddressFromAngle(10);
 			node.ring = jlg.find(d3.values(this.rings), function(d) { return d.index == 0; }).name;
 
@@ -175,9 +163,9 @@
 			node.addContact(node.toContact());
 		};
 
-		this.addNode = function(node, sponsorName) {
+		this.addNode = function(thread, node, sponsorName) {
 			node.parent = this;
-			this.thread.push({
+			thread.push({
 				function: this._addNode,
 				args: arguments,
 				name: 'addNode',
@@ -185,9 +173,7 @@
 			});
 		};
 
-		this._addNode = function(node, sponsorName) {
-			var thread = this.thread.getThread(arguments);
-
+		this._addNode = function(thread, node, sponsorName) {
 			var nodeNames = d3.keys(mr.nodes);
 			if (nodeNames.length == 0) {
 				this._addFirstNode(thread, node);
@@ -216,7 +202,7 @@
 
 				thread.unshift({
 					function: this._copy,
-					args: [ predecessor_contact.name, node.name, interval ],
+					args: [ thread, predecessor_contact.name, node.name, interval ],
 					name: '_copy',
 					object: this
 				});
@@ -225,8 +211,8 @@
 			this.repaintNodes(thread);
 		};
 
-		this.removeNode = function(nodeName) {
-			this.thread.push({
+		this.removeNode = function(thread, nodeName) {
+			thread.push({
 				function: this._removeNode,
 				args: arguments,
 				name: 'removeNode',
@@ -234,8 +220,7 @@
 			});
 		};
 
-		this._removeNode = function(nodeName) {
-			var thread = this.thread.getThread(arguments);
+		this._removeNode = function(thread, nodeName) {
 			// to be sure there will be no selection afterwards.
 			this.selectedNodeName = null;
 
@@ -267,8 +252,8 @@
 			this.repaintNodes(thread);
 		};
 
-		this.refreshNode = function(nodeName) {
-			this.thread.push({
+		this.refreshNode = function(thread, nodeName) {
+			thread.push({
 				function: this._refreshNode,
 				args: arguments,
 				name: '_refreshNode',
@@ -276,17 +261,16 @@
 			});
 		};
 
-		this._refreshNode = function(nodeName) {
-			var thread = this.thread.getThread(arguments);
-
+		this._refreshNode = function(thread, nodeName) {
+			console.log('nodeName=' + nodeName);
 			var node = this.nodes[nodeName];
 			var interval = node.getRecoveryInterval();
 			console.log(interval);
 
 			if (interval) {
-				this.thread.unshift({
+				thread.unshift({
 					function: this._retrieveInterval,
-					args: [ node.name, interval ],
+					args: [ thread, node.name, interval ],
 					name: '_retrieveInterval',
 					object: this
 				});
@@ -298,8 +282,7 @@
 			this.repaintNodes(thread);
 		};
 
-		this._retrieveInterval = function(nodeName, interval) {
-			var thread = this.thread.getThread(arguments);
+		this._retrieveInterval = function(thread, nodeName, interval) {
 			console.log('Retrieve interval: ' + interval.start_address + ' ' + interval.end_address);
 			var node_list = this.nodes[nodeName].getRecoveryNodes(interval);
 
@@ -311,7 +294,7 @@
 				list.push(t);
 				t.push({
 					function: this._copy,
-					args: [ node_list[i], nodeName, interval ],
+					args: [ t, node_list[i], nodeName, interval ],
 					name: 'copy',
 					object: this
 				});
@@ -329,8 +312,8 @@
 			new_thread.start();
 		};
 
-		this.copy = function(sourceName, targetName, interval) {
-			this.thread.push({
+		this.copy = function(thread, sourceName, targetName, interval) {
+			thread.push({
 				function: this._copy,
 				args: arguments,
 				name: 'copy',
@@ -338,8 +321,7 @@
 			});
 		};
 
-		this._copy = function(sourceName, targetName, interval) {
-			var thread = this.thread.getThread(arguments);
+		this._copy = function(thread, sourceName, targetName, interval) {
 			console.log(thread.name + ': Copy from ' + sourceName + ' to ' + targetName);
 			var source = this.nodes[sourceName];
 			var target = this.nodes[targetName];
@@ -355,8 +337,7 @@
 			this.repaintNodes(thread);
 		};
 
-		this._performBulkTransfer = function(sourceName, targetName, interval) {
-			var thread = this.thread.getThread(arguments);
+		this._performBulkTransfer = function(thread, sourceName, targetName, interval) {
 			var duration = this.options.duration.doTransfer;
 
 			var source = this.nodes[sourceName];
@@ -584,18 +565,16 @@
 					});
 		};
 
-		this.addObject = function(nodeName, name, source) {
-			this.thread.push({
+		this.addObject = function(thread, nodeName, name, source) {
+			thread.push({
 				function: this._addObject,
-				args: [ nodeName, name, source, undefined ],
+				args: arguments,
 				name: 'addObject',
 				object: this
 			});
 		};
 
-		this._addObject = function(nodeName, address, source, duration) {
-			var thread = this.thread.getThread(arguments);
-
+		this._addObject = function(thread, nodeName, address, source, duration) {
 			var node = this.nodes[nodeName];
 			var obj = {
 				address: address,
@@ -656,8 +635,8 @@
 
 		};
 
-		this.store = function(nodeName, objectAddress) {
-			this.thread.push({
+		this.store = function(thread, nodeName, objectAddress) {
+			thread.push({
 				function: this._store,
 				args: arguments,
 				name: 'store',
@@ -665,9 +644,7 @@
 			});
 		};
 
-		this._store = function(nodeName, objectAddress) {
-			var thread = this.thread.getThread(arguments);
-
+		this._store = function(thread, nodeName, objectAddress) {
 			if (this.options.storage_method == 'redundancy_first') {
 				this._storeRec(thread, nodeName, objectAddress, {
 					send_to_other_rings: true
@@ -699,26 +676,15 @@
 				this.doTransfer(new_thread, node.name, ringNode.name, objectAddress);
 				new_thread.push({
 					function: this._storeRec,
-					args: [ ringNode.name, objectAddress, {} ],
+					args: [ new_thread, ringNode.name, objectAddress, {} ],
 					name: '_storeRec',
 					object: this
 				});
-				thread.unshift({
-					function: function(t) {
-						var thread = this.thread.getThread(arguments);
-						t.start();
-						console.log(thread.name + ': ' + t.name + ' started: go next.');
-						thread.next();
-					},
-					args: [ new_thread ],
-					name: 'new thread',
-					object: this
-				});
+				thread.do_startThread(new_thread);
 			}
 		};
 
-		this._storeRec = function(nodeName, objectAddress, context) {
-			var thread = this.thread.getThread(arguments);
+		this._storeRec = function(thread, nodeName, objectAddress, context) {
 			// there are 2 visual steps (->thread):
 			// 1) refresh node
 			// 2) do the effective store
@@ -730,7 +696,7 @@
 			});
 			thread.unshift({
 				function: this._refreshNode,
-				args: [ nodeName ],
+				args: [ thread, nodeName ],
 				name: '_refreshNode',
 				object: this
 			});
@@ -740,9 +706,7 @@
 			thread.next();
 		}
 
-		this._storeOperation = function(nodeName, objectAddress, context) {
-			var thread = this.thread.getThread(arguments);
-
+		this._storeOperation = function(thread, nodeName, objectAddress, context) {
 			var node = this.nodes[nodeName];
 			if (context.send_to_other_rings == true) {
 				this.sendToOtherRings(thread, this.nodes[nodeName], objectAddress);
@@ -764,7 +728,7 @@
 			} else {
 				thread.unshift({
 					function: this._storeRec,
-					args: [ next_node.name, objectAddress, context ],
+					args: [ thread, next_node.name, objectAddress, context ],
 					name: '_storeRec',
 					object: this
 				});
@@ -772,8 +736,8 @@
 			}
 		};
 
-		this.retrieve = function(nodeName, objectAddress) {
-			this.thread.push({
+		this.retrieve = function(thread, nodeName, objectAddress) {
+			thread.push({
 				function: this._retrieve,
 				args: arguments,
 				name: 'retrieve',
@@ -781,8 +745,7 @@
 			});
 		};
 
-		this._retrieve = function(nodeName, objectAddress) {
-			var thread = this.thread.getThread(arguments);
+		this._retrieve = function(thread, nodeName, objectAddress) {
 			try {
 				this._retrieveRec(thread, nodeName, objectAddress, { initial: true });
 			} catch (e) {
@@ -791,8 +754,7 @@
 			}
 		};
 
-		this._retrieveRec = function(nodeName, objectAddress, context) {
-			var thread = this.thread.getThread(arguments);
+		this._retrieveRec = function(thread, nodeName, objectAddress, context) {
 			// there are 2 visual steps (->thread):
 			// 1) refresh node
 			// 2) do the effective store
@@ -804,7 +766,7 @@
 			});
 			thread.unshift({
 				function: this._refreshNode,
-				args: [ nodeName ],
+				args: [ thread, nodeName ],
 				name: '_refreshNode',
 				object: this
 			});
@@ -814,8 +776,7 @@
 			thread.next();
 		};
 
-		this._retrieveOperation = function(nodeName, objectAddress, context) {
-			var thread = this.thread.getThread(arguments);
+		this._retrieveOperation = function(thread, nodeName, objectAddress, context) {
 			var node = this.nodes[nodeName];
 
 			if (node.objects[objectAddress]) {
@@ -834,7 +795,7 @@
 				this.doTransfer(thread, next_node.name, node.name, objectAddress);
 				thread.unshift({
 					function: this._retrieveRec,
-					args: [ next_node.name, objectAddress, { initial: false } ],
+					args: [ thread, next_node.name, objectAddress, { initial: false } ],
 					name: '_retrieveRec',
 					object: this
 				});
@@ -845,14 +806,13 @@
 		this.doTransfer = function(thread, sourceName, targetName, objectAddress) {
 			thread.unshift({
 				function: this._doTransfer,
-				args: [ sourceName, targetName, objectAddress ],
+				args: [ thread, sourceName, targetName, objectAddress ],
 				name: 'doTransfer',
 				object: this
 			});
 		};
 
-		this._doTransfer = function(sourceName, targetName, objectAddress) {
-			var thread = this.thread.getThread(arguments);
+		this._doTransfer = function(thread, sourceName, targetName, objectAddress) {
 			var source = this.nodes[sourceName];
 			var target = this.nodes[targetName];
 			var transfer = {
@@ -897,8 +857,8 @@
 				});
 		};
 
-		this.transform = function(transform_val) {
-			this.thread.push({
+		this.transform = function(thread, transform_val) {
+			thread.push({
 				function: this._transform,
 				args: arguments,
 				name: 'transform',
@@ -906,8 +866,7 @@
 			});
 		};
 
-		this._transform = function(transform_val, scale_val) {
-			var thread = this.thread.getThread(arguments);
+		this._transform = function(thread, transform_val, scale_val) {
 			var transform = this.group.attr('transform');
 			if (!transform) {
 				transform = 'translate(0, ' + (this.svgbox.y / 2) + ') scale(' + this.scale + ')';
@@ -931,8 +890,8 @@
 			this.reportElem.dispatchEvent(event);
 		};
 
-		this.interactiveRetrieve = function(obj) {
-			this.thread.push({
+		this.interactiveRetrieve = function(thread, obj) {
+			thread.push({
 				function: this._interactiveRetrieve,
 				args: arguments,
 				name: 'interactiveRetrieve',
@@ -940,9 +899,7 @@
 			});
 		};
 
-		this._interactiveRetrieve = function(obj) {
-			var thread = this.thread.getThread(arguments);
-
+		this._interactiveRetrieve = function(thread, obj) {
 			var nodes = this.svg.selectAll('g.node');
 			nodes.classed('clickable', true);
 
@@ -951,21 +908,18 @@
 				nodes.on('click', function() {});
 
 				var retrieve_node = d.name;
-				var main_thread = self.thread;
 				var blocks = d3.values(obj.blocks);
 
 				var list = [];
 				for (var i = 0; i < blocks.length; i++) {
 					var tname = 'thread_' + i;
-					var t = new Thread(tname, main_thread);
+					var t = new Thread(tname, thread);
 					list.push(t);
 
-					self.thread = t;
-					self.retrieve(retrieve_node, blocks[i].name);
-					main_thread.startThread(t);
+					self.retrieve(t, retrieve_node, blocks[i].name);
+					thread.do_startThread(t);
 				}
-				self.thread = main_thread;
-				main_thread.wait.apply(main_thread, list);
+				thread.wait.apply(thread, list);
 
 				obj.sleep(500);
 
@@ -975,14 +929,10 @@
 					var t = new Thread(tname, main_thread);
 					list.push(t);
 
-					self.thread = t;
-					obj.thread = t;
-					obj.receiveBlock(blocks[i].name, self, retrieve_node);
-					main_thread.startThread(t);
+					obj.receiveBlock(t, blocks[i].name, self, retrieve_node);
+					thread.do_startThread(t);
 				}
-				self.thread = main_thread;
-				obj.thread = main_thread;
-				main_thread.wait.apply(main_thread, list);
+				thread.wait.apply(thread, list);
 
 				self.transform('translate(500, 450)', 0.4);
 				obj.maximize();
@@ -994,12 +944,12 @@
 					d3.select(this).remove();
 					obj.minimize();
 					self.transform('translate(0, ' + (self.svgbox.y / 2) + ')', 1);
-					self.thread.start();
+					thread.start();
 					nodes.classed('clickable', true)
 						.on('click', retrieve);
 				});
 
-				self.thread.start();
+				thread.start();
 
 			};
 			nodes.on('click', retrieve);
@@ -1009,8 +959,8 @@
 			return this.selectedNodeName == d.name;
 		};
 
-		this.select = function(d) {
-			this.thread.push({
+		this.select = function(thread, d) {
+			thread.push({
 				function: this._select,
 				args: arguments,
 				name: '_select',
@@ -1018,15 +968,14 @@
 			});
 		};
 
-		this._select = function(d) {
-			var thread = this.thread.getThread(arguments);
+		this._select = function(thread, d) {
 			this.selectedNodeName = d.name;
 			this.repaintNodes(thread);
 			this.options.callback.onNodeSelected(d);
 		};
 
-		this.unselect = function(d) {
-			this.thread.push({
+		this.unselect = function(thread, d) {
+			thread.push({
 				function: this._unselect,
 				args: arguments,
 				name: '_unselect',
@@ -1034,8 +983,7 @@
 			});
 		};
 
-		this._unselect = function(d) {
-			var thread = this.thread.getThread(arguments);
+		this._unselect = function(thread, d) {
 			this.selectedNodeName = null;
 			this.repaintNodes(thread);
 			this.options.callback.onNodeDeselected(d);

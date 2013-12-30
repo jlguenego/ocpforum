@@ -9,7 +9,7 @@
 		<script src="_ext/sha1.js"></script>
 		<script src="_ext/seedrandom-min.js"></script>
 		<script src="js/jlg_commons.js"></script>
-		<script src="js/processus.js"></script>
+		<script src="js/thread.js"></script>
 		<script src="js/simulation/main.js"></script>
 		<script src="js/simulation/MultiRingDS.js"></script>
 		<script src="js/simulation/Node.js"></script>
@@ -275,7 +275,6 @@ $('#stat').get(0).addEventListener("multi_ring_stat", function(e) {
 
 var counter = 0;
 var nodeIndex = 0;
-var main_thread = null;
 var mr = null;
 var address_picker = null;
 $('#start').click(function() {
@@ -286,16 +285,15 @@ $('#start').click(function() {
 	$('#add_node').attr('disabled', null);
 	$('#address_picker').attr('disabled', null);
 
-	counter = 0;
 	reset_stats();
 	Math.seedrandom('Hello');
 	d3.select('#frame').select('svg').remove();
 	var svg = d3.select('#frame').append('svg')
 		.attr('width', 800)
 		.attr('height', 300);
-	main_thread = new Thread('main');
-	//main_thread.setDebug('#debug');
-	mr = new sim.MultiRingDS(main_thread, svg);
+	var thread = new Thread('main');
+	//thread.setDebug('#debug');
+	mr = new sim.MultiRingDS(svg);
 	address_picker = new sim.AddressPicker(mr, '#address', '#address_cache');
 
 	refresh_options();
@@ -321,42 +319,45 @@ $('#start').click(function() {
 
 	var ring_nbr = $('#ring_amount').val();
 	for (var i = 0; i < ring_nbr; i++) {
-		mr.addRing(main_thread, 'r' + i, i);
+		mr.addRing(thread, 'r' + i, i);
 	}
-	main_thread.start();
+	thread.start();
 });
 
 $('#add_node').click(function() {
+	var thread = new Thread('main');
 	refresh_options();
 	console.log('mr.selectedNodeName=' + mr.selectedNodeName);
 	console.log('mr.firstNodeName=' + mr.firstNodeName);
 	var nodeName = mr.selectedNodeName || mr.firstNodeName;
-	mr.unselect();
-	mr.addNode(new sim.Node({
+	mr.unselect(thread);
+	mr.addNode(thread, new sim.Node({
 		name: 'n' + nodeIndex,
 		image: 'image/neufbox.png',
 	}), nodeName);
 	counter++;
 	nodeIndex++;
-	main_thread.start();
+	thread.start();
 });
 
 $('#rm_node').click(function() {
+	var thread = new Thread('main');
 	refresh_options();
 	var nodeName = mr.selectedNodeName;
-	mr.unselect();
-	mr.removeNode(nodeName);
-	main_thread.start();
+	mr.unselect(thread);
+	mr.removeNode(thread, nodeName);
+	thread.start();
 	counter--;
 	$(this).attr('disabled', true);
 });
 
 $('#refresh_node').click(function() {
+	var thread = new Thread('main');
 	refresh_options();
 	var nodeName = mr.selectedNodeName;
-	mr.unselect();
-	mr.refreshNode(nodeName);
-	main_thread.start();
+	mr.unselect(thread);
+	mr.refreshNode(thread, nodeName);
+	thread.start();
 });
 
 $('#address_picker').click(function() {
@@ -364,25 +365,27 @@ $('#address_picker').click(function() {
 });
 
 $('#add_object').click(function() {
+	var thread = new Thread('main');
 	refresh_options();
 	var nodeName = mr.selectedNodeName;
-	mr.unselect();
+	mr.unselect(thread);
 
 	var address = $('#address').val();
-	mr.addObject(nodeName, address, 'image/test/crypted.jpg');
-	mr.store(nodeName, address);
+	mr.addObject(thread, nodeName, address, 'image/test/crypted.jpg');
+	mr.store(thread, nodeName, address);
 
-	main_thread.start();
+	thread.start();
 });
 
 $('#retrieve_object').click(function() {
+	var thread = new Thread('main');
 	refresh_options();
 	var nodeName = mr.selectedNodeName;
-	mr.unselect();
+	mr.unselect(thread);
 
 	var address = $('#address').val();
-	mr.retrieve(nodeName, address);
-	main_thread.start();
+	mr.retrieve(thread, nodeName, address);
+	thread.start();
 	console.log(nodeName + ' retrieve ' + address);
 });
 
