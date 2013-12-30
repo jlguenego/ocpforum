@@ -40,6 +40,10 @@ svg {
 	stroke: #CCCCCC;
 }
 
+.bulk_object {
+	fill: red;
+}
+
 table {
 	width: 100%;
 }
@@ -237,7 +241,8 @@ input, select, table button {
 				</div>
 				<button id="start">Start</button>
 				<button id="stop">Stop</button>
-				<button id="add_node" disabled="disabled">Add Node</button>
+				<button id="add_node" disabled="disabled">Add Node</button><br/>
+				<button id="debug">Debug</button>
 
 				<div id="stat">
 					<table>
@@ -289,6 +294,7 @@ $('#start').click(function() {
 		.attr('width', 800)
 		.attr('height', 300);
 	main_thread = new Thread('main');
+	//main_thread.setDebug('#debug');
 	mr = new sim.MultiRingDS(main_thread, svg);
 	address_picker = new sim.AddressPicker(mr, '#address', '#address_cache');
 
@@ -315,7 +321,7 @@ $('#start').click(function() {
 
 	var ring_nbr = $('#ring_amount').val();
 	for (var i = 0; i < ring_nbr; i++) {
-		mr.addRing('r' + i, i);
+		mr.addRing(main_thread, 'r' + i, i);
 	}
 	main_thread.start();
 });
@@ -389,7 +395,7 @@ function refresh_options() {
 		refreshRing: 100,
 		addNode: 100,
 		addLink: $('#linkage').val(),
-		addObject: 100,
+		addObject: 200,
 		doTransfer: 300,
 		transform: 500
 	};

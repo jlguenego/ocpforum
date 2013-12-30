@@ -6,6 +6,8 @@ function Thread(name, parentThread) {
 
 	this.isFinished = false;
 
+	this.debug = null;
+
 	this.push = function(order) {
 		this.orders.push(order);
 	};
@@ -14,7 +16,20 @@ function Thread(name, parentThread) {
 		this.orders.unshift(order);
 	};
 
+	this.setDebug = function(selector) {
+		this.debug = selector;
+		$(this.debug).click(function() {
+			self.__next();
+		});
+	};
+
 	this._next = function() {
+		if (!this.debug) {
+			this.__next();
+		}
+	}
+
+	this.__next = function() {
 		var order = this.orders.shift();
 		if (order) {
 			console.log(this.name + ': Executing order: ' + order.name);
@@ -28,7 +43,9 @@ function Thread(name, parentThread) {
 			this.isFinished = true;
 			console.log(this.name + ': No order anymore.');
 		}
-	}
+	};
+
+
 
 	this.start = function() {
 		setTimeout(function() {

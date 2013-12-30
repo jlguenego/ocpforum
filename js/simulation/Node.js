@@ -15,7 +15,6 @@
 		this.contacts = {};
 		this.neighbors = {};
 
-
 		this.objects = {};
 
 		// Contact array sorted by address, starting at the node.
@@ -26,6 +25,7 @@
 		this.connectTo = function(sponsor) {
 			this.ring = sponsor.getNewRing();
 			this.start_address = sponsor.getNewAddress(this.ring);
+			this.addContact(this.toContact());
 
 			// update the global view.
 			this.parent.nodes[this.name] = this;
@@ -47,7 +47,7 @@
 			}
 
 			var contacts = d3.values(this.contacts);
-			contacts.push(this.toContact());
+			console.log(this.name + ': contacts=' + contacts.map(function(d) {return d.name;}).join(' '));
 			for (var i = 0; i < contacts.length; i++) {
 				var contact = contacts[i];
 				rings[contact.ring]++;
@@ -70,19 +70,19 @@
 			var new_perimeter = parseInt('1' + new Array(41).join('0'), 16);
 			var address = (angle / perimeter) * new_perimeter;
 			return address.toString(16).padleft(40, '0');
-		}
+		};
+
+		this.getAngleFromAddress = function(address, perimeter) {
+			perimeter = perimeter || 360;
+			var address_perimeter = parseInt('1' + new Array(41).join('0'), 16);
+			var angle = (parseInt(address, 16) / address_perimeter) * perimeter;
+			return angle;
+		};
 
 		this.getNewAddress = function(ring) {
-			var contactList = d3.values(this.contacts).findAll(function(d) {
-				return d.ring == ring;
-			});
-
-			var addressList = contactList.map(function(d) { return d.start_address; });
-			if (ring == this.ring) {
-				addressList.push(this.start_address);
-			}
+			var addressList = d3.keys(this.rings[ring]);
 			addressList = addressList.map(function(d) {
-				return parseInt(d, 16);
+				return parseInt(d.substr(0, 4), 16);
 			});
 
 			if (addressList.length == 0) {
@@ -94,9 +94,10 @@
 				return a - b;
 			})
 
-			var perimeter = parseInt('1' + (new Array(41).join('0')), 16);
+			var perimeter = parseInt('1' + (new Array(5).join('0')), 16);
 			var end = addressList[0] + perimeter;
 			addressList.push(end);
+			console.log(this.name + ': addressList=' + addressList.join(' '));
 
 			var max_space = 0;
 			var index = 0;
@@ -109,10 +110,11 @@
 					index = i;
 				}
 			}
+			console.log(this.name + ': intervals=' + list.join(' '));
 
 			var address = (addressList[index] + addressList[index + 1]) / 2;
 			address = address % perimeter;
-			return address.toString(16).padleft(40, '0');
+			return address.toString(16).padleft(4, '0') + new Array(37).join('0');
 		};
 
 		this.addLinks = function(sponsor) {
@@ -147,6 +149,7 @@
 		};
 
 		this.ping = function(contact) {
+			console.log(this.name + ': pinging ' + contact.name);
 			if (!this.parent.nodes[contact.name]) {
 				this.removeNeighbor(contact);
 				this.removeContact(contact.name);
@@ -158,6 +161,9 @@
 		this.computeNeighbors = function() {
 			var result = [];
 			for (var name in this.contacts) {
+				if (name == this.name) {
+					continue;
+				}
 				var contact = this.contacts[name];
 				var isNeighbor = false;
 
@@ -177,10 +183,10 @@
 			return result;
 		};
 
-		this.is2NSuccessor = function(ring, a1, a2) {
-			var i = ring.indexOf(a1);
-			var list_1 = ring.slice(i);
-			var list_2 = ring.slice(0, i);
+		this.is2NSuccessor = function(a1, a2) {
+			var i = this.sorted_ring.indexOf(a1);
+			var list_1 = this.sorted_ring.slice(i);
+			var list_2 = this.sorted_ring.slice(0, i);
 			var list = list_1.concat(list_2);
 
 			var index = list.indexOf(a2);
@@ -191,21 +197,14 @@
 		};
 
 		this.isNeighborInsideRing = function(contact) {
-			var ring = d3.keys(this.rings[contact.ring]);
-			ring.push(this.start_address);
-			ring.sort();
-			//console.log(this.name + ': ring=');
-			//console.log(ring);
-
-			var r1 = this.is2NSuccessor(ring, this.start_address, contact.start_address);
-			var r2 = this.is2NSuccessor(ring, contact.start_address, this.start_address);
+			var r1 = this.is2NSuccessor(this.start_address, contact.start_address);
+			var r2 = this.is2NSuccessor(contact.start_address, this.start_address);
 
 			return r1 || r2;
 		};
 
 		this.accept = function(new_contact) {
 			var result = {};
-			result[this.name] = this.toContact();
 			this.addContact(new_contact);
 			//console.log(this.name + ': refresh neighbors myself');
 			this.refreshNeighbors();
@@ -263,37 +262,64 @@
 			//console.log(this.name + ': end refresh neighbors');
 		};
 
-		this.isSuccessorDown = function() {
-			var contact = this.getNeighbor(1);
-			var b = this.ping(contact);
-			console.log(this.name + ': ping ' + contact.name + '? ' + b);
-			return !b;
+		this.getRecoveryNodes = function(interval) {
+			var result = [];
+			console.log(interval);
+
+			for (var ring in this.rings) {
+				if (ring == this.ring) {
+					continue;
+				}
+
+				for (var address in this.rings[ring]) {
+					var contact = this.rings[ring][address];
+					if (this.isInsideInterval(address, interval) && address != interval.start_address) {
+						result.push(contact.name);
+					}
+				}
+				var c = this.getResponsibleContact(ring, interval.start_address);
+				result.push(c.name);
+			}
+
+			return result;
 		};
 
-		this.getNeighbor = function(rank) {
-			var contacts = d3.values(this.rings[this.ring]);
-			contacts.push(this.toContact());
-			var list = contacts.map(function(d) { return d.start_address; });
-			list.sort();
+		this.isInsideInterval = function(address, interval) {
+			var start = this.getAngleFromAddress(interval.start_address);
+			var end = this.getAngleFromAddress(interval.end_address);
+			var normal = start <= end;
 
-			var i = list.indexOf(this.start_address);
-			var list_1 = list.slice(i);
-			var list_2 = list.slice(0, i);
-			list = list_1.concat(list_2);
-
-			var index = rank % contacts.length;
-			var address = list[index];
-			var contact = contacts.find(function(d) {
-				return d.start_address == address;
-			});
-			console.log(this.name + ': getNeighbor(' + rank + ')=' + contact.name);
-			return contact;
+			var angle = this.getAngleFromAddress(address);
+			if (normal) {
+				if (angle >= start && angle < end){
+					return true;
+				}
+			} else {
+				if (!(angle >= end && angle < start)) {
+					return true;
+				}
+			}
+			return false;
 		};
 
-		this.retrieveSuccessorInterval = function() {
+		this.getRecoveryInterval = function() {
+			var recovery_start_address = this.sorted_ring[1 % this.sorted_ring.length];
+			var recovery_end_address = null;
+			while (true) {
+				console.log(this.name + ': sorted_ring=' + this.sorted_ring.join(' '));
+				var recovery_end_address = this.sorted_ring[1 % this.sorted_ring.length];
+				console.log(this.name + ': recovery_end_address=' + recovery_end_address);
+				var c = this.rings[this.ring][recovery_end_address];
+				if (this.ping(c)) {
+					break;
+				}
+			}
+			if (recovery_end_address == recovery_start_address) {
+				return null;
+			}
 			return {
-				start: this.getNeighbor(1).start_address,
-				stop: this.getNeighbor(2).start_address
+				start_address: recovery_start_address,
+				end_address: recovery_end_address
 			};
 		};
 
@@ -327,7 +353,7 @@
 		};
 
 		this.addContact = function(contact) {
-			if (this.contacts[contact.name] || this.name == contact.name) {
+			if (this.contacts[contact.name]) {
 				// Already in contact.
 				return;
 			}
@@ -362,20 +388,20 @@
 
 			for (var name in this.neighbors) {
 				var contact = this.neighbors[name];
-				contact.getNode().removeContact(contactName);
+				// Todo later, this action have visual impacts.
+				//contact.getNode().removeContact(contactName);
 			}
 			this.refreshSortedRing();
 		};
 
 		this.refreshSortedRing = function() {
 			var address_list = d3.keys(this.rings[this.ring]);
-			address_list.push(this.start_address);
 			address_list.sort();
 			var i = address_list.indexOf(this.start_address);
 			var list_1 = address_list.slice(i);
 			var list_2 = address_list.slice(0, i);
 			this.sorted_ring = list_1.concat(list_2);
-			console.log(this.name + ': sorted_ring=' + this.sorted_ring.join(' '));
+			//console.log(this.name + ': sorted_ring=' + this.sorted_ring.join(' '));
 		};
 
 		this.toContact = function() {
@@ -520,11 +546,11 @@
 			}
 			var node_address = ring[index - 1];
 
-			var node = d3.values(this.neighbors).find(function(d) {
+			var contact = d3.values(this.neighbors).find(function(d) {
 				return (d.start_address == node_address) && (d.ring == ringName);
 			});
 
-			return node;
+			return contact;
 		};
 
 		this.showProperties = function() {
