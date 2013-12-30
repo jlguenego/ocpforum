@@ -154,7 +154,7 @@ var sim = new Simulation();
 					this.doTransfer(thread, nodeRoute[i], nodeRoute[i + 1], objectName);
 				}
 			}
-			thread._next();
+			thread.next();
 		};
 
 
@@ -218,7 +218,7 @@ var sim = new Simulation();
 					.duration(this.options.duration.move)
 					.attr('transform', transform_val)
 					.each('end', function() {
-						thread._next();
+						thread.next();
 					});
 		};
 
@@ -300,7 +300,7 @@ var sim = new Simulation();
 				.duration(duration)
 				.style('opacity', 1)
 				.each('end', function() {
-					thread._next();
+					thread.next();
 				});
 
 			// Update
@@ -353,7 +353,7 @@ var sim = new Simulation();
 					.duration(duration)
 					.attr('stroke-dashoffset', 0)
 					.each('end', function() {
-						thread._next();
+						thread.next();
 					});
 		};
 
@@ -397,7 +397,7 @@ var sim = new Simulation();
 					.duration(duration)
 					.style('opacity', 1)
 					.each('end', function() {
-						thread._next();
+						thread.next();
 					});
 			objects.exit().remove();
 		};
@@ -460,7 +460,7 @@ var sim = new Simulation();
 				this.doTransfer(thread, route[i], route[i + 1], objectName);
 			}
 
-			thread._next();
+			thread.next();
 		};
 	};
 

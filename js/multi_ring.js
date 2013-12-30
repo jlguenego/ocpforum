@@ -124,7 +124,7 @@ var sim = new Simulation();
 				.each('end', function(d) {
 					if (d.name == first_ring.name) {
 						self.refreshMain();
-						thread._next();
+						thread.next();
 					}
 				});
 
@@ -193,7 +193,7 @@ var sim = new Simulation();
 				.duration(this.options.duration.addNode)
 				.style('opacity', 1)
 				.each('end', function() {
-					thread._next();
+					thread.next();
 				});
 
 			node.attr('transform', function(d) {
@@ -241,7 +241,7 @@ var sim = new Simulation();
 					});
 				}
 			}
-			thread._next();
+			thread.next();
 		};
 
 		this.addTopoOptimum = function(thread) {
@@ -300,7 +300,7 @@ var sim = new Simulation();
 			}
 
 
-			thread._next();
+			thread.next();
 		};
 
 		this.getNodeResponsibleForRing = function(ringName, address) {
@@ -401,7 +401,7 @@ var sim = new Simulation();
 				});
 
 			if (new_path.empty()) {
-				thread._next();
+				thread.next();
 			}
 			new_path.attr('stroke-dasharray', function(d) {
 					var my_path = d3.select('#' + d.id).node();
@@ -419,7 +419,7 @@ var sim = new Simulation();
 					.each('end', function(d, i) {
 						if (doNext) {
 							doNext = false;
-							thread._next();
+							thread.next();
 						}
 					});
 		};
@@ -469,7 +469,7 @@ var sim = new Simulation();
 			objects.exit().remove();
 			var new_objects = objects.enter();
 			if (new_objects.empty()) {
-				thread._next();
+				thread.next();
 			}
 			new_objects.append('use')
 				.classed('object', true)
@@ -481,7 +481,7 @@ var sim = new Simulation();
 					.duration(duration)
 					.style('opacity', 1)
 					.each('end', function() {
-						thread._next();
+						thread.next();
 					});
 
 		};
@@ -646,7 +646,7 @@ var sim = new Simulation();
 					.duration(this.options.duration.transform)
 					.attr('transform', transform_val + ' scale(' + scale + ')')
 					.each('end', function() {
-						thread._next();
+						thread.next();
 					});
 		};
 
@@ -794,7 +794,7 @@ var sim = new Simulation();
 						this.parent.sendToOtherRings(thread, this, objectName);
 					}
 				}
-				thread._next();
+				thread.next();
 			} else {
 				thread.unshift({
 					function: this.parent._storeRec,
@@ -808,7 +808,7 @@ var sim = new Simulation();
 
 		this.retrieve = function(thread, objectName, context) {
 			if (this.objects[objectName]) {
-				thread._next();
+				thread.next();
 				return;
 			}
 
@@ -819,7 +819,7 @@ var sim = new Simulation();
 				if (!this.objects[objectName]) {
 					throw new Error('Object not found on ' + this.name + ': ' + objectName);
 				}
-				thread._next();
+				thread.next();
 			} else {
 				this.parent.doTransfer(thread, next_node.name, this.name, objectName);
 				next_node.retrieve(thread, objectName, { initial: false });

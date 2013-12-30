@@ -110,7 +110,7 @@ var sim = new Simulation();
 				.duration(this.options.duration.refreshRing)
 				.attr('transform', 'translate(0, ' + y + ') scale(' + this.scale + ')')
 				.each('end', function() {
-					thread._next();
+					thread.next();
 				});
 		};
 
@@ -407,8 +407,8 @@ var sim = new Simulation();
 				});
 
 			if (new_path.empty()) {
-				console.log('refreshLinks: new path is empty: thread._next');
-				thread._next();
+				console.log('refreshLinks: new path is empty: thread.next');
+				thread.next();
 			}
 			new_path.attr('stroke-dasharray', function(d) {
 					var my_path = d3.select('#' + d.id).node();
@@ -425,9 +425,9 @@ var sim = new Simulation();
 					.attr('stroke-dashoffset', 0)
 					.each('end', function(d, i) {
 						if (doNext) {
-							console.log('refreshLinks: _next');
+							console.log('refreshLinks: next');
 							doNext = false;
-							thread._next();
+							thread.next();
 						}
 					});
 		};
@@ -477,8 +477,8 @@ var sim = new Simulation();
 			objects.exit().remove();
 			var new_objects = objects.enter();
 			if (new_objects.empty()) {
-				console.log('refreshObjects empty: _next');
-				thread._next();
+				console.log('refreshObjects empty: next');
+				thread.next();
 			}
 			var doNext = true;
 			new_objects.append('rect')
@@ -496,9 +496,9 @@ var sim = new Simulation();
 					.style('opacity', 1)
 					.each('end', function() {
 						if (doNext) {
-							console.log('refreshObjects: _next');
+							console.log('refreshObjects: next');
 							doNext = false;
-							thread._next();
+							thread.next();
 						}
 					});
 
@@ -581,8 +581,8 @@ var sim = new Simulation();
 			});
 
 			console.log(thread.orders.slice());
-			console.log('_storeRec: _next');
-			thread._next();
+			console.log('_storeRec: next');
+			thread.next();
 		}
 
 		this._storeOperation = function(nodeName, objectAddress, context) {
@@ -604,8 +604,8 @@ var sim = new Simulation();
 						this.sendToOtherRings(thread, node, objectAddress);
 					}
 				}
-				console.log('_storeOperation responsible node: _next');
-				thread._next();
+				console.log('_storeOperation responsible node: next');
+				thread.next();
 			} else {
 				thread.unshift({
 					function: this._storeRec,
@@ -711,7 +711,7 @@ var sim = new Simulation();
 					.duration(this.options.duration.transform)
 					.attr('transform', transform_val + ' scale(' + scale + ')')
 					.each('end', function() {
-						thread._next();
+						thread.next();
 					});
 		};
 
@@ -1201,7 +1201,7 @@ var sim = new Simulation();
 
 		this.retrieve = function(thread, objectAddress, context) {
 			if (this.objects[objectAddress]) {
-				thread._next();
+				thread.next();
 				return;
 			}
 
@@ -1212,7 +1212,7 @@ var sim = new Simulation();
 				if (!this.objects[objectAddress]) {
 					throw new Error('Object not found on ' + this.name + ': ' + objectAddress);
 				}
-				thread._next();
+				thread.next();
 			} else {
 				this.parent.doTransfer(thread, next_node.name, this.name, objectAddress);
 				next_node.retrieve(thread, objectAddress, { initial: false });

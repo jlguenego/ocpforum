@@ -80,7 +80,7 @@ var anim = new Animation();
 					.duration(self.options.duration.show)
 					.style('opacity', 1)
 					.each('end', function() {
-						thread._next();
+						thread.next();
 					});
 			};
 		};
@@ -172,7 +172,7 @@ var anim = new Animation();
 				})
 				.each('end', function(d) {
 					if (d.i == 0 && d.j == 0) {
-						thread._next();
+						thread.next();
 					}
 				});
 		};
@@ -221,7 +221,7 @@ var anim = new Animation();
 						.duration(20)
 						.style('opacity', 1)
 						.each('end', function() {
-							thread._next();
+							thread.next();
 						});
 				})
 				.transition()
@@ -266,7 +266,7 @@ var anim = new Animation();
 						.attr('x', function(d) { return d.x; })
 						.each('end', function(d) {
 							if (d.i == 0 && d.j == 0) {
-								thread._next();
+								thread.next();
 							}
 						});
 		};
@@ -308,7 +308,7 @@ var anim = new Animation();
 						.attr('x', function(d) { return d.x; })
 						.each('end', function(d) {
 							if (d.i == 0 && d.j == 0) {
-								thread._next();
+								thread.next();
 							}
 						});
 		};
@@ -331,7 +331,7 @@ var anim = new Animation();
 					.duration(self.options.duration.minimize)
 					.attr('transform', 'scale(' + self.options.scale.minimize + ')')
 					.each('end', function() {
-						thread._next();
+						thread.next();
 					});
 		};
 
@@ -353,7 +353,7 @@ var anim = new Animation();
 					.duration(self.options.duration.minimize)
 					.attr('transform', 'scale(1)')
 					.each('end', function() {
-						thread._next();
+						thread.next();
 					});
 		};
 
@@ -377,7 +377,7 @@ var anim = new Animation();
 					.attr('x', coord.x / self.options.scale.minimize)
 					.attr('y', coord.y / self.options.scale.minimize)
 					.each('end', function(d) {
-						thread._next();
+						thread.next();
 					});
 		};
 
@@ -432,7 +432,7 @@ var anim = new Animation();
 				})
 				.each('end', function(d) {
 					//if (d.i == 0 && d.j == 0) {
-						thread._next();
+						thread.next();
 					//}
 				});
 		};
@@ -451,7 +451,7 @@ var anim = new Animation();
 
 			this.group.select('svg#' + block_name).remove();
 			this.image.remove();
-			thread._next();
+			thread.next();
 		};
 
 		this.sleep = function(duration) {
@@ -466,7 +466,7 @@ var anim = new Animation();
 		this._sleep = function(duration) {
 			var thread = this.thread.getThread(arguments);
 			setTimeout(function() {
-				thread._next();
+				thread.next();
 			}, duration);
 		};
 
@@ -483,7 +483,7 @@ var anim = new Animation();
 			var thread = this.thread.getThread(arguments);
 			this.image.classed('clickable', true)
 				.on('click', callback);
-			thread._next();
+			thread.next();
 		};
 	};
 })(anim)

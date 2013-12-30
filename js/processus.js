@@ -19,17 +19,17 @@ function Thread(name, parentThread) {
 	this.setDebug = function(selector) {
 		this.debug = selector;
 		$(this.debug).click(function() {
-			self.__next();
+			self.next();
 		});
 	};
 
-	this._next = function() {
+	this.next = function() {
 		if (!this.debug) {
-			this.__next();
+			this._next();
 		}
 	}
 
-	this.__next = function() {
+	this._next = function() {
 		var order = this.orders.shift();
 		if (order) {
 			console.log(this.name + ': Executing order: ' + order.name);
@@ -49,7 +49,7 @@ function Thread(name, parentThread) {
 
 	this.start = function() {
 		setTimeout(function() {
-			self._next();
+			self.next();
 		}, 0);
 	};
 
@@ -58,7 +58,7 @@ function Thread(name, parentThread) {
 			function: function(t) {
 				var thread = this.getThread(arguments);
 				t.start();
-				thread._next();
+				thread.next();
 			},
 			args: arguments,
 			name: 'startThread',
@@ -99,7 +99,7 @@ function Thread(name, parentThread) {
 
 					if (allFinished) {
 						//console.log(this.name + ': Wait released.');
-						this._next();
+						this.next();
 					}
 				},
 				args: arguments,

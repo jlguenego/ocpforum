@@ -113,7 +113,7 @@
 				.duration(this.options.duration.refreshRing)
 				.attr('transform', 'translate(0, ' + y + ') scale(' + this.scale + ')')
 				.each('end', function() {
-					thread._next();
+					thread.next();
 				});
 		};
 
@@ -320,10 +320,10 @@
 			new_thread.wait.apply(new_thread, list);
 			new_thread.push({
 				function: function() {
-					thread._next();
+					thread.next();
 				},
 				args: [],
-				name: 'thread._next',
+				name: 'thread.next',
 				object: this
 			});
 			new_thread.start();
@@ -559,8 +559,8 @@
 				});
 
 			if (new_path.empty()) {
-				console.log('repaintLinks: new path is empty: thread._next');
-				thread._next();
+				console.log('repaintLinks: new path is empty: thread.next');
+				thread.next();
 			}
 			new_path.attr('stroke-dasharray', function(d) {
 					var my_path = d3.select('#' + d.id).node();
@@ -577,9 +577,9 @@
 					.attr('stroke-dashoffset', 0)
 					.each('end', function(d, i) {
 						if (doNext) {
-							console.log('repaintLinks: _next');
+							console.log('repaintLinks: next');
 							doNext = false;
-							thread._next();
+							thread.next();
 						}
 					});
 		};
@@ -629,8 +629,8 @@
 			objects.exit().remove();
 			var new_objects = objects.enter();
 			if (new_objects.empty()) {
-				console.log('repaintObjects empty: _next');
-				thread._next();
+				console.log('repaintObjects empty: next');
+				thread.next();
 			}
 			var doNext = true;
 			new_objects.append('rect')
@@ -648,9 +648,9 @@
 					.style('opacity', 1)
 					.each('end', function() {
 						if (doNext) {
-							console.log('repaintObjects: _next');
+							console.log('repaintObjects: next');
 							doNext = false;
-							thread._next();
+							thread.next();
 						}
 					});
 
@@ -708,7 +708,7 @@
 						var thread = this.thread.getThread(arguments);
 						t.start();
 						console.log(thread.name + ': ' + t.name + ' started: go next.');
-						thread._next();
+						thread.next();
 					},
 					args: [ new_thread ],
 					name: 'new thread',
@@ -736,8 +736,8 @@
 			});
 
 			console.log(thread.orders.slice());
-			console.log('_storeRec: _next');
-			thread._next();
+			console.log('_storeRec: next');
+			thread.next();
 		}
 
 		this._storeOperation = function(nodeName, objectAddress, context) {
@@ -759,8 +759,8 @@
 						this.sendToOtherRings(thread, node, objectAddress);
 					}
 				}
-				console.log('_storeOperation responsible node: _next');
-				thread._next();
+				console.log('_storeOperation responsible node: next');
+				thread.next();
 			} else {
 				thread.unshift({
 					function: this._storeRec,
@@ -787,7 +787,7 @@
 				this._retrieveRec(thread, nodeName, objectAddress, { initial: true });
 			} catch (e) {
 				console.log(e.message);
-				thread._next();
+				thread.next();
 			}
 		};
 
@@ -810,8 +810,8 @@
 			});
 
 			console.log(thread.orders.slice());
-			console.log('_retrieveRec: _next');
-			thread._next();
+			console.log('_retrieveRec: next');
+			thread.next();
 		};
 
 		this._retrieveOperation = function(nodeName, objectAddress, context) {
@@ -819,7 +819,7 @@
 			var node = this.nodes[nodeName];
 
 			if (node.objects[objectAddress]) {
-				thread._next();
+				thread.next();
 				return;
 			}
 
@@ -839,7 +839,7 @@
 					object: this
 				});
 			}
-			thread._next();
+			thread.next();
 		};
 
 		this.doTransfer = function(thread, sourceName, targetName, objectAddress) {
@@ -918,7 +918,7 @@
 					.duration(this.options.duration.transform)
 					.attr('transform', transform_val + ' scale(' + scale + ')')
 					.each('end', function() {
-						thread._next();
+						thread.next();
 					});
 		};
 
