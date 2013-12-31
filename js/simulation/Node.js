@@ -22,7 +22,7 @@
 		// For all rings gives an assoc array: address => contact
 		this.rings = {};
 
-		this.connectTo = function(sponsor) {
+		this.connectTo = function(thread, sponsor) {
 			this.ring = sponsor.getNewRing();
 			this.start_address = sponsor.getNewAddress(this.ring);
 			this.addContact(this.toContact());
@@ -32,7 +32,28 @@
 			this.parent.rings[this.ring].nodes[this.name] = this;
 
 			this.addLinks(sponsor);
+
+			this.getData(thread);
 		}
+
+		this.getData = function(thread) {
+			if (this.sorted_ring.length > 1) {
+				var predecessor_address = this.sorted_ring[this.sorted_ring.length - 1];
+				var predecessor_contact = this.rings[this.ring][predecessor_address];
+
+				var successor_address = this.sorted_ring[1 % this.sorted_ring.length];
+
+				var interval = {
+					start_address: this.start_address,
+					end_address: successor_address
+				};
+
+				// program a visual transfer of data.
+				this.parent.do_copy(thread, predecessor_contact.name, this.name, interval);
+
+			}
+
+		};
 
 		this.getNewRing = function() {
 			//console.log(this.name + ': get new ring: refresh neighbors');
@@ -81,29 +102,31 @@
 
 		this.getNewAddress = function(ring) {
 			var addressList = d3.keys(this.rings[ring]);
-			addressList = addressList.map(function(d) {
-				return parseInt(d.substr(0, 4), 16);
-			});
-
 			if (addressList.length == 0) {
 				//console.log(this.name + ': first node ?');
 				return this.getAddressFromAngle(10);
 			}
 
-			addressList.sort(function(a, b) {
-				return a - b;
-			})
+			var angleList = addressList.map(function(d) {
+				return self.getAngleFromAddress(d);
+			});
 
-			var perimeter = parseInt('1' + (new Array(5).join('0')), 16);
-			var end = addressList[0] + perimeter;
-			addressList.push(end);
-			console.log(this.name + ': addressList=' + addressList.join(' '));
+
+
+			angleList.sort(function(a, b) {
+				return a - b;
+			});
+
+			var perimeter = 360;
+			var end = angleList[0] + perimeter;
+			angleList.push(end);
+			console.log(this.name + ': angleList=' + angleList.join(' '));
 
 			var max_space = 0;
 			var index = 0;
 			var list = [];
-			for (var i = 0; i < addressList.length - 1; i++) {
-				var space = addressList[i + 1] - addressList[i];
+			for (var i = 0; i < angleList.length - 1; i++) {
+				var space = angleList[i + 1] - angleList[i];
 				list.push(space);
 				if (max_space < space) {
 					max_space = space;
@@ -112,9 +135,9 @@
 			}
 			console.log(this.name + ': intervals=' + list.join(' '));
 
-			var address = (addressList[index] + addressList[index + 1]) / 2;
-			address = address % perimeter;
-			return address.toString(16).padleft(4, '0') + new Array(37).join('0');
+			var angle = (angleList[index] + angleList[index + 1]) / 2;
+			angle = angle % perimeter;
+			return this.getAddressFromAngle(angle);
 		};
 
 		this.addLinks = function(sponsor) {

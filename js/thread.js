@@ -50,7 +50,7 @@ function Thread(name, parentThread) {
 
 	this.startThread = function(t) {
 		this.push({
-			function: function(thread, t) {
+			function: function(t) {
 				t.start();
 				self.next();
 			},
