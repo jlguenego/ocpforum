@@ -31,7 +31,7 @@
 			this.parent.nodes[this.name] = this;
 			this.parent.rings[this.ring].nodes[this.name] = this;
 
-			this.addLinks(sponsor);
+			this.addLinks(thread, sponsor);
 
 			this.getData(thread);
 		}
@@ -140,7 +140,7 @@
 			return this.getAddressFromAngle(angle);
 		};
 
-		this.addLinks = function(sponsor) {
+		this.addLinks = function(thread, sponsor) {
 			var contact_list = sponsor.accept(this.toContact());
 			console.log(this.name + ': contact list=' + d3.keys(contact_list).join(' '));
 
@@ -149,16 +149,16 @@
 				this.addContact(contact);
 			}
 
-			this.addNeighbors();
+			this.addNeighbors(thread);
 		};
 
-		this.addNeighbors = function() {
+		this.addNeighbors = function(thread) {
 			while (true) {
 				var neighbors = this.computeNeighbors();
 				var okForAll = true;
 				for (var i = 0; i < neighbors.length; i++) {
 					var contact = neighbors[i];
-					if (this.ping(contact)) {
+					if (this.ping(thread, contact)) {
 						this.addNeighbor(contact);
 					} else {
 						okForAll = false;
@@ -171,11 +171,11 @@
 			}
 		};
 
-		this.ping = function(contact) {
+		this.ping = function(thread, contact) {
 			console.log(this.name + ': pinging ' + contact.name);
 			if (!this.parent.nodes[contact.name]) {
 				this.removeNeighbor(contact);
-				this.removeContact(contact.name);
+				this.removeContact(thread, contact.name);
 				return false;
 			}
 			return true;
@@ -246,13 +246,13 @@
 			return result;
 		};
 
-		this.refreshNeighbors = function() {
+		this.refreshNeighbors = function(thread) {
 			//console.log(this.name + ': refresh neighbors');
-			this.addNeighbors();
+			this.addNeighbors(thread);
 
 			for (var name in this.neighbors) {
 				var contact = this.neighbors[name];
-				this.ping(contact);
+				this.ping(thread, contact);
 				if (contact.ring == this.ring) {
 					if (!this.isNeighborInsideRing(contact)) {
 						//console.log(this.name + ': is not neighbor with ' + contact.name);
@@ -278,7 +278,7 @@
 				}
 				//console.log(this.name + ': handling ring: ' + ring);
 				if (!this.isNeighborsForRing(ring)) {
-					this.createNeighborForRing(ring);
+					this.createNeighborForRing(thread, ring);
 				}
 			}
 			//console.log(this.name + ': refreshed neighbor list=' + d3.keys(this.neighbors).join(' '));
@@ -325,7 +325,7 @@
 			return false;
 		};
 
-		this.getRecoveryInterval = function() {
+		this.getRecoveryInterval = function(thread) {
 			var recovery_start_address = this.sorted_ring[1 % this.sorted_ring.length];
 			var recovery_end_address = null;
 			while (true) {
@@ -333,7 +333,7 @@
 				var recovery_end_address = this.sorted_ring[1 % this.sorted_ring.length];
 				console.log(this.name + ': recovery_end_address=' + recovery_end_address);
 				var c = this.rings[this.ring][recovery_end_address];
-				if (this.ping(c)) {
+				if (this.ping(thread, c)) {
 					break;
 				}
 			}
@@ -356,7 +356,7 @@
 			return false;
 		};
 
-		this.createNeighborForRing = function(ring) {
+		this.createNeighborForRing = function(thread, ring) {
 			while (true) {
 				//console.log(this.name + ': entering loop');
 				var contact = this.getResponsibleContact(ring, this.start_address);
@@ -365,7 +365,7 @@
 					return;
 				}
 				//console.log(this.name + ': contact = ' + contact.name);
-				if (this.ping(contact)) {
+				if (this.ping(thread, contact)) {
 					//console.log(this.name + ': ping ok');
 					this.addNeighbor(contact);
 					break;
@@ -398,7 +398,7 @@
 			this.refreshNeighbors();
 		};
 
-		this.removeContact = function(contactName) {
+		this.removeContact = function(thread, contactName) {
 			if (!this.contacts[contactName]) {
 				return;
 			}
@@ -411,10 +411,13 @@
 
 			for (var name in this.neighbors) {
 				var contact = this.neighbors[name];
-				// Todo later, this action have visual impacts.
-				//contact.getNode().removeContact(contactName);
+				// Propagate the info.
+				contact.getNode().removeContact(null, contactName);
 			}
 			this.refreshSortedRing();
+			if (thread) {
+				this.parent.do_repaintNodes(thread);
+			}
 		};
 
 		this.refreshSortedRing = function() {

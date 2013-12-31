@@ -245,7 +245,7 @@
 		this._refreshNode = function(thread, nodeName) {
 			console.log('nodeName=' + nodeName);
 			var node = this.nodes[nodeName];
-			var interval = node.getRecoveryInterval();
+			var interval = node.getRecoveryInterval(thread);
 			console.log(interval);
 
 			if (interval) {
@@ -377,6 +377,15 @@
 
 					self.report({ add_transfer: 1 });
 				});
+		};
+
+		this.do_repaintNodes = function(thread) {
+			thread.unshift({
+				function: this.repaintNodes,
+				args: arguments,
+				name: 'repaintNodes',
+				object: this
+			});
 		};
 
 		this.repaintNodes = function(thread) {
