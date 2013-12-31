@@ -292,7 +292,7 @@ $('#start').click(function() {
 		.attr('width', 800)
 		.attr('height', 300);
 	var thread = new Thread('main');
-	//thread.setDebug('#debug');
+
 	mr = new sim.MultiRingDS(svg);
 	address_picker = new sim.AddressPicker(mr, '#address', '#address_cache');
 
@@ -379,6 +379,7 @@ $('#add_object').click(function() {
 
 $('#retrieve_object').click(function() {
 	var thread = new Thread('main');
+	thread.setDebug('#debug');
 	refresh_options();
 	var nodeName = mr.selectedNodeName;
 	mr.unselect(thread);

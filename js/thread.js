@@ -19,7 +19,8 @@ function Thread(name, parentThread) {
 	this.setDebug = function(selector) {
 		this.debug = selector;
 		$(this.debug).click(function() {
-			self.next();
+			console.log('debug next.');
+			self._next();
 		});
 	};
 
