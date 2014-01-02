@@ -243,7 +243,7 @@
 
 		this._refreshNode = function(thread, nodeName) {
 			var node = this.nodes[nodeName];
-			node.refresh(thread);
+			node._refresh(thread);
 		};
 
 		this.do_retrieveInterval = function(thread, nodeName, interval) {

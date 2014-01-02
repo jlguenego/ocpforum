@@ -442,7 +442,7 @@
 			if (!this.contacts[contactName]) {
 				return;
 			}
-			this.removeNeighbor(contact.name);
+			this.removeNeighbor(contactName);
 
 			var contact = this.contacts[contactName];
 			var r_contacts = this.rings[contact.ring];
