@@ -13,6 +13,7 @@
 		<script src="js/simulation/main.js"></script>
 		<script src="js/simulation/MultiRingDS.js"></script>
 		<script src="js/simulation/Node.js"></script>
+		<script src="js/simulation/NodeUtils.js"></script>
 		<script src="js/simulation/Contact.js"></script>
 		<script src="js/address_picker.js"></script>
 
@@ -397,7 +398,7 @@ $('#stop').click(function() {
 function refresh_options() {
 	mr.options.duration = {
 		refreshRing: 100,
-		addNode: 100,
+		addNode: 2000,
 		addLink: $('#linkage').val(),
 		addObject: 200,
 		doTransfer: 300,

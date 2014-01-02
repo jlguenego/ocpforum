@@ -152,15 +152,15 @@
 		};
 
 		this._addFirstNode = function(thread, node) {
-			node.start_address = node.getAddressFromAngle(10);
+			node.start_address = sim.NodeUtils.getAddressFromAngle(10);
 			node.ring = jlg.find(d3.values(this.rings), function(d) { return d.index == 0; }).name;
+			node.addContact(node.toContact());
 
 			this.nodes[node.name] = node;
 			this.rings[node.ring].nodes[node.name] = node;
-
-			this.repaintNodes(thread);
 			this.firstNodeName = node.name;
-			node.addContact(node.toContact());
+
+			this._repaintNodes(thread);
 		};
 
 		this.addNode = function(thread, node, sponsorName) {
@@ -174,7 +174,7 @@
 		};
 
 		this._addNode = function(thread, node, sponsorName) {
-			var nodeNames = d3.keys(mr.nodes);
+			var nodeNames = d3.keys(this.nodes);
 			if (nodeNames.length == 0) {
 				this._addFirstNode(thread, node);
 				return;
@@ -187,9 +187,8 @@
 			if (!sponsor) {
 				throw new Error('sponsor not defined.');
 			}
-			node.connectTo(thread, sponsor);
 
-			this.repaintNodes(thread);
+			node._connectTo(thread, sponsor);
 		};
 
 		this.removeNode = function(thread, nodeName) {
@@ -230,7 +229,7 @@
 			}
 
 			// refresh the painting.
-			this.repaintNodes(thread);
+			this._repaintNodes(thread);
 		};
 
 		this.refreshNode = function(thread, nodeName) {
@@ -318,7 +317,7 @@
 				object: this
 			});
 
-			this.repaintNodes(thread);
+			this._repaintNodes(thread);
 		};
 
 		this._performBulkTransfer = function(thread, sourceName, targetName, interval) {
@@ -370,14 +369,23 @@
 
 		this.do_repaintNodes = function(thread) {
 			thread.unshift({
-				function: this.repaintNodes,
+				function: this._repaintNodes,
 				args: arguments,
-				name: 'repaintNodes',
+				name: '_repaintNodes',
 				object: this
 			});
 		};
 
 		this.repaintNodes = function(thread) {
+			thread.push({
+				function: this._repaintNodes,
+				args: arguments,
+				name: '_repaintNodes',
+				object: this
+			});
+		};
+
+		this._repaintNodes = function(thread) {
 			var dataset = d3.values(this.rings);
 			var ring_g = this.svg.selectAll('g.ring').data(dataset, function(d) { return d.name; });
 
@@ -427,7 +435,7 @@
 				.attr('height', 50);
 
 			if (new_g.empty()) {
-				console.log('No new node: repaintLinks.');
+				console.log(thread.name + ': _repaintNodes: No new node.');
 				self.repaintLinks(thread);
 			}
 			var doNext = true;
@@ -533,7 +541,7 @@
 				});
 
 			if (new_path.empty()) {
-				console.log('repaintLinks: new path is empty: thread.next');
+				console.log(thread.name + ': repaintLinks: new path is empty: thread.next');
 				thread.next();
 			}
 			new_path.attr('stroke-dasharray', function(d) {
@@ -666,7 +674,7 @@
 
 				var tname = objectAddress + '_' + ringName;
 				var new_thread = new Thread(tname, thread);
-				this.do_tranfer(new_thread, node.name, ringNode.name, objectAddress);
+				this.do_transfer(new_thread, node.name, ringNode.name, objectAddress);
 				new_thread.push({
 					function: this._storeRec,
 					args: [ new_thread, ringNode.name, objectAddress, {} ],
@@ -707,7 +715,7 @@
 			}
 
 			console.log('objectAddress=' + objectAddress);
-			var next_node = node.getResponsible(objectAddress);
+			var next_node = node.getRingResponsible(objectAddress);
 
 			if (node.name == next_node.name) {
 				// This is the responsible node.
@@ -787,7 +795,7 @@
 					throw new Error('Object not found on ' + node.name + ': ' + objectAddress);
 				}
 			} else {
-				this.do_tranfer(thread, next_node.name, node.name, objectAddress);
+				this.do_transfer(thread, next_node.name, node.name, objectAddress);
 				thread.unshift({
 					function: this._retrieveRec,
 					args: [ thread, next_node.name, objectAddress, { initial: false } ],
@@ -965,7 +973,7 @@
 
 		this._select = function(thread, d) {
 			this.selectedNodeName = d.name;
-			this.repaintNodes(thread);
+			this._repaintNodes(thread);
 			this.options.callback.onNodeSelected(d);
 		};
 
@@ -980,7 +988,7 @@
 
 		this._unselect = function(thread, d) {
 			this.selectedNodeName = null;
-			this.repaintNodes(thread);
+			this._repaintNodes(thread);
 			this.options.callback.onNodeDeselected(d);
 		};
 

@@ -5,7 +5,6 @@
 		this.name = n.name;
 		this.image = n.image;
 		this.start_address = n.start_address;
-		this.end_address = null;
 		this.parent = null;
 		this.ring = n.ring;
 
@@ -22,7 +21,7 @@
 		// For all rings gives an assoc array: address => contact
 		this.rings = {};
 
-		this.connectTo = function(thread, sponsor) {
+		this._connectTo = function(thread, sponsor) {
 			this.ring = sponsor.getNewRing();
 			this.start_address = sponsor.getNewAddress(this.ring);
 			this.addContact(this.toContact());
@@ -31,28 +30,40 @@
 			this.parent.nodes[this.name] = this;
 			this.parent.rings[this.ring].nodes[this.name] = this;
 
+			var t = new Thread('t', thread);
+			this.parent.repaintNodes(t);
+			thread.wait(t);
+			thread.do_startThread(t);
+
 			this.addLinks(thread, sponsor);
 
 			this.getData(thread);
+			thread.next();
 		}
 
 		this.getData = function(thread) {
-			if (this.sorted_ring.length > 1) {
-				var predecessor_address = this.sorted_ring[this.sorted_ring.length - 1];
-				var predecessor_contact = this.rings[this.ring][predecessor_address];
+			thread.push({
+				function: function(thread) {
+					if (this.sorted_ring.length <= 1) {
+						return;
+					}
+					var predecessor_address = this.sorted_ring[this.sorted_ring.length - 1];
+					var predecessor_contact = this.rings[this.ring][predecessor_address];
 
-				var successor_address = this.sorted_ring[1 % this.sorted_ring.length];
+					var successor_address = this.sorted_ring[1 % this.sorted_ring.length];
 
-				var interval = {
-					start_address: this.start_address,
-					end_address: successor_address
-				};
+					var interval = {
+						start_address: this.start_address,
+						end_address: successor_address
+					};
 
-				// program a visual transfer of data.
-				this.parent.do_copy(thread, predecessor_contact.name, this.name, interval);
-
-			}
-
+					// program a visual transfer of data.
+					this.parent._copy(thread, predecessor_contact.name, this.name, interval);
+				},
+				args: arguments,
+				name: 'addNode',
+				object: this
+			});
 		};
 
 		this.getNewRing = function() {
@@ -86,32 +97,16 @@
 			return ring_name;
 		};
 
-		this.getAddressFromAngle = function(angle, perimeter) {
-			perimeter = perimeter || 360;
-			var new_perimeter = parseInt('1' + new Array(41).join('0'), 16);
-			var address = (angle / perimeter) * new_perimeter;
-			return address.toString(16).padleft(40, '0');
-		};
-
-		this.getAngleFromAddress = function(address, perimeter) {
-			perimeter = perimeter || 360;
-			var address_perimeter = parseInt('1' + new Array(41).join('0'), 16);
-			var angle = (parseInt(address, 16) / address_perimeter) * perimeter;
-			return angle;
-		};
-
 		this.getNewAddress = function(ring) {
 			var addressList = d3.keys(this.rings[ring]);
 			if (addressList.length == 0) {
 				//console.log(this.name + ': first node ?');
-				return this.getAddressFromAngle(10);
+				return sim.NodeUtils.getAddressFromAngle(10);
 			}
 
 			var angleList = addressList.map(function(d) {
-				return self.getAngleFromAddress(d);
+				return sim.NodeUtils.getAngleFromAddress(d);
 			});
-
-
 
 			angleList.sort(function(a, b) {
 				return a - b;
@@ -137,19 +132,21 @@
 
 			var angle = (angleList[index] + angleList[index + 1]) / 2;
 			angle = angle % perimeter;
-			return this.getAddressFromAngle(angle);
+			return sim.NodeUtils.getAddressFromAngle(angle);
 		};
 
 		this.addLinks = function(thread, sponsor) {
-			var contact_list = sponsor.accept(this.toContact());
-			console.log(this.name + ': contact list=' + d3.keys(contact_list).join(' '));
+			var onsuccess = function(thread, contact_list) {
+				console.log(self.name + ': contact list=' + d3.keys(contact_list).join(' '));
 
-			for (var name in contact_list) {
-				var contact = contact_list[name];
-				this.addContact(contact);
-			}
+				for (var name in contact_list) {
+					var contact = contact_list[name];
+					self.addContact(contact);
+				}
 
-			this.addNeighbors(thread);
+				self.addNeighbors(thread);
+			};
+			sponsor.serviceAccept(thread, this.toContact(), onsuccess);
 		};
 
 		this.addNeighbors = function(thread) {
@@ -158,7 +155,7 @@
 				var okForAll = true;
 				for (var i = 0; i < neighbors.length; i++) {
 					var contact = neighbors[i];
-					if (this.ping(thread, contact)) {
+					if (this.ping(contact)) {
 						this.addNeighbor(contact);
 					} else {
 						okForAll = false;
@@ -171,11 +168,11 @@
 			}
 		};
 
-		this.ping = function(thread, contact) {
-			console.log(this.name + ': pinging ' + contact.name);
+		this.ping = function(contact) {
+			//console.log(this.name + ': pinging ' + contact.name);
 			if (!this.parent.nodes[contact.name]) {
-				this.removeNeighbor(contact);
-				this.removeContact(thread, contact.name);
+				this.removeNeighbor(contact.name);
+				this.removeContact(contact.name);
 				return false;
 			}
 			return true;
@@ -226,25 +223,45 @@
 			return r1 || r2;
 		};
 
-		this.accept = function(new_contact) {
-			var result = {};
+		this.serviceAccept = function(thread, new_contact, onsuccess) {
 			this.addContact(new_contact);
 			//console.log(this.name + ': refresh neighbors myself');
-			this.refreshNeighbors();
-			for (var name in this.neighbors) {
-				var contact = this.neighbors[name];
-				var node = contact.getNode();
-				node.addContact(new_contact);
-				//console.log(this.name + ': refresh neighbors of ' + node.name);
-				node.refreshNeighbors();
-			}
+			var t = new Thread('t', thread);
+			this.refreshNeighbors(t);
+			this.informNeighbors(t, new_contact);
 
-			for (var name in this.contacts) {
-				var contact = this.contacts[name];
-				result[name] = contact;
-			}
-			return result;
+			t.push({
+				function: function(thread) {
+					var contact_list = {};
+					for (var name in self.contacts) {
+						var contact = self.contacts[name];
+						contact_list[name] = contact;
+					}
+					onsuccess(thread, contact_list);
+				},
+				args: [ t ],
+				name: 'serviceAccept_onsuccess',
+				object: self
+			});
+			thread.wait(t);
+			thread.do_startThread(t);
 		};
+
+		this.informNeighbors = function(thread, new_contact) {
+			thread.push({
+				function: function(thread, new_contact) {
+					for (var name in this.neighbors) {
+						var contact = this.neighbors[name];
+						var node = contact.getNode();
+						node.serviceAddContact(thread, new_contact);
+					}
+					thread.next();
+				},
+				args: arguments,
+				name: 'informNeighbors',
+				object: this
+			});
+		}
 
 		this.refreshNeighbors = function(thread) {
 			//console.log(this.name + ': refresh neighbors');
@@ -252,11 +269,11 @@
 
 			for (var name in this.neighbors) {
 				var contact = this.neighbors[name];
-				this.ping(thread, contact);
+				this.ping(contact);
 				if (contact.ring == this.ring) {
 					if (!this.isNeighborInsideRing(contact)) {
 						//console.log(this.name + ': is not neighbor with ' + contact.name);
-						this.removeNeighbor(contact);
+						this.removeNeighbor(contact.name);
 					}
 				} else {
 					var responsible_contact = this.getResponsibleContact(contact.ring, this.start_address);
@@ -264,7 +281,7 @@
 						if (responsible_contact.name != contact.name) {
 							var c = contact.getNode().getResponsibleContact(this.ring, contact.start_address);
 							if (c.name != this.name) {
-								this.removeNeighbor(contact);
+								this.removeNeighbor(contact.name);
 							}
 						}
 					}
@@ -308,11 +325,11 @@
 		};
 
 		this.isInsideInterval = function(address, interval) {
-			var start = this.getAngleFromAddress(interval.start_address);
-			var end = this.getAngleFromAddress(interval.end_address);
+			var start = sim.NodeUtils.getAngleFromAddress(interval.start_address);
+			var end = sim.NodeUtils.getAngleFromAddress(interval.end_address);
 			var normal = start <= end;
 
-			var angle = this.getAngleFromAddress(address);
+			var angle = sim.NodeUtils.getAngleFromAddress(address);
 			if (normal) {
 				if (angle >= start && angle < end){
 					return true;
@@ -333,7 +350,7 @@
 				var recovery_end_address = this.sorted_ring[1 % this.sorted_ring.length];
 				console.log(this.name + ': recovery_end_address=' + recovery_end_address);
 				var c = this.rings[this.ring][recovery_end_address];
-				if (this.ping(thread, c)) {
+				if (this.ping(c)) {
 					break;
 				}
 			}
@@ -365,7 +382,7 @@
 					return;
 				}
 				//console.log(this.name + ': contact = ' + contact.name);
-				if (this.ping(thread, contact)) {
+				if (this.ping(contact)) {
 					//console.log(this.name + ': ping ok');
 					this.addNeighbor(contact);
 					break;
@@ -388,36 +405,69 @@
 				this.rings[contact.ring] = {};
 			}
 			this.rings[contact.ring][contact.start_address] = contact;
+			this.refreshSortedRing();
+		};
+
+		this.serviceAddContact = function(thread, contact) {
+			if (this.contacts[contact.name]) {
+				// Already in contact.
+				return;
+			}
+			this.addContact(contact);
 			// Forward info to all neighbors.
 			for (var name in this.neighbors) {
 				var c = this.neighbors[name];
-				c.getNode().addContact(contact);
+				c.getNode().serviceAddContact(thread, contact);
 			}
-			this.refreshSortedRing();
+
 			// Then refresh myself.
-			this.refreshNeighbors();
+			this.refreshNeighbors(thread);
+			thread.next();
 		};
 
-		this.removeContact = function(thread, contactName) {
+		this.do_serviceRemoveContact = function(thread, contactName) {
+			thread.unshift({
+				function: this.serviceRemoveContact,
+				args: arguments,
+				name: 'serviceRemoveContact',
+				object: this
+			});
+		};
+
+		this.serviceRemoveContact = function(thread, contactName) {
 			if (!this.contacts[contactName]) {
 				return;
 			}
+
+			this.removeContact(contactName);
+
+			for (var name in this.neighbors) {
+				var contact = this.neighbors[name];
+				// Propagate the info.
+				contact.getNode().informContactRemoved(thread, contactName);
+			}
+
+			this.refresh(thread);
+		};
+
+		this.removeContact = function(contactName) {
+			if (!this.contacts[contactName]) {
+				return;
+			}
+			this.removeNeighbor(contact.name);
+
 			var contact = this.contacts[contactName];
 			var r_contacts = this.rings[contact.ring];
 			delete r_contacts[contact.start_address];
 
 			delete this.contacts[contactName];
-			delete this.neighbors[contactName];
 
-			for (var name in this.neighbors) {
-				var contact = this.neighbors[name];
-				// Propagate the info.
-				contact.getNode().removeContact(null, contactName);
-			}
 			this.refreshSortedRing();
-			if (thread) {
-				this.parent.do_repaintNodes(thread);
-			}
+		};
+
+		this.informContactRemoved = function(thread, contactName) {
+			this.do_serviceRemoveContact(thread, contactName);
+			this.refresh(thread);
 		};
 
 		this.refreshSortedRing = function() {
@@ -452,14 +502,14 @@
 			this.parent.report({ add_link: 1 });
 		};
 
-		this.removeNeighbor = function(contact) {
-			if (!this.neighbors[contact.name]) {
+		this.removeNeighbor = function(contactName) {
+			if (!this.neighbors[contactName]) {
 				return;
 			}
 			//console.log(this.name + 'removes neighbors ' + contact.name);
-			delete this.neighbors[contact.name];
-			delete this.parent.links[contact.name + '_' + this.name];
-			delete this.parent.links[this.name + '_' + contact.name];
+			delete this.neighbors[contactName];
+			delete this.parent.links[contactName + '_' + this.name];
+			delete this.parent.links[this.name + '_' + contactName];
 
 			this.parent.report({ add_link: -1 });
 		};
@@ -496,7 +546,7 @@
 			return result;
 		};
 
-		this.getResponsible = function(objectAddress) {
+		this.getRingResponsible = function(objectAddress) {
 			var neighbors = jlg.findAll(d3.values(this.neighbors), function(d) {
 				return self.ring == d.ring;
 			});
@@ -521,7 +571,7 @@
 				return d.start_address == node_address;
 			});
 
-			return contact;
+			return contact.getNode();
 		};
 
 		this.getResponsibleContact = function(ringName, address) {
@@ -614,7 +664,7 @@
 			}
 
 			// for the time being, we just refresh the neighbors.
-			this.refreshNeighbors();
+			this.refreshNeighbors(thread);
 			// and the painting.
 			this.parent.repaintNodes(thread);
 		};
@@ -630,9 +680,9 @@
 		};
 
 		this._retrieve = function(thread, objectAddress) {
+			console.log(this.name + ': _retrieve address ' + objectAddress);
 			this.do_retrieveOperation(thread, objectAddress);
 			this.refresh(thread);
-			console.log(this.name + ': retrieve node');
 		};
 
 		this.do_retrieveOperation = function(thread, objectAddress) {
@@ -650,7 +700,7 @@
 				return;
 			}
 
-			var next_node = this.getResponsible(objectAddress).getNode();
+			var next_node = this.getRingResponsible(objectAddress);
 			console.log(next_node);
 
 			if (this == next_node) {
