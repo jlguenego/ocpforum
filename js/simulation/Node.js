@@ -603,5 +603,72 @@
 		this.hideProperties = function() {
 			this.propertiesGroup.remove();
 		};
+
+		// REFRESH
+		this.refresh = function(thread) {
+			var interval = this.getRecoveryInterval(thread);
+			console.log(interval);
+
+			if (interval) {
+				this.parent.do_retrieveInterval(thread, this.name, interval);
+			}
+
+			// for the time being, we just refresh the neighbors.
+			this.refreshNeighbors();
+			// and the painting.
+			this.parent.repaintNodes(thread);
+		};
+
+		// RETRIEVE
+		this.do_retrieve = function(thread, objectAddress) {
+			thread.unshift({
+				function: this._retrieve,
+				args: arguments,
+				name: '_retrieve',
+				object: this
+			});
+		};
+
+		this._retrieve = function(thread, objectAddress) {
+			this.do_retrieveOperation(thread, objectAddress);
+			this.refresh(thread);
+			console.log(this.name + ': retrieve node');
+		};
+
+		this.do_retrieveOperation = function(thread, objectAddress) {
+			thread.unshift({
+				function: this._retrieveOperation,
+				args: arguments,
+				name: '_retrieveOperation',
+				object: this
+			});
+		};
+
+		this._retrieveOperation = function(thread, objectAddress) {
+			if (this.objects[objectAddress]) {
+				thread.next();
+				return;
+			}
+
+			var next_node = this.getResponsible(objectAddress).getNode();
+			console.log(next_node);
+
+			if (this == next_node) {
+				// This is the responsible node.
+				if (!this.objects[objectAddress]) {
+					throw new Error('Object not found on ' + this.name + ': ' + objectAddress);
+				}
+			} else {
+				this.parent.do_transfer(thread, next_node.name, this.name, objectAddress);
+				thread.unshift({
+					function: next_node._retrieve,
+					args: [ thread, objectAddress ],
+					name: '_retrieve',
+					object: next_node
+				});
+			}
+			thread.next();
+		};
+
 	};
 })(sim)

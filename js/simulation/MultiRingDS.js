@@ -243,19 +243,8 @@
 		};
 
 		this._refreshNode = function(thread, nodeName) {
-			console.log('nodeName=' + nodeName);
 			var node = this.nodes[nodeName];
-			var interval = node.getRecoveryInterval(thread);
-			console.log(interval);
-
-			if (interval) {
-				this.do_retrieveInterval(thread, node.name, interval);
-			}
-
-			// for the time being, we just refresh the neighbors.
-			node.refreshNeighbors();
-			// and the painting.
-			this.repaintNodes(thread);
+			node.refresh(thread);
 		};
 
 		this.do_retrieveInterval = function(thread, nodeName, interval) {
@@ -677,7 +666,7 @@
 
 				var tname = objectAddress + '_' + ringName;
 				var new_thread = new Thread(tname, thread);
-				this.doTransfer(new_thread, node.name, ringNode.name, objectAddress);
+				this.do_tranfer(new_thread, node.name, ringNode.name, objectAddress);
 				new_thread.push({
 					function: this._storeRec,
 					args: [ new_thread, ringNode.name, objectAddress, {} ],
@@ -736,7 +725,7 @@
 					name: '_storeRec',
 					object: this
 				});
-				this._doTransfer(thread, node.name, next_node.name, objectAddress);
+				this._transfer(thread, node.name, next_node.name, objectAddress);
 			}
 		};
 
@@ -750,8 +739,10 @@
 		};
 
 		this._retrieve = function(thread, nodeName, objectAddress) {
+			console.log('_retrieve');
 			try {
-				this._retrieveRec(thread, nodeName, objectAddress, { initial: true });
+				var node = this.nodes[nodeName];
+				node._retrieve(thread, objectAddress);
 			} catch (e) {
 				console.log(e.message);
 				thread.next();
@@ -796,7 +787,7 @@
 					throw new Error('Object not found on ' + node.name + ': ' + objectAddress);
 				}
 			} else {
-				this.doTransfer(thread, next_node.name, node.name, objectAddress);
+				this.do_tranfer(thread, next_node.name, node.name, objectAddress);
 				thread.unshift({
 					function: this._retrieveRec,
 					args: [ thread, next_node.name, objectAddress, { initial: false } ],
@@ -807,16 +798,16 @@
 			thread.next();
 		};
 
-		this.doTransfer = function(thread, sourceName, targetName, objectAddress) {
+		this.do_transfer = function(thread, sourceName, targetName, objectAddress) {
 			thread.unshift({
-				function: this._doTransfer,
+				function: this._transfer,
 				args: [ thread, sourceName, targetName, objectAddress ],
-				name: 'doTransfer',
+				name: '_transfer',
 				object: this
 			});
 		};
 
-		this._doTransfer = function(thread, sourceName, targetName, objectAddress) {
+		this._transfer = function(thread, sourceName, targetName, objectAddress) {
 			var source = this.nodes[sourceName];
 			var target = this.nodes[targetName];
 			var transfer = {
