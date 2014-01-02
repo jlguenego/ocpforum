@@ -556,7 +556,7 @@
 			}
 
 			var contact = jlg.find(neighbors, function(d) {
-				return d.start_address == node_address;
+				return (d.start_address == node_address) && (d.ring == self.ring);
 			});
 
 			return contact.getNode();
@@ -643,6 +643,15 @@
 		};
 
 		// REFRESH
+		this.do_refresh = function(thread) {
+			thread.unshift({
+				function: this._refresh,
+				args: arguments,
+				name: '_refresh',
+				object: this
+			});
+		};
+
 		this._refresh = function(thread) {
 			var interval = this.getRecoveryInterval(thread);
 			console.log(interval);
@@ -708,5 +717,101 @@
 			thread.next();
 		};
 
+		// STORE
+		this._store = function(thread, objectAddress, storage_method) {
+			var context = {};
+			if (storage_method == 'redundancy_first') {
+				context = { send_to_other_rings: true };
+			} else if (storage_method == 'redundancy_last') {
+				context = { initial_ring: this.ring };
+			}
+			var t = new Thread('store', thread);
+			this.storeRec(t, objectAddress, context);
+			thread.do_wait(t);
+			thread.do_startThread(t);
+			thread.next();
+		};
+
+		this.storeRec = function(thread, objectAddress, context) {
+			thread.push({
+				function: this._storeRec,
+				args: arguments,
+				name: '_storeRec',
+				object: this
+			});
+		};
+
+		this.do_storeRec = function(thread, objectAddress, context) {
+			thread.unshift({
+				function: this._storeRec,
+				args: arguments,
+				name: '_storeRec',
+				object: this
+			});
+		};
+
+		this._storeRec = function(thread, objectAddress, context) {
+			console.log('_storeRec');
+			this.do_storeOperation(thread, objectAddress, context);
+			this.do_refresh(thread);
+			console.log(thread.orders.slice());
+			thread.next();
+		};
+
+		this.do_storeOperation = function(thread, objectAddress, context) {
+			thread.unshift({
+				function: this._storeOperation,
+				args: arguments,
+				name: '_storeOperation',
+				object: this
+			});
+		};
+
+		this._storeOperation = function(thread, objectAddress, context) {
+			if (context.send_to_other_rings == true) {
+				delete context.send_to_other_rings;
+				this._sendToOtherRings(thread, objectAddress);
+			}
+
+			console.log('objectAddress=' + objectAddress);
+			var next_node = this.getRingResponsible(objectAddress);
+
+			if (this.name == next_node.name) {
+				// This is the responsible node.
+				if (context.initial_ring == this.ring) {
+					this._sendToOtherRings(thread, objectAddress);
+				} else {
+					thread.next();
+				}
+				console.log(thread.name + ': responsible node=' + next_node.name);
+				console.log(thread.name + ': _storeOperation responsible node: next');
+			} else {
+				next_node.do_storeRec(thread, objectAddress, context);
+				this.parent._transfer(thread, this.name, next_node.name, objectAddress);
+			}
+		};
+
+		this._sendToOtherRings = function(thread, objectAddress) {
+			var list = [];
+			for (var ringName in this.rings) {
+				if (ringName == this.ring) {
+					continue;
+				}
+
+				var ringNode = this.getResponsibleForRing(ringName, objectAddress).getNode();;
+
+				if (!ringNode) {
+					continue;
+				}
+
+				var tname = objectAddress + '_' + ringName;
+				var new_thread = new Thread(tname, thread);
+				list.push(new_thread);
+				ringNode.do_storeRec(new_thread, objectAddress, {});
+				this.parent.do_transfer(new_thread, this.name, ringNode.name, objectAddress);
+				thread.do_startThread(new_thread);
+				thread.next();
+			}
+		};
 	};
 })(sim)

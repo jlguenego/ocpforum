@@ -244,6 +244,7 @@ input, select, table button {
 				<button id="stop">Stop</button>
 				<button id="add_node" disabled="disabled">Add Node</button><br/>
 				<button id="debug">Debug</button>
+				<button id="scenario">Scenario</button>
 
 				<div id="stat">
 					<table>
@@ -325,6 +326,43 @@ $('#start').click(function() {
 	thread.start();
 });
 
+
+$('#scenario').click(function() {
+	reset_stats();
+	Math.seedrandom('Hello');
+	d3.select('#frame').select('svg').remove();
+	var svg = d3.select('#frame').append('svg')
+		.attr('width', 800)
+		.attr('height', 300);
+	var thread = new Thread('main_s');
+
+	mr = new sim.MultiRingDS(svg);
+	refresh_options();
+
+	mr.options.storage_method = 'redundancy_first';
+	mr.reportElem = $('#stat').get(0);
+
+	var ring_nbr = 3;
+	for (var i = 0; i < ring_nbr; i++) {
+		mr.addRing(thread, 'r' + i, i);
+	}
+
+	var nodeName = mr.selectedNodeName || mr.firstNodeName;
+
+	var node_nbr = 8;
+	for (var i = 0; i < node_nbr; i++) {
+		mr.addNode(thread, new sim.Node({
+			name: 'n' + i,
+			image: 'image/neufbox.png',
+		}), nodeName);
+	}
+
+	mr.addObject(thread, 'n6', '2f45bb2d66ad8400000000000000000000000000', 'image/test/crypted.jpg');
+	mr.store(thread, 'n6', '2f45bb2d66ad8400000000000000000000000000');
+
+	thread.start();
+});
+
 $('#add_node').click(function() {
 	var thread = new Thread('main');
 	refresh_options();
@@ -398,10 +436,11 @@ $('#stop').click(function() {
 function refresh_options() {
 	mr.options.duration = {
 		refreshRing: 100,
-		addNode: 2000,
+		addNode: 200,
 		addLink: $('#linkage').val(),
 		addObject: 200,
-		doTransfer: 300,
+		doTransfer: 2000,
+		doTransfer_bulk: 200,
 		transform: 500
 	};
 	mr.options.storage_method = $('#storage_method').val();

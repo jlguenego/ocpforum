@@ -321,7 +321,7 @@
 		};
 
 		this._performBulkTransfer = function(thread, sourceName, targetName, interval) {
-			var duration = this.options.duration.doTransfer;
+			var duration = this.options.duration.doTransfer_bulk;
 
 			var source = this.nodes[sourceName];
 			var target = this.nodes[targetName];
@@ -361,7 +361,7 @@
 						target.objects[address] = object;
 					}
 
-					self.repaintObjects(thread, duration);
+					self._repaintObjects(thread, duration);
 
 					self.report({ add_transfer: 1 });
 				});
@@ -584,10 +584,10 @@
 			node.objects[obj.address] = obj;
 			this.objects[obj.address] = obj;
 
-			this.repaintObjects(thread, duration);
+			this._repaintObjects(thread, duration);
 		};
 
-		this.repaintObjects = function(thread, duration) {
+		this._repaintObjects = function(thread, duration) {
 			if (duration === undefined) {
 				duration = this.options.duration.addObject;
 			}
@@ -646,95 +646,8 @@
 		};
 
 		this._store = function(thread, nodeName, objectAddress) {
-			if (this.options.storage_method == 'redundancy_first') {
-				this._storeRec(thread, nodeName, objectAddress, {
-					send_to_other_rings: true
-				});
-			} else if (this.options.storage_method == 'redundancy_last') {
-				var node = this.nodes[nodeName];
-				this._storeRec(thread, nodeName, objectAddress, {
-					initial_ring: node.ring
-				});
-			}
-		};
-
-		this.sendToOtherRings = function(thread, node, objectAddress) {
-			for (var ringName in this.rings) {
-				if (ringName == node.ring) {
-					continue;
-				}
-
-				console.log(node);
-
-				var ringNode = node.getResponsibleForRing(ringName, objectAddress);
-
-				if (!ringNode) {
-					continue;
-				}
-
-				var tname = objectAddress + '_' + ringName;
-				var new_thread = new Thread(tname, thread);
-				this.do_transfer(new_thread, node.name, ringNode.name, objectAddress);
-				new_thread.push({
-					function: this._storeRec,
-					args: [ new_thread, ringNode.name, objectAddress, {} ],
-					name: '_storeRec',
-					object: this
-				});
-				thread.do_startThread(new_thread);
-			}
-		};
-
-		this._storeRec = function(thread, nodeName, objectAddress, context) {
-			// there are 2 visual steps (->thread):
-			// 1) refresh node
-			// 2) do the effective store
-			thread.unshift({
-				function: this._storeOperation,
-				args: arguments,
-				name: '_storeOperation',
-				object: this
-			});
-			thread.unshift({
-				function: this._refreshNode,
-				args: [ thread, nodeName ],
-				name: '_refreshNode',
-				object: this
-			});
-
-			console.log(thread.orders.slice());
-			console.log('_storeRec: next');
-			thread.next();
-		}
-
-		this._storeOperation = function(thread, nodeName, objectAddress, context) {
 			var node = this.nodes[nodeName];
-			if (context.send_to_other_rings == true) {
-				this.sendToOtherRings(thread, this.nodes[nodeName], objectAddress);
-				delete context.send_to_other_rings;
-			}
-
-			console.log('objectAddress=' + objectAddress);
-			var next_node = node.getRingResponsible(objectAddress);
-
-			if (node.name == next_node.name) {
-				// This is the responsible node.
-				if (this.options.storage_method == 'redundancy_last') {
-					if (context.initial_ring == node.ring) {
-						this.sendToOtherRings(thread, node, objectAddress);
-					}
-				}
-				console.log('_storeOperation responsible node: next');
-				thread.next();
-			} else {
-				thread.unshift({
-					function: this._storeRec,
-					args: [ thread, next_node.name, objectAddress, context ],
-					name: '_storeRec',
-					object: this
-				});
-				this._transfer(thread, node.name, next_node.name, objectAddress);
-			}
+			node._store(thread, objectAddress, this.options.storage_method);
 		};
 
 		this.retrieve = function(thread, nodeName, objectAddress) {
