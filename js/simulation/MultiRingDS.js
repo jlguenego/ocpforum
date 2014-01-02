@@ -988,8 +988,8 @@
 
 		this._unselect = function(thread, d) {
 			this.selectedNodeName = null;
-			this._repaintNodes(thread);
 			this.options.callback.onNodeDeselected(d);
+			this._repaintNodes(thread);
 		};
 
 		this.getColorFromAddress = function(address) {

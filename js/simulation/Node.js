@@ -30,14 +30,12 @@
 			this.parent.nodes[this.name] = this;
 			this.parent.rings[this.ring].nodes[this.name] = this;
 
-			var t = new Thread('t', thread);
+			var t = new Thread('connectTo', thread);
 			this.parent.repaintNodes(t);
-			thread.wait(t);
+			this.addLinks(t, sponsor);
+			this.getData(t);
+			thread.do_wait(t);
 			thread.do_startThread(t);
-
-			this.addLinks(thread, sponsor);
-
-			this.getData(thread);
 			thread.next();
 		}
 
@@ -45,6 +43,8 @@
 			thread.push({
 				function: function(thread) {
 					if (this.sorted_ring.length <= 1) {
+						console.log(thread.name + ': ring size <= 1');
+						thread.next();
 						return;
 					}
 					var predecessor_address = this.sorted_ring[this.sorted_ring.length - 1];
@@ -136,20 +136,28 @@
 		};
 
 		this.addLinks = function(thread, sponsor) {
-			var onsuccess = function(thread, contact_list) {
-				console.log(self.name + ': contact list=' + d3.keys(contact_list).join(' '));
-
-				for (var name in contact_list) {
-					var contact = contact_list[name];
-					self.addContact(contact);
-				}
-
-				self.addNeighbors(thread);
-			};
-			sponsor.serviceAccept(thread, this.toContact(), onsuccess);
+			thread.push({
+				function: this._addLinks,
+				args: arguments,
+				name: '_addLinks',
+				object: this
+			});
 		};
 
-		this.addNeighbors = function(thread) {
+		this._addLinks = function(thread, sponsor) {
+			var contact_list = sponsor.serviceAccept(this.toContact());
+			console.log(self.name + ': contact list=' + d3.keys(contact_list).join(' '));
+
+			for (var name in contact_list) {
+				var contact = contact_list[name];
+				self.addContact(contact);
+			}
+
+			self.addNeighbors();
+			self.parent._repaintNodes(thread);
+		};
+
+		this.addNeighbors = function() {
 			while (true) {
 				var neighbors = this.computeNeighbors();
 				var okForAll = true;
@@ -223,49 +231,30 @@
 			return r1 || r2;
 		};
 
-		this.serviceAccept = function(thread, new_contact, onsuccess) {
+		this.serviceAccept = function(new_contact) {
 			this.addContact(new_contact);
-			//console.log(this.name + ': refresh neighbors myself');
-			var t = new Thread('t', thread);
-			this.refreshNeighbors(t);
-			this.informNeighbors(t, new_contact);
+			this.refreshNeighbors();
+			this.informNeighbors(new_contact);
 
-			t.push({
-				function: function(thread) {
-					var contact_list = {};
-					for (var name in self.contacts) {
-						var contact = self.contacts[name];
-						contact_list[name] = contact;
-					}
-					onsuccess(thread, contact_list);
-				},
-				args: [ t ],
-				name: 'serviceAccept_onsuccess',
-				object: self
-			});
-			thread.wait(t);
-			thread.do_startThread(t);
+			var contact_list = {};
+			for (var name in self.contacts) {
+				var contact = self.contacts[name];
+				contact_list[name] = contact;
+			}
+			return contact_list;
 		};
 
-		this.informNeighbors = function(thread, new_contact) {
-			thread.push({
-				function: function(thread, new_contact) {
-					for (var name in this.neighbors) {
-						var contact = this.neighbors[name];
-						var node = contact.getNode();
-						node.serviceAddContact(thread, new_contact);
-					}
-					thread.next();
-				},
-				args: arguments,
-				name: 'informNeighbors',
-				object: this
-			});
-		}
+		this.informNeighbors = function(new_contact) {
+			for (var name in this.neighbors) {
+				var contact = this.neighbors[name];
+				var node = contact.getNode();
+				node.serviceAddContact(new_contact);
+			}
+		};
 
-		this.refreshNeighbors = function(thread) {
+		this.refreshNeighbors = function() {
 			//console.log(this.name + ': refresh neighbors');
-			this.addNeighbors(thread);
+			this.addNeighbors();
 
 			for (var name in this.neighbors) {
 				var contact = this.neighbors[name];
@@ -295,7 +284,7 @@
 				}
 				//console.log(this.name + ': handling ring: ' + ring);
 				if (!this.isNeighborsForRing(ring)) {
-					this.createNeighborForRing(thread, ring);
+					this.createNeighborForRing(ring);
 				}
 			}
 			//console.log(this.name + ': refreshed neighbor list=' + d3.keys(this.neighbors).join(' '));
@@ -373,7 +362,7 @@
 			return false;
 		};
 
-		this.createNeighborForRing = function(thread, ring) {
+		this.createNeighborForRing = function(ring) {
 			while (true) {
 				//console.log(this.name + ': entering loop');
 				var contact = this.getResponsibleContact(ring, this.start_address);
@@ -408,7 +397,7 @@
 			this.refreshSortedRing();
 		};
 
-		this.serviceAddContact = function(thread, contact) {
+		this.serviceAddContact = function(contact) {
 			if (this.contacts[contact.name]) {
 				// Already in contact.
 				return;
@@ -417,12 +406,11 @@
 			// Forward info to all neighbors.
 			for (var name in this.neighbors) {
 				var c = this.neighbors[name];
-				c.getNode().serviceAddContact(thread, contact);
+				c.getNode().serviceAddContact(contact);
 			}
 
 			// Then refresh myself.
-			this.refreshNeighbors(thread);
-			thread.next();
+			this.refreshNeighbors();
 		};
 
 		this.do_serviceRemoveContact = function(thread, contactName) {
@@ -655,7 +643,7 @@
 		};
 
 		// REFRESH
-		this.refresh = function(thread) {
+		this._refresh = function(thread) {
 			var interval = this.getRecoveryInterval(thread);
 			console.log(interval);
 
@@ -664,9 +652,9 @@
 			}
 
 			// for the time being, we just refresh the neighbors.
-			this.refreshNeighbors(thread);
+			this.refreshNeighbors();
 			// and the painting.
-			this.parent.repaintNodes(thread);
+			this.parent._repaintNodes(thread);
 		};
 
 		// RETRIEVE
@@ -682,7 +670,7 @@
 		this._retrieve = function(thread, objectAddress) {
 			console.log(this.name + ': _retrieve address ' + objectAddress);
 			this.do_retrieveOperation(thread, objectAddress);
-			this.refresh(thread);
+			this._refresh(thread);
 		};
 
 		this.do_retrieveOperation = function(thread, objectAddress) {

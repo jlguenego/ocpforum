@@ -83,6 +83,21 @@ function Thread(name, parentThread) {
 			object: this
 		});
 
+		this._wait.apply(this, arguments);
+	};
+
+	this.do_wait = function() {
+		this.unshift({
+			function: function() {},
+			args: [],
+			name: 'wait',
+			object: this
+		});
+
+		this._wait.apply(this, arguments);
+	};
+
+	this._wait = function() {
 		for (var i = 0; i < arguments.length; i++) {
 			var thread = arguments[i];
 			thread.push({
@@ -98,7 +113,7 @@ function Thread(name, parentThread) {
 					}
 
 					if (allFinished) {
-						//console.log(this.name + ': Wait released.');
+						console.log(this.name + ': Wait released.');
 						this.next();
 					}
 				},
