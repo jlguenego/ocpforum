@@ -421,11 +421,14 @@
 							.style('opacity', 0);
 				})
 				.on('click', function(d) {
+					var thread = new Thread('select');
 					if (self.isSelected(d)) {
-						self._unselect(thread, d);
-					}else {
-						self._select(thread, d);
+						self.unselectNode(thread, d);
+					} else {
+						self.selectNode(thread, d);
 					}
+					thread.finish();
+					thread.start();
 				});
 
 			new_g.append('image')
@@ -875,31 +878,31 @@
 			return this.selectedNodeName == d.name;
 		};
 
-		this.select = function(thread, d) {
+		this.selectNode = function(thread, d) {
 			thread.push({
-				function: this._select,
+				function: this._selectNode,
 				args: arguments,
-				name: '_select',
+				name: '_selectNode',
 				object: this
 			});
 		};
 
-		this._select = function(thread, d) {
+		this._selectNode = function(thread, d) {
 			this.selectedNodeName = d.name;
 			this._repaintNodes(thread);
 			this.options.callback.onNodeSelected(d);
 		};
 
-		this.unselect = function(thread, d) {
+		this.unselectNode = function(thread, d) {
 			thread.push({
-				function: this._unselect,
+				function: this._unselectNode,
 				args: arguments,
-				name: '_unselect',
+				name: '_unselectNode',
 				object: this
 			});
 		};
 
-		this._unselect = function(thread, d) {
+		this._unselectNode = function(thread, d) {
 			this.selectedNodeName = null;
 			this.options.callback.onNodeDeselected(d);
 			this._repaintNodes(thread);

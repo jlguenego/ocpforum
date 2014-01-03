@@ -372,13 +372,15 @@ $('#add_node').click(function() {
 	console.log('mr.selectedNodeName=' + mr.selectedNodeName);
 	console.log('mr.firstNodeName=' + mr.firstNodeName);
 	var nodeName = mr.selectedNodeName || mr.firstNodeName;
-	mr.unselect(thread);
+	mr.unselectNode(thread);
 	mr.addNode(thread, new sim.Node({
 		name: 'n' + nodeIndex,
 		image: 'image/neufbox.png',
 	}), nodeName);
 	counter++;
 	nodeIndex++;
+
+	thread.finish();
 	thread.start();
 });
 
@@ -386,8 +388,9 @@ $('#rm_node').click(function() {
 	var thread = new Thread('main');
 	refresh_options();
 	var nodeName = mr.selectedNodeName;
-	mr.unselect(thread);
+	mr.unselectNode(thread);
 	mr.removeNode(thread, nodeName);
+	thread.finish();
 	thread.start();
 	counter--;
 	$(this).attr('disabled', true);
@@ -397,8 +400,9 @@ $('#refresh_node').click(function() {
 	var thread = new Thread('main');
 	refresh_options();
 	var nodeName = mr.selectedNodeName;
-	mr.unselect(thread);
+	mr.unselectNode(thread);
 	mr.refreshNode(thread, nodeName);
+	thread.finish();
 	thread.start();
 });
 
@@ -410,12 +414,12 @@ $('#add_object').click(function() {
 	var thread = new Thread('main');
 	refresh_options();
 	var nodeName = mr.selectedNodeName;
-	mr.unselect(thread);
+	mr.unselectNode(thread);
 
 	var address = $('#address').val();
 	mr.addObject(thread, nodeName, address, 'image/test/crypted.jpg');
 	mr.store(thread, nodeName, address);
-
+	thread.finish();
 	thread.start();
 });
 
@@ -424,12 +428,12 @@ $('#retrieve_object').click(function() {
 	//thread.setDebug('#debug');
 	refresh_options();
 	var nodeName = mr.selectedNodeName;
-	mr.unselect(thread);
+	mr.unselectNode(thread);
 
 	var address = $('#address').val();
 	mr.retrieve(thread, nodeName, address);
+	thread.finish();
 	thread.start();
-	console.log(nodeName + ' retrieve ' + address);
 });
 
 $('#stop').click(function() {
