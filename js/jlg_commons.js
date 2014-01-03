@@ -26,6 +26,10 @@ var jlg = {
 		return JSON.parse(JSON.stringify(obj));
 	};
 
+	jlg.accessor = function(accessor) {
+		return function(d) { return d[accessor]; };
+	};
+
 	jlg.find = function(array, callback) {
 		for (var i = 0; i < array.length; i++) {
 			if (callback(array[i])) {

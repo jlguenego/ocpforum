@@ -99,37 +99,64 @@ function Thread(name, parentThread) {
 		});
 	};
 
-	this.wait = function() {
+	this.waitAll = function() {
 		this.push({
-			function: function() {},
+			function: function() {
+				var waiting_list = this.waiting_list.map(jlg.accessor('name')).join(' ');
+				console.log(this.name + ': waiting_list = ' + waiting_list);
+				this._wait.apply(this, this.waiting_list);
+			},
+			args: [ ],
+			name: 'waitAll',
+			object: this
+		});
+	};
+
+	this.wait = function() {
+		var waiting_list = Array.prototype.slice.call(arguments);
+		this.push({
+			function: function() {
+				var str = waiting_list.map(jlg.accessor('name')).join(' ');
+				console.log(this.name + ': start to wait for : ' + str);
+				this._wait.apply(this, waiting_list);
+			},
 			args: [],
 			name: 'wait',
 			object: this
 		});
-
-		this._wait.apply(this, arguments);
 	};
 
 	this.do_wait = function() {
+		var waiting_list = Array.prototype.slice.call(arguments);
 		this.unshift({
-			function: function() {},
+			function: function() {
+				var str = waiting_list.map(jlg.accessor('name')).join(' ');
+				console.log(this.name + ': start to wait for : ' + str);
+				this._wait.apply(this, waiting_list);
+			},
 			args: [],
-			name: 'wait',
+			name: 'do_wait',
 			object: this
 		});
-
-		this._wait.apply(this, arguments);
 	};
 
 	this._wait = function() {
-		for (var i = 0; i < arguments.length; i++) {
-			var thread = arguments[i];
-			thread.push({
-				function: function(thread) {
-					thread.isFinished = true;
+		var main_thread = this;
+		var counter = 0;
+		var thread_children_list = arguments;
+		for (var i = 0; i < thread_children_list.length; i++) {
+			var child_thread = thread_children_list[i];
+			if (child_thread.isFinished) {
+				continue;
+			}
+			counter++;
+			child_thread.push({
+				function: function(main_thread) {
+					var child_thread = this;
+					child_thread.isFinished = true;
 					var allFinished = true;
-					for (var i = 0; i < arguments.length; i++) {
-						var t = arguments[i];
+					for (var i = 0; i < thread_children_list.length; i++) {
+						var t = thread_children_list[i];
 						if (t.isFinished == false) {
 							allFinished = false;
 							break;
@@ -137,14 +164,18 @@ function Thread(name, parentThread) {
 					}
 
 					if (allFinished) {
-						console.log(this.name + ': Wait released.');
-						this.next();
+						console.log(main_thread.name + ': Wait released.');
+						main_thread.next();
 					}
 				},
-				args: arguments,
+				args: [ main_thread ],
 				name: 'checkwait',
-				object: this
-			})
+				object: child_thread
+			});
+		}
+		if (counter == 0) {
+			// there is no thread to wait for.
+			main_thread.next();
 		}
 	};
 }

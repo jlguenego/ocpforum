@@ -725,10 +725,11 @@
 			} else if (storage_method == 'redundancy_last') {
 				context = { initial_ring: this.ring };
 			}
-			var t = new Thread('store', thread);
+			var t = new Thread('store');
 			this.storeRec(t, objectAddress, context);
+			t.waitAll();
+			t.start();
 			thread.do_wait(t);
-			thread.do_startThread(t);
 			thread.next();
 		};
 
@@ -770,7 +771,7 @@
 		this._storeOperation = function(thread, objectAddress, context) {
 			if (context.send_to_other_rings == true) {
 				delete context.send_to_other_rings;
-				this._sendToOtherRings(thread, objectAddress);
+				thread.waiting_list = this.sendToOtherRings(objectAddress);
 			}
 
 			console.log('objectAddress=' + objectAddress);
@@ -779,19 +780,19 @@
 			if (this.name == next_node.name) {
 				// This is the responsible node.
 				if (context.initial_ring == this.ring) {
-					this._sendToOtherRings(thread, objectAddress);
-				} else {
-					thread.next();
+					thread.waiting_list = this.sendToOtherRings(objectAddress);
 				}
 				console.log(thread.name + ': responsible node=' + next_node.name);
 				console.log(thread.name + ': _storeOperation responsible node: next');
+				thread.next();
 			} else {
 				next_node.do_storeRec(thread, objectAddress, context);
 				this.parent._transfer(thread, this.name, next_node.name, objectAddress);
 			}
 		};
 
-		this._sendToOtherRings = function(thread, objectAddress) {
+		this.sendToOtherRings = function(objectAddress) {
+			var list = [];
 			for (var ringName in this.rings) {
 				if (ringName == this.ring) {
 					continue;
@@ -804,12 +805,11 @@
 				}
 
 				var tname = objectAddress + '_' + ringName;
-				var new_thread = new Thread(tname, thread);
+				var new_thread = new Thread(tname);
 				list.push(new_thread);
 				ringNode.do_storeRec(new_thread, objectAddress, {});
 				this.parent.do_transfer(new_thread, this.name, ringNode.name, objectAddress);
-				thread.do_startThread(new_thread);
-				thread.next();
+				new_thread.start();
 			}
 			return list;
 		};
