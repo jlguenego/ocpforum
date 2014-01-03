@@ -678,7 +678,6 @@
 		this.showLinks = function() {
 			var svg = this.parent.svg;
 			var links = svg.select('.links').selectAll('path[id*=_' + this.name + '_]');
-			console.log(links);
 			links.style('stroke', '#FF6666')
 				.style('stroke-width', '3');
 		};
@@ -686,7 +685,6 @@
 		this.hideLinks = function() {
 			var svg = this.parent.svg;
 			var links = svg.select('.links').selectAll('path[id*=_' + this.name + '_]');
-			console.log(links);
 			links.style('stroke', '#FFD7D7')
 				.style('stroke-width', '2');
 		};

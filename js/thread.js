@@ -195,4 +195,16 @@ function Thread(name) {
 			object: this
 		});
 	};
+
+	this.execute = function(f) {
+		this.push({
+			function: function() {
+				f();
+				this.next();
+			},
+			args: arguments,
+			name: 'execute',
+			object: this
+		});
+	};
 }

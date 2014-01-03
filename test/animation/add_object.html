@@ -378,7 +378,7 @@ function set_screen_size() {
 	switch(size) {
 		case 'fullscreen':
 			d3.select('#frame').select('svg')
-				.attr('width', 1100)
+				.attr('width', 1000)
 				.attr('height', 600);
 			$('#param').css('height', 600);
 			break;
@@ -589,6 +589,9 @@ function s5() {
 
 $('#add_node').click(function() {
 	var thread = new Thread('main');
+	thread.execute(function() {
+		$('#add_node').attr('disabled', 'disabled');
+	});
 	refresh_options();
 	console.log('mr.selectedNodeName=' + mr.selectedNodeName);
 	console.log('mr.firstNodeName=' + mr.firstNodeName);
@@ -600,6 +603,9 @@ $('#add_node').click(function() {
 	}), nodeName);
 	counter++;
 	nodeIndex++;
+	thread.execute(function() {
+		$('#add_node').attr('disabled', null);
+	});
 
 	thread.finish();
 	thread.start();
