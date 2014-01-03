@@ -792,7 +792,6 @@
 		};
 
 		this._sendToOtherRings = function(thread, objectAddress) {
-			var list = [];
 			for (var ringName in this.rings) {
 				if (ringName == this.ring) {
 					continue;
@@ -812,6 +811,7 @@
 				thread.do_startThread(new_thread);
 				thread.next();
 			}
+			return list;
 		};
 	};
 })(sim)

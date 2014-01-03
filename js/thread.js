@@ -49,6 +49,30 @@ function Thread(name, parentThread) {
 		}, 0);
 	};
 
+	this.finish = function() {
+		this.push({
+			function: function(thread) {
+				console.log(thread.name + ': finished');
+				this.isFinished = true;
+				// no thread.next();
+			},
+			args: [ this ],
+			name: 'finished',
+			object: this
+		});
+		this.push({
+			function: function(thread) {
+				console.log(thread.name + ': You do too much thread.next(); Check your code...');
+				throw new Error('Too much thread.next()... Check the code.');
+				// no thread.next();
+			},
+			args: [ this ],
+			name: 'error->overflow !',
+			object: this
+		});
+
+	};
+
 	this.startThread = function(t) {
 		this.push({
 			function: function(t) {
