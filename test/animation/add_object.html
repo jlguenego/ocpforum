@@ -340,7 +340,7 @@ $('#start').click(function() {
 });
 
 
-$('#scenario').click(s2);
+$('#scenario').click(s3);
 
 function s1() {
 	init();
@@ -415,6 +415,34 @@ function s2() {
 
 	thread.finish();
 
+	thread.start();
+}
+
+function s3() {
+	init();
+
+	var thread = new Thread('main');
+	var ring_nbr = 3;
+	for (var i = 0; i < ring_nbr; i++) {
+		mr.addRing(thread, 'r' + i, i);
+	}
+
+	var nodeName = mr.selectedNodeName || mr.firstNodeName;
+
+	var node_nbr = 6;
+	for (var i = 0; i < node_nbr; i++) {
+		mr.addNode(thread, new sim.Node({
+			name: 'n' + i,
+			image: 'image/neufbox.png',
+		}), nodeName);
+		counter++;
+		nodeIndex++;
+	}
+
+	mr.removeNode(thread, 'n3');
+	mr.refreshNode(thread, 'n0');
+
+	thread.finish();
 	thread.start();
 }
 
