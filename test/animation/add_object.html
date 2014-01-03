@@ -340,7 +340,7 @@ $('#start').click(function() {
 });
 
 
-$('#scenario').click(s3);
+$('#scenario').click(s4);
 
 function s1() {
 	init();
@@ -446,6 +446,48 @@ function s3() {
 	thread.start();
 }
 
+function s4() {
+	init();
+
+	var thread = new Thread('main');
+	var ring_nbr = 3;
+	for (var i = 0; i < ring_nbr; i++) {
+		mr.addRing(thread, 'r' + i, i);
+	}
+
+	var nodeName = mr.selectedNodeName || mr.firstNodeName;
+
+	var node_nbr = 9;
+	for (var i = 0; i < node_nbr; i++) {
+		mr.addNode(thread, new sim.Node({
+			name: 'n' + i,
+			image: 'image/neufbox.png',
+		}), nodeName);
+		counter++;
+		nodeIndex++;
+	}
+
+	mr.setOption(thread, 'storage_method', 'redundancy_last');
+	address_picker.addAddress('5d4050a48e396800000000000000000000000000');
+	mr.addObject(thread, 'n0', '5d4050a48e396800000000000000000000000000', 'image/test/crypted.jpg');
+	mr.store(thread, 'n0', '5d4050a48e396800000000000000000000000000');
+	mr.removeNode(thread, 'n0');
+	mr.refreshNode(thread, 'n3');
+	mr.removeNode(thread, 'n3');
+	mr.refreshNode(thread, 'n6');
+	mr.removeNode(thread, 'n6');
+	thread.sleep(1000);
+	mr.addNode(thread, new sim.Node({
+		name: 'n' + node_nbr,
+		image: 'image/neufbox.png',
+	}), nodeName);
+	counter++;
+	nodeIndex++;
+
+	thread.finish();
+	thread.start();
+}
+
 $('#add_node').click(function() {
 	var thread = new Thread('main');
 	refresh_options();
@@ -528,7 +570,7 @@ function refresh_options() {
 		addNode: 200,
 		addLink: $('#linkage').val(),
 		addObject: 200,
-		doTransfer: 2000,
+		doTransfer: 200,
 		doTransfer_bulk: 200,
 		transform: 500
 	};

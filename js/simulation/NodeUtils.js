@@ -1,6 +1,9 @@
 (function(sim, undefined) {
 	sim.NodeUtils = {};
 
+	sim.NodeUtils.ADDRESS_MIN = new Array(41).join('0');
+	sim.NodeUtils.ADDRESS_MAX = new Array(41).join('f');
+
 	sim.NodeUtils.getAddressFromAngle = function(angle, perimeter) {
 		perimeter = perimeter || 360;
 		var new_perimeter = parseInt('1' + new Array(41).join('0'), 16);

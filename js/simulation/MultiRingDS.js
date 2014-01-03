@@ -354,7 +354,10 @@
 					g_obj.remove();
 					console.log(source);
 					for (var address in source.objects) {
+						console.log(thread.name + ': address=' + address);
 						if (!source.isInsideInterval(address, interval)) {
+							console.log(thread.name + ': address is not inside interval.');
+							console.log(interval);
 							continue;
 						}
 						var object = source.objects[address];

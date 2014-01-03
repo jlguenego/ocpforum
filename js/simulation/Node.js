@@ -44,23 +44,49 @@
 		this.getData = function(thread) {
 			thread.push({
 				function: function(thread) {
-					if (this.sorted_ring.length <= 1) {
-						console.log(thread.name + ': ring size <= 1');
+					if (d3.values(this.contacts).length <= 1) {
+						console.log(thread.name + ': contacts size <= 1');
 						thread.next();
 						return;
 					}
-					var predecessor_address = this.sorted_ring[this.sorted_ring.length - 1];
-					var predecessor_contact = this.rings[this.ring][predecessor_address];
 
-					var successor_address = this.sorted_ring[1 % this.sorted_ring.length];
+					if (this.sorted_ring.length <= 1) {
+						console.log(thread.name + ': ring size <= 1');
+						var interval = {
+							start_address: sim.NodeUtils.ADDRESS_MIN,
+							end_address: sim.NodeUtils.ADDRESS_MAX
+						};
 
-					var interval = {
-						start_address: this.start_address,
-						end_address: successor_address
-					};
+						var new_thread = new Thread('getData');
 
-					// program a visual transfer of data.
-					this.parent._copy(thread, predecessor_contact.name, this.name, interval);
+						for (var name in this.contacts) {
+							if (name == this.name) {
+								continue;
+							}
+							var contact = this.contacts[name];
+							var t = new Thread('copy_' + name);
+							this.parent.copy(t, contact.name, this.name, interval);
+							t.start();
+							new_thread.waiting_list.push(t);
+						}
+						new_thread.waitAll();
+						thread.do_wait(new_thread);
+						new_thread.start();
+						thread.next();
+
+					} else {
+						var predecessor_address = this.sorted_ring[this.sorted_ring.length - 1];
+						var predecessor_contact = this.rings[this.ring][predecessor_address];
+
+						var successor_address = this.sorted_ring[1 % this.sorted_ring.length];
+
+						var interval = {
+							start_address: this.start_address,
+							end_address: successor_address
+						};
+						// program a visual transfer of data.
+						this.parent._copy(thread, predecessor_contact.name, this.name, interval);
+					}
 				},
 				args: arguments,
 				name: 'addNode',
@@ -651,6 +677,15 @@
 		// REFRESH
 		this.do_refresh = function(thread) {
 			thread.unshift({
+				function: this._refresh,
+				args: arguments,
+				name: '_refresh',
+				object: this
+			});
+		};
+
+		this.refresh = function(thread) {
+			thread.push({
 				function: this._refresh,
 				args: arguments,
 				name: '_refresh',
