@@ -333,7 +333,7 @@
 			var source = this.nodes[sourceName];
 			var target = this.nodes[targetName];
 
-			var pathNode = d3.select('#' + sourceName + '_' + targetName).node();
+			var pathNode = d3.select('#_' + sourceName + '_' + targetName + '_').node();
 			var pathLength = pathNode.getTotalLength();
 			var g_obj = this.group.append('g')
 				.classed('transfer', true);
@@ -418,6 +418,7 @@
 
 			new_g.on('mouseover', function(d) {
 					d.showProperties();
+					d.showLinks();
 					d3.select(this).select('text')
 						.transition()
 							.duration(200)
@@ -425,6 +426,7 @@
 				})
 				.on('mouseout', function(d) {
 					d.hideProperties();
+					d.hideLinks();
 					d3.select(this).select('text')
 						.transition()
 							.duration(200)
@@ -691,7 +693,7 @@
 		this.performTransfer = function(thread, transfer) {
 			var duration = this.options.duration.doTransfer;
 
-			var pathNode = d3.select('#' + transfer.source.name + '_' + transfer.target.name).node();
+			var pathNode = d3.select('#_' + transfer.source.name + '_' + transfer.target.name + '_').node();
 			var pathLength = pathNode.getTotalLength();
 			var g_obj = this.group.append('g')
 				.classed('transfer', true);

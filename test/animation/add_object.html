@@ -267,6 +267,7 @@ input, select, table button {
 				<button id="scenario2">Scenario 2</button>
 				<button id="scenario3">Scenario 3</button>
 				<button id="scenario4">Scenario 4</button>
+				<button id="scenario5">Scenario 5</button>
 
 				<div id="stat">
 					<table>
@@ -417,6 +418,7 @@ $('#scenario1').click(s1);
 $('#scenario2').click(s2);
 $('#scenario3').click(s3);
 $('#scenario4').click(s4);
+$('#scenario5').click(s5);
 
 function s1() {
 	init();
@@ -560,6 +562,27 @@ function s4() {
 	counter++;
 	nodeIndex++;
 
+	thread.finish();
+	thread.start();
+}
+
+function s5() {
+	init();
+
+	var thread = new Thread('main');
+	mr.addRing(thread, 'r0', 0);
+
+	var nodeName = mr.selectedNodeName || mr.firstNodeName;
+
+	var node_nbr = 16;
+	for (var i = 0; i < node_nbr; i++) {
+		mr.addNode(thread, new sim.Node({
+			name: 'n' + i,
+			image: 'image/neufbox.png',
+		}), nodeName);
+		counter++;
+		nodeIndex++;
+	}
 	thread.finish();
 	thread.start();
 }

@@ -508,12 +508,12 @@
 			this.parent.links[contact.name + '_' + this.name] = {
 				source: contact.getNode(),
 				target: this,
-				id: contact.name + '_' + this.name
+				id: '_' + contact.name + '_' + this.name + '_'
 			};
 			this.parent.links[this.name + '_' + contact.name] = {
 				source: this,
 				target: contact.getNode(),
-				id: this.name + '_' + contact.name
+				id: '_' + this.name + '_' + contact.name + '_'
 			};
 
 			this.parent.report({ links: d3.values(this.parent.links).length / 2 });
@@ -649,6 +649,7 @@
 			return contact;
 		};
 
+		// GRAPHICS
 		this.showProperties = function() {
 			var svg = this.parent.svg;
 			var x = this.parent.svgbox.x - 150;
@@ -672,6 +673,22 @@
 
 		this.hideProperties = function() {
 			this.propertiesGroup.remove();
+		};
+
+		this.showLinks = function() {
+			var svg = this.parent.svg;
+			var links = svg.select('.links').selectAll('path[id*=_' + this.name + '_]');
+			console.log(links);
+			links.style('stroke', '#FF6666')
+				.style('stroke-width', '3');
+		};
+
+		this.hideLinks = function() {
+			var svg = this.parent.svg;
+			var links = svg.select('.links').selectAll('path[id*=_' + this.name + '_]');
+			console.log(links);
+			links.style('stroke', '#FFD7D7')
+				.style('stroke-width', '2');
 		};
 
 		// REFRESH
