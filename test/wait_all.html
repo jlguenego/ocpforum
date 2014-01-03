@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<base href="../" />
+		<meta charset="utf-8" />
+
+		<script src="_ext/d3.v3.min.js"></script>
+		<script src="_ext/jquery-1.10.2.min.js"></script>
+		<script src="_ext/sha1.js"></script>
+		<script src="_ext/seedrandom-min.js"></script>
+		<script src="js/jlg_commons.js"></script>
+		<script src="js/thread.js"></script>
+		<script src="js/simulation/main.js"></script>
+		<script src="js/simulation/MultiRingDS.js"></script>
+		<script src="js/simulation/Node.js"></script>
+		<script src="js/simulation/NodeUtils.js"></script>
+		<script src="js/simulation/Contact.js"></script>
+		<script src="js/address_picker.js"></script>
+
+		<style>
+html, body {
+	width: 100%;
+	height: 100%;
+	margin: 0px;
+	padding: 0px;
+}
+
+svg {
+	border: 1px solid black;
+}
+		</style>
+	</head>
+
+	<body>
+		<button id="start">Start</button>
+		<div id="frame"></div>
+		<script>
+function System(selector) {
+	d3.select(selector).selectAll('svg').remove();
+
+	this.svg = d3.select(selector).append('svg')
+		.attr('width', 800)
+		.attr('height', 300);
+
+	this.rects = [];
+
+	this.addRect = function(thread, name, duration) {
+		var t = new Thread('addRect_' + name);
+
+		t.push({
+			function: this._addRect,
+			args: [ t, name, duration ],
+			name: '_addRect',
+			object: this
+		});
+		thread.waiting_list.push(t);
+		t.start();
+	};
+
+	this._addRect = function(thread, name, duration) {
+		this.rects.push({ name: name, duration: duration });
+		this._repaint(thread);
+	};
+
+	this._repaint = function(thread) {
+		console.log('start repaint');
+		var doNext = true;
+		var rects = this.svg.selectAll('rect').data(this.rects);
+		rects.exit().remove();
+		rects.enter().append('rect')
+			.attr('x', function(d, i) {
+				return i * 40;
+			})
+			.attr('y', 0)
+			.attr('width', 30)
+			.attr('height', 0)
+			.transition()
+				.duration(jlg.accessor('duration'))
+				.attr('height', 150)
+				.each('end', function() {
+					if (doNext) {
+						doNext = false;
+						thread.next();
+					}
+				});
+	};
+}
+
+$('#start').click(function() {
+	var thread = new Thread('main');
+
+	var sys = new System('#frame');
+
+	sys.addRect(thread, 'r1', 10000);
+	sys.addRect(thread, 'r2', 6000);
+	sys.addRect(thread, 'r3', 4000);
+	sys.addRect(thread, 'r4', 8000);
+
+	thread.sleep(7000);
+	thread.waitAll();
+
+	thread.finish();
+	thread.start();
+});
+		</script>
+	</body>
+</html>

@@ -770,6 +770,7 @@
 
 		this._storeOperation = function(thread, objectAddress, context) {
 			if (context.send_to_other_rings == true) {
+				// Redundancy first
 				delete context.send_to_other_rings;
 				thread.waiting_list = this.sendToOtherRings(objectAddress);
 			}
@@ -780,6 +781,7 @@
 			if (this.name == next_node.name) {
 				// This is the responsible node.
 				if (context.initial_ring == this.ring) {
+					// Redundancy last
 					thread.waiting_list = this.sendToOtherRings(objectAddress);
 				}
 				console.log(thread.name + ': responsible node=' + next_node.name);

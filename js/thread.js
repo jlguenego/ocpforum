@@ -6,6 +6,7 @@ function Thread(name) {
 	this.isFinished = false;
 
 	this.debug = null;
+	this.waiting_list = [];
 
 	this.push = function(order) {
 		this.orders.push(order);
@@ -146,6 +147,7 @@ function Thread(name) {
 		for (var i = 0; i < thread_children_list.length; i++) {
 			var child_thread = thread_children_list[i];
 			if (child_thread.isFinished) {
+				console.log(main_thread.name + ': Child thread ' + child_thread.name + ' is already finished.');
 				continue;
 			}
 			counter++;
@@ -176,5 +178,21 @@ function Thread(name) {
 			// there is no thread to wait for.
 			main_thread.next();
 		}
+	};
+
+	this.sleep = function(duration) {
+		var thread = this;
+		this.push({
+			function: function(duration) {
+				console.log(thread.name + ': Start sleeping for ' + duration + 'ms');
+				setTimeout(function() {
+					console.log(thread.name + ': Wake up after ' + duration + 'ms');
+					thread.next();
+				}, duration);
+			},
+			args: arguments,
+			name: 'sleep',
+			object: this
+		});
 	};
 }
