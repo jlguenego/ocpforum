@@ -79,10 +79,10 @@
 				index: i,
 				nodes: {}
 			};
-			this.repaintRings(thread);
+			this._repaintRings(thread);
 		};
 
-		this.repaintMain = function(thread) {
+		this._repaintMain = function(thread) {
 			var bbox = this.group.node().getBBox();
 			if (bbox.width == 0) {
 				return;
@@ -91,12 +91,8 @@
 			var box_width = this.svgbox.x * 0.9;
 			var box_height = this.svgbox.y * 0.9;
 
-			if (bbox.width > box_width) {
-				scale = (box_width / bbox.width);
-			}
-			if (bbox.height > box_height) {
-				scale = Math.min(box_height / bbox.height, box_width / bbox.width);
-			}
+
+			scale = Math.min(box_height / bbox.height, box_width / bbox.width);
 			this.scale = scale;
 			var y = this.svgbox.y / 2;
 			this.group.transition()
@@ -107,7 +103,7 @@
 				});
 		};
 
-		this.repaintRings = function(thread) {
+		this._repaintRings = function(thread) {
 			var dataset = d3.values(this.rings);
 
 			var ring_g = this.group.selectAll('g.ring').data(dataset);
@@ -133,12 +129,10 @@
 				})
 				.each('end', function(d) {
 					if (doNext) {
-						self.repaintMain(thread);
+						self._repaintMain(thread);
 						doNext = false;
 					}
 				});
-
-
 		};
 
 		this.addFirstNode = function(thread, node) {

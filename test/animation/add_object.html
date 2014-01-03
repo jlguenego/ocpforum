@@ -28,6 +28,7 @@ html, body {
 #param {
 	float: left;
 	width: 200px;
+	height: 600px;
 
 	background-color: #E6F2FF;
 }
@@ -243,8 +244,11 @@ input, select, table button {
 				<button id="start">Start</button>
 				<button id="stop">Stop</button>
 				<button id="add_node" disabled="disabled">Add Node</button><br/>
-				<button id="debug">Debug</button>
-				<button id="scenario">Scenario</button>
+				<button id="debug">Debug</button><br/>
+				<button id="scenario1">Scenario 1</button>
+				<button id="scenario2">Scenario 2</button>
+				<button id="scenario3">Scenario 3</button>
+				<button id="scenario4">Scenario 4</button>
 
 				<div id="stat">
 					<table>
@@ -312,8 +316,8 @@ function init() {
 	Math.seedrandom('Hello');
 	d3.select('#frame').select('svg').remove();
 	var svg = d3.select('#frame').append('svg')
-		.attr('width', 800)
-		.attr('height', 300);
+		.attr('width', 1100)
+		.attr('height', 600);
 
 	mr = new sim.MultiRingDS(svg);
 	address_picker = new sim.AddressPicker(mr, '#address', '#address_cache');
@@ -340,7 +344,10 @@ $('#start').click(function() {
 });
 
 
-$('#scenario').click(s4);
+$('#scenario1').click(s1);
+$('#scenario2').click(s2);
+$('#scenario3').click(s3);
+$('#scenario4').click(s4);
 
 function s1() {
 	init();
@@ -388,7 +395,7 @@ function s2() {
 	init();
 
 	var thread = new Thread('main');
-	var ring_nbr = 3;
+	var ring_nbr = 2;
 	for (var i = 0; i < ring_nbr; i++) {
 		mr.addRing(thread, 'r' + i, i);
 	}
