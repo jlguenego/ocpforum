@@ -173,7 +173,8 @@ input, select, table button {
 .body .settings {
 }
 
-.body .node {
+.body .node th {
+	width: 120px;
 }
 
 #address_cache {
@@ -250,15 +251,25 @@ input, select, table button {
 						</table>
 					</div>
 
-					<div class="param_body node">
-						<button id="rm_node" disabled="disabled">Remove Node</button><br/>
-						<button id="add_object" disabled="disabled">Add Object</button><div class="object"></div>
-						<button id="refresh_node" disabled="disabled">Refresh Node</button><br/>
-						<button id="retrieve_object" disabled="disabled">Retrieve Object</button><div class="object"></div>
-						<div id="object_list">
-						</div>
-					</div>
+					<table class="param_body node">
+						<tr>
+							<th><button id="rm_node" disabled="disabled">Remove Node</button></th>
+						</tr>
+						<tr>
+							<th><button id="add_object" disabled="disabled">Add Object</button></th>
+							<td class="object"></td>
+						</tr>
+						<tr>
+							<th><button id="retrieve_object" disabled="disabled">Retrieve Object</button></th>
+							<td class="object"></td>
+						</tr>
+						<tr>
+							<th><button id="refresh_node" disabled="disabled">Refresh Node</button></th>
+						</tr>
+					</table>
+					<div id="object_list"></div>
 				</div>
+				<hr/>
 				<button id="start">Start</button>
 				<button id="stop">Stop</button>
 				<button id="add_node" disabled="disabled">Add Node</button><br/>
