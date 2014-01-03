@@ -341,7 +341,6 @@ $('#scenario').click(function() {
 	mr = new sim.MultiRingDS(svg);
 	refresh_options();
 
-	mr.options.storage_method = 'redundancy_first';
 	mr.reportElem = $('#stat').get(0);
 
 	var ring_nbr = 3;
@@ -359,8 +358,18 @@ $('#scenario').click(function() {
 		}), nodeName);
 	}
 
+
+	mr.setOption(thread, 'storage_method', 'redundancy_first');
 	mr.addObject(thread, 'n6', '2f45bb2d66ad8400000000000000000000000000', 'image/test/crypted.jpg');
 	mr.store(thread, 'n6', '2f45bb2d66ad8400000000000000000000000000');
+	mr.addNode(thread, new sim.Node({
+		name: 'n' + node_nbr,
+		image: 'image/neufbox.png',
+	}), nodeName);
+
+	mr.setOption(thread, 'storage_method', 'redundancy_last');
+	mr.addObject(thread, 'n8', 'dbf675052deff000000000000000000000000000', 'image/test/crypted.jpg');
+	mr.store(thread, 'n8', 'dbf675052deff000000000000000000000000000');
 	thread.finish();
 
 	thread.start();

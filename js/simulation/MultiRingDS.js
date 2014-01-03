@@ -922,5 +922,20 @@
 			var hue = (parseInt(address, 16) / perimeter) * 360;
 			return 'hsl(' + hue + ', 100%, 90%)';
 		};
+
+		this.setOption = function(thread, key, value) {
+			thread.push({
+				function: this._setOption,
+				args: arguments,
+				name: '_setOption',
+				object: this
+			});
+		};
+
+		this._setOption = function(thread, key, value) {
+			console.log(thread.name + ': ' + key + '=' + value);
+			this.options[key] = value;
+			thread.next();
+		};
 	};
 })(sim)
