@@ -27,8 +27,9 @@ html, body {
 
 #param {
 	float: left;
-	width: 200px;
+	width: 220px;
 	height: 600px;
+	overflow: auto;
 
 	background-color: #E6F2FF;
 }
@@ -106,6 +107,15 @@ input, select, table button {
 
 #stat * {
 	font-size: 12px;
+}
+
+#stat th {
+	text-align: right;
+}
+
+#stat td {
+	width: 25px;
+	text-align: left;
 }
 
 .menu {
@@ -261,8 +271,20 @@ input, select, table button {
 				<div id="stat">
 					<table>
 						<tr>
-							<th>Link quantity</th>
+							<th>Nodes:</th>
+							<td class="nodes">0</td>
+						</tr>
+						<tr>
+							<th>Links:</th>
 							<td class="links">0</td>
+						</tr>
+						<tr>
+							<th>Transfers:</th>
+							<td class="transfers">0</td>
+						</tr>
+						<tr>
+							<th>Bulk transfers:</th>
+							<td class="bulk_transfers">0</td>
 						</tr>
 					</table>
 				</div>
@@ -272,7 +294,7 @@ input, select, table button {
 
 		<script>
 function reset_stats() {
-	$('#stat .links').html(0);
+	$('#stat td').html(0);
 };
 
 $('#stat').get(0).addEventListener("multi_ring_stat", function(e) {
@@ -280,10 +302,21 @@ $('#stat').get(0).addEventListener("multi_ring_stat", function(e) {
 	var el = $(this);
 	//console.log(e);
 
-	if (stats.hasOwnProperty('add_link')) {
-		var links = parseInt(el.find('.links').html());
-		links += stats.add_link;
-		el.find('.links').html(links);
+	if (stats.links) {
+		el.find('.links').html(stats.links);
+	}
+	if (stats.nodes) {
+		el.find('.nodes').html(stats.nodes);
+	}
+	if (stats.add_transfer) {
+		var transfers = parseInt(el.find('.transfers').html());
+		transfers += stats.add_transfer;
+		el.find('.transfers').html(transfers);
+	}
+	if (stats.add_bulk_transfer) {
+		var bulk_transfers = parseInt(el.find('.bulk_transfers').html());
+		bulk_transfers += stats.add_bulk_transfer;
+		el.find('.bulk_transfers').html(bulk_transfers);
 	}
 });
 
@@ -331,8 +364,7 @@ function init() {
 
 	refresh_options();
 
-	mr.reportElem = $('#stat').get(0);
-
+	mr.options.report_elem = $('#stat').get(0);
 	mr.options.callback.onNodeSelected = onNodeSelected;
 	mr.options.callback.onNodeDeselected = onNodeDeselected;
 }

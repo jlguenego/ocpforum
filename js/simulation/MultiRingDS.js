@@ -19,7 +19,6 @@
 		this.group = this.svg.insert('g', ':first-child').classed('main', true)
 			.attr('transform', 'translate(0, ' + (this.svgbox.y / 2) + ')');
 		this.links_g = this.group.insert('g', ':first-child').classed('links', true);
-		this.reportElem = null;
 		this.firstNodeName = null;
 
 		this.options = {
@@ -41,7 +40,8 @@
 			callback: {
 				onNodeSelected: function(node) {},
 				onNodeDeselected: function(node) {}
-			}
+			},
+			report_elem: null
 		};
 
 		this.rings = {};
@@ -373,7 +373,7 @@
 
 					self._repaintObjects(thread, duration);
 
-					self.report({ add_transfer: 1 });
+					self.report({ add_bulk_transfer: 1 });
 				});
 		};
 
@@ -449,7 +449,7 @@
 
 			if (new_g.empty()) {
 				console.log(thread.name + ': _repaintNodes: No new node.');
-				self.repaintLinks(thread);
+				self._repaintLinks(thread);
 			}
 			var doNext = true;
 			new_g.transition()
@@ -458,7 +458,7 @@
 				.each('end', function() {
 					if (doNext) {
 						console.log('New node: repaintLinks.');
-						self.repaintLinks(thread);
+						self._repaintLinks(thread);
 						doNext = false;
 					}
 				});
@@ -478,37 +478,12 @@
 					return 'url(' + window.location.href + '#darker)';
 				}
 				return null;
-			})
-		};
-
-		this.getNodeResponsibleForRing = function(ringName, address) {
-			var nodes = this.rings[ringName].nodes;
-			var addressList = [];
-			for (var nodeName in nodes) {
-				var n = nodes[nodeName];
-				if (n.start_address == address) {
-					return n;
-				}
-				addressList.push(n.start_address);
-			}
-
-			addressList.push(address);
-
-			addressList.sort();
-			var index = addressList.indexOf(address);
-			if (index == 0) {
-				index = addressList.length;
-			}
-			var node_address = addressList[index - 1];
-
-			var node = jlg.find(d3.values(nodes), function(d) {
-				return d.start_address == node_address;
 			});
 
-			return node;
+			this.report({ nodes: d3.values(this.nodes).length });
 		};
 
-		this.repaintLinks = function(thread) {
+		this._repaintLinks = function(thread) {
 			var doNext = true;
 			var dataset = d3.values(this.links);
 
@@ -771,12 +746,12 @@
 		};
 
 		this.report = function(report) {
-			if (!this.reportElem) {
+			if (!this.options.report_elem) {
 				return;
 			}
 			var event = new CustomEvent('multi_ring_stat', { detail: report });
 
-			this.reportElem.dispatchEvent(event);
+			this.options.report_elem.dispatchEvent(event);
 		};
 
 		this.interactiveRetrieve = function(thread, obj) {

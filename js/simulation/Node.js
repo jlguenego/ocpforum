@@ -516,7 +516,7 @@
 				id: this.name + '_' + contact.name
 			};
 
-			this.parent.report({ add_link: 1 });
+			this.parent.report({ links: d3.values(this.parent.links).length / 2 });
 		};
 
 		this.removeNeighbor = function(contactName) {
@@ -528,7 +528,7 @@
 			delete this.parent.links[contactName + '_' + this.name];
 			delete this.parent.links[this.name + '_' + contactName];
 
-			this.parent.report({ add_link: -1 });
+			this.parent.report({ links: d3.values(this.parent.links).length / 2 });
 		};
 
 		this.getAbsoluteCoord = function() {
