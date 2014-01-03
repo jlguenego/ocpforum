@@ -222,7 +222,7 @@ input, select, table button {
 							</tr>
 							<tr>
 								<th>Ring amount</th>
-								<td><input type="text" id="ring_amount" value="2" /></td>
+								<td><input type="text" id="ring_amount" value="3" /></td>
 							</tr>
 							<tr>
 								<th>Linkage duration (ms)</th>
@@ -388,7 +388,7 @@ function s2() {
 	init();
 
 	var thread = new Thread('main');
-	var ring_nbr = 2;
+	var ring_nbr = 3;
 	for (var i = 0; i < ring_nbr; i++) {
 		mr.addRing(thread, 'r' + i, i);
 	}
@@ -441,7 +441,9 @@ $('#rm_node').click(function() {
 	refresh_options();
 	var nodeName = mr.selectedNodeName;
 	mr.unselectNode(thread);
+	var predecessorNodeName = mr.nodes[nodeName].getPredecessor().name;
 	mr.removeNode(thread, nodeName);
+	mr.refreshNode(thread, predecessorNodeName);
 	thread.finish();
 	thread.start();
 	counter--;
@@ -498,7 +500,7 @@ function refresh_options() {
 		addNode: 200,
 		addLink: $('#linkage').val(),
 		addObject: 200,
-		doTransfer: 200,
+		doTransfer: 2000,
 		doTransfer_bulk: 200,
 		transform: 500
 	};

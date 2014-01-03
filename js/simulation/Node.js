@@ -239,8 +239,8 @@
 			console.log(this.name + ': Contact added.');
 			this.refreshNeighbors();
 			console.log(this.name + ': refreshNeighbors done.');
-			this.informNeighbors(new_contact);
-			console.log(this.name + ': informNeighbors done.');
+			this.informNeighborsNewContact(new_contact);
+			console.log(this.name + ': informNeighborsNewContact done.');
 
 			var contact_list = {};
 			for (var name in self.contacts) {
@@ -250,11 +250,19 @@
 			return contact_list;
 		};
 
-		this.informNeighbors = function(new_contact) {
+		this.informNeighborsNewContact = function(new_contact) {
 			for (var name in this.neighbors) {
 				var contact = this.neighbors[name];
 				var node = contact.getNode();
 				node.serviceAddContact(new_contact);
+			}
+		};
+
+		this.informNeighborsDeletedContact = function(deleted_contact) {
+			for (var name in this.neighbors) {
+				var contact = this.neighbors[name];
+				var node = contact.getNode();
+				node.serviceRemoveContact(deleted_contact);
 			}
 		};
 
@@ -337,7 +345,13 @@
 			return false;
 		};
 
-		this.getRecoveryInterval = function(thread) {
+		this.getPredecessor = function() {
+			var address = this.sorted_ring[this.sorted_ring.length - 1];
+			var c = this.rings[this.ring][address];
+			return c.getNode();
+		};
+
+		this.getRecoveryInterval = function() {
 			var recovery_start_address = this.sorted_ring[1 % this.sorted_ring.length];
 			var recovery_end_address = null;
 			while (true) {
@@ -348,14 +362,18 @@
 				if (this.ping(c)) {
 					break;
 				}
+				this.informNeighborsDeletedContact(c);
 			}
 			if (recovery_end_address == recovery_start_address) {
 				return null;
 			}
-			return {
+			var result = {
 				start_address: recovery_start_address,
 				end_address: recovery_end_address
 			};
+			console.log(this.name + ': getRecoveryInterval result=');
+			console.log(result);
+			return result;
 		};
 
 		this.isNeighborsForRing = function(ring) {
@@ -420,29 +438,12 @@
 			this.refreshNeighbors();
 		};
 
-		this.do_serviceRemoveContact = function(thread, contactName) {
-			thread.unshift({
-				function: this.serviceRemoveContact,
-				args: arguments,
-				name: 'serviceRemoveContact',
-				object: this
-			});
-		};
-
-		this.serviceRemoveContact = function(thread, contactName) {
-			if (!this.contacts[contactName]) {
+		this.serviceRemoveContact = function(contact) {
+			if (!this.contacts[contact.name]) {
+				// Already removed.
 				return;
 			}
-
-			this.removeContact(contactName);
-
-			for (var name in this.neighbors) {
-				var contact = this.neighbors[name];
-				// Propagate the info.
-				contact.getNode().informContactRemoved(thread, contactName);
-			}
-
-			this.refresh(thread);
+			this.ping(contact);
 		};
 
 		this.removeContact = function(contactName) {
@@ -458,11 +459,6 @@
 			delete this.contacts[contactName];
 
 			this.refreshSortedRing();
-		};
-
-		this.informContactRemoved = function(thread, contactName) {
-			this.do_serviceRemoveContact(thread, contactName);
-			this.refresh(thread);
 		};
 
 		this.refreshSortedRing = function() {
@@ -663,7 +659,7 @@
 		};
 
 		this._refresh = function(thread) {
-			var interval = this.getRecoveryInterval(thread);
+			var interval = this.getRecoveryInterval();
 			console.log(interval);
 
 			if (interval) {
