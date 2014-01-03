@@ -731,6 +731,15 @@
 			});
 		};
 
+		this.transfer = function(thread, sourceName, targetName, objectAddress) {
+			thread.push({
+				function: this._transfer,
+				args: [ thread, sourceName, targetName, objectAddress ],
+				name: '_transfer',
+				object: this
+			});
+		};
+
 		this._transfer = function(thread, sourceName, targetName, objectAddress) {
 			var source = this.nodes[sourceName];
 			var target = this.nodes[targetName];

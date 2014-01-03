@@ -807,8 +807,8 @@
 				var tname = objectAddress + '_' + ringName;
 				var new_thread = new Thread(tname);
 				list.push(new_thread);
-				ringNode.do_storeRec(new_thread, objectAddress, {});
-				this.parent.do_transfer(new_thread, this.name, ringNode.name, objectAddress);
+				this.parent.transfer(new_thread, this.name, ringNode.name, objectAddress);
+				ringNode.storeRec(new_thread, objectAddress, {});
 				new_thread.start();
 			}
 			return list;
