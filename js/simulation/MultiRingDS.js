@@ -623,7 +623,7 @@
 				.attr('x', 0)
 				.attr('y', 0)
 				.attr('fill', function(d) {
-					return self.getColorFromAddress(d.address);
+					return sim.NodeUtils.getColorFromAddress(d.address);
 				})
 				.style('opacity', 0)
 				.transition()
@@ -673,55 +673,6 @@
 			}
 		};
 
-		this._retrieveRec = function(thread, nodeName, objectAddress, context) {
-			// there are 2 visual steps (->thread):
-			// 1) refresh node
-			// 2) do the effective store
-			thread.unshift({
-				function: this._retrieveOperation,
-				args: arguments,
-				name: '_retrieveOperation',
-				object: this
-			});
-			thread.unshift({
-				function: this._refreshNode,
-				args: [ thread, nodeName ],
-				name: '_refreshNode',
-				object: this
-			});
-
-			console.log(thread.orders.slice());
-			console.log('_retrieveRec: next');
-			thread.next();
-		};
-
-		this._retrieveOperation = function(thread, nodeName, objectAddress, context) {
-			var node = this.nodes[nodeName];
-
-			if (node.objects[objectAddress]) {
-				thread.next();
-				return;
-			}
-
-			var next_node = node.getResponsible(objectAddress);
-
-			if (node == next_node) {
-				// This is the responsible node.
-				if (!node.objects[objectAddress]) {
-					throw new Error('Object not found on ' + node.name + ': ' + objectAddress);
-				}
-			} else {
-				this.do_transfer(thread, next_node.name, node.name, objectAddress);
-				thread.unshift({
-					function: this._retrieveRec,
-					args: [ thread, next_node.name, objectAddress, { initial: false } ],
-					name: '_retrieveRec',
-					object: this
-				});
-			}
-			thread.next();
-		};
-
 		this.do_transfer = function(thread, sourceName, targetName, objectAddress) {
 			thread.unshift({
 				function: this._transfer,
@@ -767,7 +718,7 @@
 				.attr('height', 25)
 				.attr('x', -12)
 				.attr('y', -12)
-				.attr('fill', this.getColorFromAddress(transfer.object.address));
+				.attr('fill', sim.NodeUtils.getColorFromAddress(transfer.object.address));
 			g_obj.transition()
 				.duration(duration)
 				.ease("linear")
@@ -915,12 +866,6 @@
 			this.selectedNodeName = null;
 			this.options.callback.onNodeDeselected(d);
 			this._repaintNodes(thread);
-		};
-
-		this.getColorFromAddress = function(address) {
-			var perimeter = parseInt('1' + new Array(41).join('0'), 16);
-			var hue = (parseInt(address, 16) / perimeter) * 360;
-			return 'hsl(' + hue + ', 100%, 90%)';
 		};
 
 		this.setOption = function(thread, key, value) {

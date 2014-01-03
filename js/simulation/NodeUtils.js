@@ -14,4 +14,10 @@
 		var angle = (parseInt(address, 16) / address_perimeter) * perimeter;
 		return angle;
 	};
+
+	sim.NodeUtils.getColorFromAddress = function(address) {
+		var perimeter = parseInt('1' + new Array(41).join('0'), 16);
+		var hue = (parseInt(address, 16) / perimeter) * 360;
+		return 'hsl(' + hue + ', 100%, 90%)';
+	};
 })(sim)

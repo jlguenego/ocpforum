@@ -275,15 +275,36 @@ $('#stat').get(0).addEventListener("multi_ring_stat", function(e) {
 	}
 });
 
+
+
+var onNodeSelected = function(node) {
+	$('.menu [data-body=node]').click();
+	$('#rm_node').attr('disabled', false);
+	$('#refresh_node').attr('disabled', false);
+	if ($('#address').val() != '') {
+		$('#add_object').attr('disabled', false);
+		$('#retrieve_object').attr('disabled', false);
+	}
+	console.log(node);
+};
+
+var onNodeDeselected = function(node) {
+	$('#rm_node').attr('disabled', true);
+	$('#add_object').attr('disabled', true);
+	$('#refresh_node').attr('disabled', true);
+	$('#retrieve_object').attr('disabled', true);
+};
+
 var counter = 0;
 var nodeIndex = 0;
 var mr = null;
 var address_picker = null;
-$('#start').click(function() {
+
+function init() {
 	counter = 0;
 	nodeIndex = 0;
 	$('.menu [data-body=address]').removeClass('disabled');
-		$('.menu [data-body=node]').removeClass('disabled');
+	$('.menu [data-body=node]').removeClass('disabled');
 	$('#add_node').attr('disabled', null);
 	$('#address_picker').attr('disabled', null);
 
@@ -293,7 +314,6 @@ $('#start').click(function() {
 	var svg = d3.select('#frame').append('svg')
 		.attr('width', 800)
 		.attr('height', 300);
-	var thread = new Thread('main');
 
 	mr = new sim.MultiRingDS(svg);
 	address_picker = new sim.AddressPicker(mr, '#address', '#address_cache');
@@ -302,23 +322,14 @@ $('#start').click(function() {
 
 	mr.reportElem = $('#stat').get(0);
 
-	mr.options.callback.onNodeSelected = function(node) {
-		$('.menu [data-body=node]').click();
-		$('#rm_node').attr('disabled', false);
-		$('#refresh_node').attr('disabled', false);
-		if ($('#address').val() != '') {
-			$('#add_object').attr('disabled', false);
-			$('#retrieve_object').attr('disabled', false);
-		}
-		console.log(node);
-	};
-	mr.options.callback.onNodeDeselected = function(node) {
-		$('#rm_node').attr('disabled', true);
-		$('#add_object').attr('disabled', true);
-		$('#refresh_node').attr('disabled', true);
-		$('#retrieve_object').attr('disabled', true);
-	};
+	mr.options.callback.onNodeSelected = onNodeSelected;
+	mr.options.callback.onNodeDeselected = onNodeDeselected;
+}
 
+$('#start').click(function() {
+	init();
+
+	var thread = new Thread('main');
 	var ring_nbr = $('#ring_amount').val();
 	for (var i = 0; i < ring_nbr; i++) {
 		mr.addRing(thread, 'r' + i, i);
@@ -329,20 +340,12 @@ $('#start').click(function() {
 });
 
 
-$('#scenario').click(function() {
-	reset_stats();
-	Math.seedrandom('Hello');
-	d3.select('#frame').select('svg').remove();
-	var svg = d3.select('#frame').append('svg')
-		.attr('width', 800)
-		.attr('height', 300);
-	var thread = new Thread('main_s');
+$('#scenario').click(s2);
 
-	mr = new sim.MultiRingDS(svg);
-	refresh_options();
+function s1() {
+	init();
 
-	mr.reportElem = $('#stat').get(0);
-
+	var thread = new Thread('main');
 	var ring_nbr = 3;
 	for (var i = 0; i < ring_nbr; i++) {
 		mr.addRing(thread, 'r' + i, i);
@@ -356,24 +359,64 @@ $('#scenario').click(function() {
 			name: 'n' + i,
 			image: 'image/neufbox.png',
 		}), nodeName);
+		counter++;
+		nodeIndex++;
 	}
 
 
 	mr.setOption(thread, 'storage_method', 'redundancy_first');
+	address_picker.addAddress('2f45bb2d66ad8400000000000000000000000000');
 	mr.addObject(thread, 'n6', '2f45bb2d66ad8400000000000000000000000000', 'image/test/crypted.jpg');
 	mr.store(thread, 'n6', '2f45bb2d66ad8400000000000000000000000000');
 	mr.addNode(thread, new sim.Node({
 		name: 'n' + node_nbr,
 		image: 'image/neufbox.png',
 	}), nodeName);
+	counter++;
+	nodeIndex++;
 
 	mr.setOption(thread, 'storage_method', 'redundancy_last');
+	address_picker.addAddress('dbf675052deff000000000000000000000000000');
 	mr.addObject(thread, 'n8', 'dbf675052deff000000000000000000000000000', 'image/test/crypted.jpg');
 	mr.store(thread, 'n8', 'dbf675052deff000000000000000000000000000');
 	thread.finish();
 
 	thread.start();
-});
+}
+
+function s2() {
+	init();
+
+	var thread = new Thread('main');
+	var ring_nbr = 2;
+	for (var i = 0; i < ring_nbr; i++) {
+		mr.addRing(thread, 'r' + i, i);
+	}
+
+	var nodeName = mr.selectedNodeName || mr.firstNodeName;
+
+	var node_nbr = 7;
+	for (var i = 0; i < node_nbr; i++) {
+		mr.addNode(thread, new sim.Node({
+			name: 'n' + i,
+			image: 'image/neufbox.png',
+		}), nodeName);
+		counter++;
+		nodeIndex++;
+	}
+
+
+	mr.setOption(thread, 'storage_method', 'redundancy_last');
+	address_picker.addAddress('5d4050a48e396800000000000000000000000000');
+	mr.addObject(thread, 'n4', '5d4050a48e396800000000000000000000000000', 'image/test/crypted.jpg');
+	mr.store(thread, 'n4', '5d4050a48e396800000000000000000000000000');
+	mr.removeNode(thread, 'n4');
+	mr.retrieve(thread, 'n6', '5d4050a48e396800000000000000000000000000');
+
+	thread.finish();
+
+	thread.start();
+}
 
 $('#add_node').click(function() {
 	var thread = new Thread('main');
@@ -455,7 +498,7 @@ function refresh_options() {
 		addNode: 200,
 		addLink: $('#linkage').val(),
 		addObject: 200,
-		doTransfer: 2000,
+		doTransfer: 200,
 		doTransfer_bulk: 200,
 		transform: 500
 	};
@@ -482,7 +525,7 @@ $('.menu .button').click(function() {
 		console.log('address=' + address);
 
 		$('.body .node .object').attr('title', address)
-			.css('background-color', mr.getColorFromAddress(address));
+			.css('background-color', sim.NodeUtils.getColorFromAddress(address));
 	}
 
 	if ($(this).attr('data-body') == 'address') {

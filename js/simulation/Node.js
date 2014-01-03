@@ -24,6 +24,8 @@
 		this._connectTo = function(thread, sponsor) {
 			this.ring = sponsor.getNewRing();
 			this.start_address = sponsor.getNewAddress(this.ring);
+			console.log(this.name + ': adding new Node:');
+			console.log(this);
 			this.addContact(this.toContact());
 
 			// update the global view.
@@ -232,9 +234,13 @@
 		};
 
 		this.serviceAccept = function(new_contact) {
+			console.log(this.name + ': serviceAccept start.');
 			this.addContact(new_contact);
+			console.log(this.name + ': Contact added.');
 			this.refreshNeighbors();
+			console.log(this.name + ': refreshNeighbors done.');
 			this.informNeighbors(new_contact);
+			console.log(this.name + ': informNeighbors done.');
 
 			var contact_list = {};
 			for (var name in self.contacts) {
@@ -269,7 +275,7 @@
 					if (responsible_contact) {
 						if (responsible_contact.name != contact.name) {
 							var c = contact.getNode().getResponsibleContact(this.ring, contact.start_address);
-							if (c.name != this.name) {
+							if (c && c.name != this.name) {
 								this.removeNeighbor(contact.name);
 							}
 						}
@@ -402,6 +408,7 @@
 				// Already in contact.
 				return;
 			}
+			this.refreshNeighbors();
 			this.addContact(contact);
 			// Forward info to all neighbors.
 			for (var name in this.neighbors) {
@@ -575,6 +582,7 @@
 			addressList.push(address);
 
 			addressList.sort();
+			console.log(this.name + ': addressList=' + addressList.join(' '));
 			var index = addressList.indexOf(address);
 			if (index == 0) {
 				index = addressList.length;
@@ -585,6 +593,8 @@
 				return d.start_address == contact_address;
 			});
 
+			console.log(this.name + ': getResponsibleContact(' + ringName + ', ' + address + ') returns:');
+			console.log(contact);
 			return contact;
 		};
 
@@ -634,7 +644,7 @@
 				.attr('x', function(d, i) { return i % 5 * 30})
 				.attr('y', function(d, i) { return Math.floor(i / 5) * 30})
 				.attr('fill', function(d) {
-					return self.parent.getColorFromAddress(d.address);
+					return sim.NodeUtils.getColorFromAddress(d.address);
 				});
 		};
 

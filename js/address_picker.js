@@ -28,10 +28,14 @@
 					rings.on('mousemove', null)
 						.on('mouseout', null)
 						.on('click', null);
-					self.refresh();
-					self.cache_dataset.push(self.address);
-					self.refreshCache();
+					self.addAddress(self.address);
 				});
+		};
+
+		this.addAddress = function(address) {
+			this.refresh();
+			this.cache_dataset.push(address);
+			this.refreshCache();
 		};
 
 		this.refresh = function() {
@@ -69,7 +73,7 @@
 				return 'M0,0 ' + x1 + ',' + y1;
 			});
 			this.field.val(address);
-			this.field.css('background-color', this.mr.getColorFromAddress(address));
+			this.field.css('background-color', sim.NodeUtils.getColorFromAddress(address));
 			this.address = address;
 		};
 
@@ -81,10 +85,10 @@
 
 			address.classed('object', true)
 				.attr('title', function(d) { console.log(d);return d; })
-				.style('background-color', function(d) { return self.mr.getColorFromAddress(d); })
+				.style('background-color', function(d) { return sim.NodeUtils.getColorFromAddress(d); })
 				.on('click', function(d) {
 					self.field.val(d)
-						.css('background-color', self.mr.getColorFromAddress(d));
+						.css('background-color', sim.NodeUtils.getColorFromAddress(d));
 				});
 		};
 
