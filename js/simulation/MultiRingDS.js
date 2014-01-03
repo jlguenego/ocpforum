@@ -259,12 +259,12 @@
 			console.log('Retrieve interval: ' + interval.start_address + ' ' + interval.end_address);
 			var node_list = this.nodes[nodeName].getRecoveryNodes(interval);
 
-			var new_thread = new Thread('retrieve_interval', thread);
+			var new_thread = new Thread('retrieve_interval');
 
 			var list = [];
 			for (var i = 0; i < node_list.length; i++) {
 				console.log('node_list[' + i + ']=' + node_list[i]);
-				var t = new Thread('copy_' + node_list[i] + '_' + nodeName, new_thread);
+				var t = new Thread('copy_' + node_list[i] + '_' + nodeName);
 				list.push(t);
 				t.push({
 					function: this._copy,
@@ -832,7 +832,7 @@
 				var list = [];
 				for (var i = 0; i < blocks.length; i++) {
 					var tname = 'thread_' + i;
-					var t = new Thread(tname, thread);
+					var t = new Thread(tname);
 					list.push(t);
 
 					self.retrieve(t, retrieve_node, blocks[i].name);
@@ -845,7 +845,7 @@
 				list = [];
 				for (var i = 0; i < blocks.length; i++) {
 					var tname = 't' + i;
-					var t = new Thread(tname, main_thread);
+					var t = new Thread(tname);
 					list.push(t);
 
 					obj.receiveBlock(t, blocks[i].name, self, retrieve_node);

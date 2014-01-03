@@ -30,7 +30,7 @@
 			this.parent.nodes[this.name] = this;
 			this.parent.rings[this.ring].nodes[this.name] = this;
 
-			var t = new Thread('connectTo', thread);
+			var t = new Thread('connectTo');
 			this.parent.repaintNodes(t);
 			this.addLinks(t, sponsor);
 			this.getData(t);

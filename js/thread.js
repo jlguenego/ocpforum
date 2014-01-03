@@ -1,8 +1,7 @@
-function Thread(name, parentThread) {
+function Thread(name) {
 	var self = this;
 	this.name = name;
 	this.orders = [];
-	this.parentThread = parentThread;
 
 	this.isFinished = false;
 
