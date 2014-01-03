@@ -50,8 +50,8 @@
 				<div id="of_menu_bar">
 					<div id="menu1" class="of_menu_label">Introduction</div>
 					<div id="menu2" class="of_menu_label">Resources</div>
-					<div id="menu3" class="of_menu_label"><a href="page/innovation.php">Innovation</a></div>
-					<div id="menu4" class="of_menu_label"><a href="page/participate.php">Participate</a></div>
+					<div id="menu3" class="of_menu_label"><a href="page/innovation">Innovation</a></div>
+					<div id="menu4" class="of_menu_label"><a href="page/donate">Participate</a></div>
 					<div id="menu5" class="of_menu_label"><a href="page/faq.php">FAQ</a></div>
 				</div>
 			</div>
