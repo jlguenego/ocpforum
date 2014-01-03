@@ -82,7 +82,20 @@
 			this._repaintRings(thread);
 		};
 
+		this.repaintMain = function(thread) {
+			thread.push({
+				function: this._repaintMain,
+				args: arguments,
+				name: '_repaintMain',
+				object: this
+			});
+		};
+
 		this._repaintMain = function(thread) {
+			this.svgbox = {
+				x: svg.attr('width'),
+				y: svg.attr('height')
+			};
 			var bbox = this.group.node().getBBox();
 			if (bbox.width == 0) {
 				return;
