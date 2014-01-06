@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<base href="../../" />
+		<meta charset="utf-8" />
+
+		<script src="_ext/d3.v3.min.js"></script>
+		<script src="_ext/jquery-1.10.2.min.js"></script>
+		<script src="_ext/sha1.js"></script>
+		<script src="_ext/seedrandom-min.js"></script>
+		<script src="js/jlg_commons.js"></script>
+		<script src="js/thread.js"></script>
+		<script src="js/stc/main.js"></script>
+		<script src="js/stc/System.js"></script>
+		<script src="js/stc/Actor.js"></script>
+
+		<style>
+html, body {
+	width: 100%;
+	height: 100%;
+	margin: 0px;
+	padding: 0px;
+}
+
+#param {
+	float: left;
+	width: 250px;
+	height: 600px;
+	overflow: auto;
+
+	background-color: #E6F2FF;
+}
+
+svg {
+	border: 1px solid black;
+}
+
+table {
+	width: 100%;
+}
+
+table th, table td {
+	vertical-align: middle;
+	text-align: center;
+}
+
+th {
+	width: 100px;
+	font-size: 14px;
+	font-weight: 400;
+}
+
+input, select, table button {
+	width: 100%;
+	font-size: 14px;
+	font-weight: 400;
+
+	box-sizing: border-box;
+}
+
+#stat * {
+	font-size: 12px;
+}
+
+#stat th {
+	text-align: right;
+}
+
+#stat td {
+	width: 25px;
+	text-align: left;
+}
+
+.menu {
+	width: 100%;
+	height: 30px;
+
+	text-align: center;
+	font-size: 0;
+
+	border-bottom: 1px solid black;
+}
+
+.menu .button {
+	display: inline-block;
+	vertical-align: middle;
+	width: 66px;
+	height: 100%;
+
+	font-size: 18px;
+	line-height: 28px;
+
+	cursor: pointer;
+	background-color: #FBFDFF
+}
+
+.menu .button:hover {
+	background-color: #CECECE;
+}
+
+.menu .disabled {
+	color: #DDDDDD;
+	cursor: default;
+}
+
+.menu .disabled:hover {
+	background-color: #FBFDFF;
+}
+
+.menu .selected {
+	background-color: transparent;
+}
+
+.body {
+	width: 100%;
+}
+
+.body > div {
+	width: 100%;
+	height: 100%;
+}
+
+#node_qty, #actor_qty {
+	width: 38px;
+	height: 24px;
+	text-align: right;
+}
+		</style>
+	</head>
+
+	<body>
+		<div>
+			<div id="param">
+				<div class="menu">
+					<div class="button" data-body="settings">Settings</div>
+					<div class="button disabled" data-body="m1">Menu1</div>
+					<div class="button disabled" data-body="m2">Menu2</div>
+				</div>
+				<div class="body">
+					<div class="param_body m1">
+						<table>
+							<tr>
+								<th></th>
+							</tr>
+						</table>
+					</div>
+
+					<div class="param_body settings">
+						<table>
+							<tr>
+								<th>Screen size</th>
+								<td>
+									<select id="screen_size">
+										<option value="debug">Debug</option>
+										<option value="fullscreen" selected>Full Screen</option>
+									</select>
+								</td>
+							</tr>
+						</table>
+					</div>
+
+					<div class="param_body m2">
+					</div>
+				</div>
+				<hr/>
+				<button id="start">Start</button>
+				<button id="stop">Stop</button>
+				<button id="next_cycle" disabled="disabled">Next cycle</button><br/>
+				<button id="add_actor" disabled="disabled">Add actor</button><input type="number" id="actor_qty" min="1" max="99" value="1" disabled="disabled" />
+				<button id="add_node" disabled="disabled">Add Node</button><input type="number" id="node_qty" min="1" max="99" value="1" disabled="disabled" /><br/>
+				<button id="debug">Debug</button><br/>
+
+				<div id="stat">
+					<table>
+						<tr>
+							<th>Actors:</th>
+							<td class="actors">0</td>
+						</tr>
+					</table>
+				</div>
+			</div>
+			<div id="frame"></div>
+		</div>
+
+		<script>
+var actorIndex = 0;
+var actorCounter = 0;
+
+var sys = null;
+
+function init() {
+	$('.menu [data-body=m1]').removeClass('disabled');
+	$('.menu [data-body=m2]').removeClass('disabled');
+	$('#add_actor').attr('disabled', null);
+	$('#actor_qty').attr('disabled', null);
+	$('#add_node').attr('disabled', null);
+	$('#node_qty').attr('disabled', null);
+	$('#next_cycle').attr('disabled', null);
+
+	d3.select('#frame').select('svg').remove();
+	var svg = d3.select('#frame').append('svg');
+
+	sys = new stc.System(svg);
+
+	set_screen_size();
+	refresh_options();
+}
+
+function set_screen_size() {
+	var size = $('#screen_size').val();
+
+	switch(size) {
+		case 'fullscreen':
+			d3.select('#frame').select('svg')
+				.attr('width', 1000)
+				.attr('height', 600);
+			$('#param').css('height', 600);
+			break;
+
+		case 'debug':
+			d3.select('#frame').select('svg')
+				.attr('width', 800)
+				.attr('height', 300);
+			$('#param').css('height', 300);
+			break;
+	}
+}
+
+function refresh_options() {
+	sys.options.report_elem = $('#stat').get(0);
+}
+
+$('#screen_size').change(set_screen_size);
+
+
+$('#start').click(function() {
+	init();
+});
+
+$('#add_actor').click(function() {
+	var actor_qty = $('#actor_qty').val();
+
+	refresh_options();
+
+	var thread = new Thread('main');
+	thread.execute(function() {
+		$('#add_actor').attr('disabled', 'disabled');
+	});
+
+	for (var i = 0; i < actor_qty; i++) {
+		sys.addActor(thread, new stc.Actor('A' + actorIndex));
+		actorCounter++;
+		actorIndex++;
+	}
+
+	thread.execute(function() {
+		$('#add_actor').attr('disabled', null);
+	});
+
+	thread.finish();
+	thread.start();
+});
+
+$('#stop').click(function() {
+	window.location.reload();
+});
+
+$(document).ready(function() {
+	$('.param_body').hide();
+	$('.menu [data-body=settings]').click();
+	set_screen_size();
+});
+
+$('.menu .button').click(function() {
+	if ($(this).hasClass('disabled')) {
+		return;
+	}
+
+	if ($(this).attr('data-body') == 'node') {
+		console.log('refresh objects');
+		var address = $('#address').val();
+		if (address && mr.selectedNodeName) {
+			$('#add_object').attr('disabled', false);
+			$('#retrieve_object').attr('disabled', false);
+		}
+		console.log('address=' + address);
+
+		$('.body .node .object').attr('title', address)
+			.css('background-color', sim.NodeUtils.getColorFromAddress(address));
+	}
+
+	if ($(this).attr('data-body') == 'address') {
+		address_picker.refreshCache();
+	}
+
+	var body = $(this).attr('data-body');
+	$('.param_body').hide();
+	$('.menu .button').removeClass('selected');
+
+	$(this).addClass('selected');
+	$('.body .' + body).show();
+});
+
+function reset_stats() {
+	$('#stat td').html(0);
+};
+
+$('#stat').get(0).addEventListener("multi_ring_stat", function(e) {
+	var stats = e.detail;
+	var el = $(this);
+	//console.log(e);
+
+	if (stats.actors) {
+		el.find('.actors').html(stats.actors);
+	}
+});
+		</script>
+	</body>
+</html>
