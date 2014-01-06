@@ -5,6 +5,7 @@
 					<a href="page/legal">Legal</a>
 					<a href="page/about-us">About ocpforum.org</a>
 					<a href="page/donate">Donate</a>
+					<a href="http:\\bitcoin.org" target="_blank"><img src="image\bitcoin.png" style="position: absolute; top: -8px;height: 71px; width: 71px; " /></a>
 					<div id="of_copyright">
 						© OCP Project 2011-<?php echo date("Y"); ?> Released under the
 						<a href="http://opensource.org/licenses/mit-license" target="_blank">MIT license</a>

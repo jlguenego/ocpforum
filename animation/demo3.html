@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<base href="../" />
+		<meta charset="utf-8" />
+
+		<script src="_ext/d3.v3.min.js"></script>
+		<script src="_ext/jquery-1.10.2.min.js"></script>
+		<script src="_ext/sha1.js"></script>
+		<script src="_ext/seedrandom-min.js"></script>
+		<script src="js/jlg_commons.js"></script>
+		<script src="js/thread.js"></script>
+		<script src="js/simulation/main.js"></script>
+		<script src="js/simulation/MultiRingDS.js"></script>
+		<script src="js/simulation/Node.js"></script>
+		<script src="js/simulation/NodeUtils.js"></script>
+		<script src="js/simulation/Contact.js"></script>
+		<script src="js/simulation/File.js"></script>
+		<script src="js/address_picker.js"></script>
+
+		<style>
+html, body {
+	width: 100%;
+	height: 100%;
+	margin: 0px;
+	padding: 0px;
+}
+
+#param {
+	float: left;
+	width: 220px;
+	height: 600px;
+	overflow: auto;
+
+	background-color: #E6F2FF;
+}
+
+svg {
+	border: 1px solid black;
+}
+
+.node_properties rect.object {
+	stroke-width: 0.5;
+	stroke: #CCCCCC;
+}
+
+.bulk_object {
+	fill: red;
+}
+
+table {
+	width: 100%;
+}
+
+table th, table td {
+	vertical-align: middle;
+	text-align: center;
+}
+
+th {
+	width: 100px;
+	font-size: 14px;
+	font-weight: 400;
+}
+
+input, select, table button {
+	width: 100%;
+	font-size: 14px;
+	font-weight: 400;
+
+	box-sizing: border-box;
+}
+
+#row, #col {
+	width: 30px;
+}
+
+#row {
+	float: left;
+}
+
+#col {
+	float: right;
+}
+
+.ring circle {
+	pointer-events: all;
+
+	fill: none;
+	stroke: #AAAAAA;
+	stroke-width: 3;
+}
+
+.links path {
+	fill: none;
+	stroke: #FFD7D7;
+	stroke-width: 2;
+}
+
+.clickable, g.node {
+	cursor: pointer;
+}
+
+.address_picker {
+	stroke: #FFD7D7;
+	stroke-width: 1;
+}
+
+#stat * {
+	font-size: 12px;
+}
+
+#stat th {
+	text-align: right;
+}
+
+#stat td {
+	width: 25px;
+	text-align: left;
+}
+
+.menu {
+	width: 100%;
+	height: 30px;
+
+	text-align: center;
+	font-size: 0;
+
+	border-bottom: 1px solid black;
+}
+
+.menu .button {
+	display: inline-block;
+	vertical-align: middle;
+	width: 66px;
+	height: 100%;
+
+	font-size: 18px;
+	line-height: 28px;
+
+	cursor: pointer;
+	background-color: #FBFDFF
+}
+
+.menu .button:hover {
+	background-color: #CECECE;
+}
+
+.menu .disabled {
+	color: #DDDDDD;
+	cursor: default;
+}
+
+.menu .disabled:hover {
+	background-color: #FBFDFF;
+}
+
+.menu .selected {
+	background-color: transparent;
+}
+
+.body {
+	width: 100%;
+}
+
+.body > div {
+	width: 100%;
+	height: 100%;
+}
+
+.body .address {
+}
+
+.body .settings {
+}
+
+.body .node th {
+	width: 120px;
+}
+
+#address_cache {
+}
+
+.body .object {
+	display: inline-block;
+	vertical-align: middle;
+	width: 20px;
+	height: 20px;
+	margin: 2px;
+	border: 1px solid black;
+	cursor: pointer;
+}
+
+#node_qty {
+	width: 38px;
+	height: 24px;
+	text-align: right;
+}
+		</style>
+	</head>
+
+	<body>
+		<div>
+			<div id="param">
+				<div class="menu">
+					<div class="button" data-body="settings">Settings</div>
+					<div class="button disabled" data-body="node">Node</div>
+				</div>
+				<div class="body">
+					<div class="param_body settings">
+						<table>
+							<tr>
+								<th>Storage method</th>
+								<td>
+									<select id="storage_method">
+										<option value="redundancy_first">Red. first</option>
+										<option value="redundancy_last" selected>Red. last</option>
+									</select>
+								</td>
+							</tr>
+							<tr>
+								<th>Ring amount</th>
+								<td><input type="text" id="ring_amount" value="1" /></td>
+							</tr>
+							<tr>
+								<th>Linkage duration (ms)</th>
+								<td><input type="text" id="linkage" value="500" /></td>
+							</tr>
+							<tr>
+								<th>Screen size</th>
+								<td>
+									<select id="screen_size">
+										<option value="debug">Debug</option>
+										<option value="fullscreen" selected>Full Screen</option>
+									</select>
+								</td>
+							</tr>
+						</table>
+					</div>
+
+					<table class="param_body node">
+						<tr>
+							<th><button id="rm_node" disabled="disabled">Remove Node</button></th>
+						</tr>
+						<tr>
+							<th><button id="store_file" disabled="disabled">Store File</button></th>
+						</tr>
+						<tr>
+							<th><button id="retrieve_file" disabled="disabled">Retrieve File</button></th>
+						</tr>
+						<tr>
+							<th><button id="refresh_node" disabled="disabled">Refresh Node</button></th>
+						</tr>
+					</table>
+					<div id="object_list"></div>
+				</div>
+				<hr/>
+				<button id="start">Start</button>
+				<button id="stop">Stop</button>
+				<button id="add_node" disabled="disabled">Add Node</button><input type="number" id="node_qty" min="1" max="99" value="1" disabled="disabled" /><br/>
+				<div id="stat">
+					<table>
+						<tr>
+							<th>Nodes:</th>
+							<td class="nodes">0</td>
+						</tr>
+						<tr>
+							<th>Links:</th>
+							<td class="links">0</td>
+						</tr>
+						<tr>
+							<th>Transfers:</th>
+							<td class="transfers">0</td>
+						</tr>
+						<tr>
+							<th>Bulk transfers:</th>
+							<td class="bulk_transfers">0</td>
+						</tr>
+					</table>
+				</div>
+			</div>
+			<div id="frame"></div>
+		</div>
+
+		<script>
+function reset_stats() {
+	$('#stat td').html(0);
+};
+
+$('#stat').get(0).addEventListener("multi_ring_stat", function(e) {
+	var stats = e.detail;
+	var el = $(this);
+	//console.log(e);
+
+	if (stats.links) {
+		el.find('.links').html(stats.links);
+	}
+	if (stats.nodes) {
+		el.find('.nodes').html(stats.nodes);
+	}
+	if (stats.add_transfer) {
+		var transfers = parseInt(el.find('.transfers').html());
+		transfers += stats.add_transfer;
+		el.find('.transfers').html(transfers);
+	}
+	if (stats.add_bulk_transfer) {
+		var bulk_transfers = parseInt(el.find('.bulk_transfers').html());
+		bulk_transfers += stats.add_bulk_transfer;
+		el.find('.bulk_transfers').html(bulk_transfers);
+	}
+});
+
+var onNodeSelected = function(node) {
+	$('.menu [data-body=node]').click();
+	$('#rm_node').attr('disabled', false);
+	$('#refresh_node').attr('disabled', false);
+	$('#store_file').attr('disabled', false);
+	if (object_stored) {
+		$('#retrieve_file').attr('disabled', false);
+	}
+
+	if (obj.image) {
+		obj.image.remove();
+		var thread = new Thread('main');
+		obj.minimize(thread);
+		mr.transform(thread, 'translate(0, ' + (mr.svgbox.y / 2) + ')', 1);
+		thread.finish();
+		thread.start();
+	}
+	console.log(node);
+};
+
+var onNodeDeselected = function(node) {
+	$('#rm_node').attr('disabled', true);
+	$('#store_file').attr('disabled', true);
+	$('#refresh_node').attr('disabled', true);
+	$('#retrieve_file').attr('disabled', true);
+};
+
+var counter = 0;
+var nodeIndex = 0;
+var object_stored = false;
+
+var mr = null;
+var obj = null;
+function init() {
+	counter = 0;
+	nodeIndex = 0;
+	$('.menu [data-body=address]').removeClass('disabled');
+	$('.menu [data-body=node]').removeClass('disabled');
+	$('#add_node').attr('disabled', null);
+	$('#node_qty').attr('disabled', null);
+	$('#address_picker').attr('disabled', null);
+
+	reset_stats();
+	Math.seedrandom('Hello');
+	d3.select('#frame').select('svg').remove();
+	var svg = d3.select('#frame').append('svg');
+	set_screen_size();
+
+	mr = new sim.MultiRingDS(svg);
+	obj = new sim.File(svg, 'image/test/flower.jpg', { x: 200, y: 200 });
+
+	refresh_options();
+
+	mr.options.report_elem = $('#stat').get(0);
+	mr.options.callback.onNodeSelected = onNodeSelected;
+	mr.options.callback.onNodeDeselected = onNodeDeselected;
+}
+
+$('#screen_size').change(set_screen_size);
+
+function set_screen_size() {
+	var size = $('#screen_size').val();
+
+	switch(size) {
+		case 'fullscreen':
+			d3.select('#frame').select('svg')
+				.attr('width', 1000)
+				.attr('height', 600);
+			$('#param').css('height', 600);
+			break;
+
+		case 'debug':
+			d3.select('#frame').select('svg')
+				.attr('width', 800)
+				.attr('height', 300);
+			$('#param').css('height', 300);
+			break;
+	}
+
+	if (mr) {
+		var thread = new Thread('main');
+		mr.repaintMain(thread);
+		thread.finish();
+
+		thread.start();
+	}
+}
+
+$('#start').click(function() {
+	init();
+
+	var thread = new Thread('main');
+	var ring_nbr = $('#ring_amount').val();
+	for (var i = 0; i < ring_nbr; i++) {
+		mr.addRing(thread, 'r' + i, i);
+	}
+	thread.finish();
+
+	thread.start();
+});
+
+$('#add_node').click(function() {
+	var node_qty = $('#node_qty').val();
+
+	var thread = new Thread('main');
+	thread.execute(function() {
+		$('#add_node').attr('disabled', 'disabled');
+	});
+	refresh_options();
+
+	var nodeName = mr.selectedNodeName || mr.firstNodeName;
+	mr.unselectNode(thread);
+	for (var i = 0; i < node_qty; i++) {
+		mr.addNode(thread, new sim.Node({
+			name: 'n' + nodeIndex,
+			image: 'image/neufbox.png',
+		}), nodeName);
+		counter++;
+		nodeIndex++;
+	}
+	thread.execute(function() {
+		$('#add_node').attr('disabled', null);
+	});
+
+	thread.finish();
+	thread.start();
+});
+
+$('#rm_node').click(function() {
+	var thread = new Thread('main');
+	refresh_options();
+	var nodeName = mr.selectedNodeName;
+	mr.unselectNode(thread);
+	var predecessorNodeName = mr.nodes[nodeName].getPredecessor().name;
+	mr.removeNode(thread, nodeName);
+	mr.refreshNode(thread, predecessorNodeName);
+	thread.finish();
+	thread.start();
+	counter--;
+	$(this).attr('disabled', true);
+});
+
+$('#refresh_node').click(function() {
+	var thread = new Thread('main');
+	refresh_options();
+	var nodeName = mr.selectedNodeName;
+	mr.unselectNode(thread);
+	mr.refreshNode(thread, nodeName);
+	thread.finish();
+	thread.start();
+});
+
+$('#store_file').click(function() {
+	object_stored = true;
+	var thread = new Thread('main');
+	refresh_options();
+	var nodeName = mr.selectedNodeName;
+	var store_node = mr.selectedNodeName;
+
+	mr.unselectNode(thread);
+	mr.transform(thread, 'translate(500, 450)', 0.4);
+
+	obj.show(thread);
+	thread.sleep(1000);
+	obj.split(thread, 3, 5);
+	obj.encrypt(thread);
+	thread.sleep(1000);
+	obj.minimize(thread);
+
+	mr.transform(thread, 'translate(0, ' + (mr.svgbox.y / 2) + ')', 1);
+
+	var list = [];
+	for (var blockName in obj.blocks) {
+		var block = obj.blocks[blockName];
+		var tname = 't_store_' + blockName;
+		var t = new Thread(tname);
+		list.push(t);
+
+		obj.sendBlock(t, block.name, mr, store_node);
+		mr.addObject(t, store_node, block.address, block.src);
+		obj.remove(t, block.name);
+		mr.store(t, store_node, block.address);
+		thread.startThread(t);
+	}
+	thread.waiting_list = list;
+	thread.waitAll();
+
+	thread.finish();
+	thread.start();
+});
+
+$('#retrieve_file').click(function() {
+	//thread.setDebug('#debug');
+	refresh_options();
+
+	var thread = new Thread('main');
+	obj.retrieve(thread, mr);
+
+	thread.finish();
+	thread.start();
+});
+
+$('#stop').click(function() {
+	window.location.reload();
+});
+
+function refresh_options() {
+	mr.options.duration = {
+		refreshRing: 100,
+		addNode: 200,
+		addLink: $('#linkage').val(),
+		addObject: 200,
+		doTransfer: 1000,
+		doTransfer_bulk: 200,
+		transform: 500
+	};
+	mr.options.storage_method = $('#storage_method').val();
+
+
+	obj.options.duration= {
+		show: 1000,
+		split: 500,
+		crypt: 500,
+		minimize: 500,
+		sendBlock: 200,
+		receiveBlock: 1000
+	};
+}
+
+$(document).ready(function() {
+	$('.param_body').hide();
+	$('.menu [data-body=settings]').click();
+	set_screen_size();
+});
+
+$('.menu .button').click(function() {
+	if ($(this).hasClass('disabled')) {
+		return;
+	}
+
+	if ($(this).attr('data-body') == 'node') {
+		console.log(object_stored);
+		if (object_stored && mr.selectedNodeName) {
+			$('#store_file').attr('disabled', false);
+			$('#retrieve_file').attr('disabled', false);
+		}
+	}
+
+	var body = $(this).attr('data-body');
+	$('.param_body').hide();
+	$('.menu .button').removeClass('selected');
+
+	$(this).addClass('selected');
+	$('.body .' + body).show();
+});
+		</script>
+	</body>
+</html>

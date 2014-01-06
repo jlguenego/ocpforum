@@ -1,3 +1,16 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<base href="../" />
+		<meta charset="utf-8" />
+
+		<script src="_ext/d3.v3.min.js"></script>
+		<script src="_ext/jquery-1.10.2.min.js"></script>
+		<script src="_ext/sha1.js"></script>
+		<script src="_ext/seedrandom-min.js"></script>
+	</head>
+
+	<body>
 <style>
 #container {
 	position: relative;
@@ -124,7 +137,7 @@ Math.seedrandom('Hello');
 $('#start').click(function() {
 	var svg = d3.select('#frame').select('svg').remove();
 	var svg = d3.select('#frame').append('svg')
-		.attr('width', 854)
+		.attr('width', 1062)
 		.attr('height', 600);
 
 	var main_thread = new Thread('main');
@@ -217,3 +230,5 @@ $('#stop').click(function() {
 	window.location.reload();
 });
 </script>
+	</body>
+</html>

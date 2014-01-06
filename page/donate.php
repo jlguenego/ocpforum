@@ -53,7 +53,7 @@ include(ROOT_DIR . '/include/top_page.inc');
 		<div class="boxed">
 			<h3>Make a donation</h3>
 			<p>
-				Send Donations to
+				Bitcoin address:
 				<small>
 					<a class="BTC" href="bitcoin:189iz3xHTBLePDXTbpMfuiNfobGbw6SS8T?label=OCP+Forum+Donation">
 						189iz3xHTBLePDXTbpMfuiNfobGbw6SS8T
@@ -67,7 +67,7 @@ include(ROOT_DIR . '/include/top_page.inc');
 	</div>
 
 <div class="mainbutton">
-	<a href="getting-started"><img src="image/logo_shadow.png" alt="icon">Get started with OCP</a>
+	<a href="page/getting-started"><img src="image/logo_shadow.png" alt="icon">Get started with OCP</a>
 </div>
 
 <script>
