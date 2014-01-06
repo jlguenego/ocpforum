@@ -23,4 +23,18 @@
 		var hue = (parseInt(address, 16) / perimeter) * 360;
 		return 'hsl(' + hue + ', 100%, 90%)';
 	};
+
+	sim.NodeUtils.getNodeScale = function(mr, ringName) {
+		var result = 1.0;
+		var node_nbr = d3.values(mr.rings[ringName].nodes).length;
+		var n = Math.floor(jlg.log2(node_nbr));
+		if (n > 2) {
+			result = 1 / jlg.log2(n - 1);
+		}
+		console.log('n=' + result);
+		console.log('result=' + result);
+		console.log('node_nbr=' + node_nbr);
+		console.log(mr.rings[ringName]);
+		return result;
+	};
 })(sim)

@@ -49,6 +49,10 @@ var jlg = {
 		return result;
 	};
 
+	jlg.log2 = function(n) {
+		return Math.log(n) / Math.LN2;
+	};
+
 	jlg.max = function(array) {
 		return Math.max.apply(null, array);
 	};

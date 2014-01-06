@@ -472,7 +472,8 @@
 				var angle = (parseInt(d.start_address.substr(0, 4), 16) / 0xffff) * 2 * Math.PI;
 				var x = r * Math.cos(angle);
 				var y = - r * Math.sin(angle);
-				return 'translate(' + x + ', ' + y + ') scale(' + self.options.ring.node.scale + ')';
+				var scale = self.options.ring.node.scale * sim.NodeUtils.getNodeScale(self, d.ring);
+				return 'translate(' + x + ', ' + y + ') scale(' + scale + ')';
 			});
 
 			node.attr('filter', function(d) {
