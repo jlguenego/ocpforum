@@ -658,7 +658,7 @@
 				.classed('node_properties', true)
 				.attr('transform', 'translate(' + x + ', ' + y + ')');
 
-			var g = this.propertiesGroup.selectAll('use.object').data(d3.values(this.objects));
+			var g = this.propertiesGroup.selectAll('rect.object').data(d3.values(this.objects));
 			g.exit().remove();
 			g.enter().append('rect')
 				.classed('object', true)

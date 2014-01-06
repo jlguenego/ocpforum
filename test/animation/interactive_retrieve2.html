@@ -97,7 +97,7 @@ input, select, table button {
 	stroke-width: 2;
 }
 
-.clickable {
+.clickable, g.node {
 	cursor: pointer;
 }
 
@@ -191,6 +191,11 @@ input, select, table button {
 	cursor: pointer;
 }
 
+#node_qty {
+	width: 38px;
+	height: 24px;
+	text-align: right;
+}
 		</style>
 	</head>
 
@@ -199,28 +204,9 @@ input, select, table button {
 			<div id="param">
 				<div class="menu">
 					<div class="button" data-body="settings">Settings</div>
-					<div class="button disabled" data-body="address">Address</div>
 					<div class="button disabled" data-body="node">Node</div>
 				</div>
 				<div class="body">
-					<div class="param_body address">
-						<table>
-							<tr>
-								<th colspan="2">
-									<button id="address_picker" disabled="disabled">Pick address</button>
-								</th>
-							</tr>
-							<tr>
-								<td colspan="2">
-									<input type="text" id="address" disabled/>
-								</td>
-							</tr>
-						</table>
-						<div id="address_cache">
-
-						</div>
-					</div>
-
 					<div class="param_body settings">
 						<table>
 							<tr>
@@ -258,11 +244,9 @@ input, select, table button {
 						</tr>
 						<tr>
 							<th><button id="store_file" disabled="disabled">Store File</button></th>
-							<td class="object"></td>
 						</tr>
 						<tr>
-							<th><button id="retrieve_object" disabled="disabled">Retrieve Object</button></th>
-							<td class="object"></td>
+							<th><button id="retrieve_file" disabled="disabled">Retrieve File</button></th>
 						</tr>
 						<tr>
 							<th><button id="refresh_node" disabled="disabled">Refresh Node</button></th>
@@ -273,7 +257,7 @@ input, select, table button {
 				<hr/>
 				<button id="start">Start</button>
 				<button id="stop">Stop</button>
-				<button id="add_node" disabled="disabled">Add Node</button><br/>
+				<button id="add_node" disabled="disabled">Add Node</button><input type="number" id="node_qty" min="1" max="99" value="1" disabled="disabled" /><br/>
 				<div id="stat">
 					<table>
 						<tr>
@@ -330,9 +314,18 @@ var onNodeSelected = function(node) {
 	$('.menu [data-body=node]').click();
 	$('#rm_node').attr('disabled', false);
 	$('#refresh_node').attr('disabled', false);
-	if ($('#address').val() != '') {
-		$('#store_file').attr('disabled', false);
-		$('#retrieve_object').attr('disabled', false);
+	$('#store_file').attr('disabled', false);
+	if (object_stored) {
+		$('#retrieve_file').attr('disabled', false);
+	}
+
+	if (obj.image) {
+		obj.image.remove();
+		var thread = new Thread('main');
+		obj.minimize(thread);
+		mr.transform(thread, 'translate(0, ' + (mr.svgbox.y / 2) + ')', 1);
+		thread.finish();
+		thread.start();
 	}
 	console.log(node);
 };
@@ -341,11 +334,13 @@ var onNodeDeselected = function(node) {
 	$('#rm_node').attr('disabled', true);
 	$('#store_file').attr('disabled', true);
 	$('#refresh_node').attr('disabled', true);
-	$('#retrieve_object').attr('disabled', true);
+	$('#retrieve_file').attr('disabled', true);
 };
 
 var counter = 0;
 var nodeIndex = 0;
+var object_stored = false;
+
 var mr = null;
 var obj = null;
 function init() {
@@ -354,6 +349,7 @@ function init() {
 	$('.menu [data-body=address]').removeClass('disabled');
 	$('.menu [data-body=node]').removeClass('disabled');
 	$('#add_node').attr('disabled', null);
+	$('#node_qty').attr('disabled', null);
 	$('#address_picker').attr('disabled', null);
 
 	reset_stats();
@@ -416,21 +412,24 @@ $('#start').click(function() {
 });
 
 $('#add_node').click(function() {
+	var node_qty = $('#node_qty').val();
+
 	var thread = new Thread('main');
 	thread.execute(function() {
 		$('#add_node').attr('disabled', 'disabled');
 	});
 	refresh_options();
-	console.log('mr.selectedNodeName=' + mr.selectedNodeName);
-	console.log('mr.firstNodeName=' + mr.firstNodeName);
+
 	var nodeName = mr.selectedNodeName || mr.firstNodeName;
 	mr.unselectNode(thread);
-	mr.addNode(thread, new sim.Node({
-		name: 'n' + nodeIndex,
-		image: 'image/neufbox.png',
-	}), nodeName);
-	counter++;
-	nodeIndex++;
+	for (var i = 0; i < node_qty; i++) {
+		mr.addNode(thread, new sim.Node({
+			name: 'n' + nodeIndex,
+			image: 'image/neufbox.png',
+		}), nodeName);
+		counter++;
+		nodeIndex++;
+	}
 	thread.execute(function() {
 		$('#add_node').attr('disabled', null);
 	});
@@ -464,6 +463,7 @@ $('#refresh_node').click(function() {
 });
 
 $('#store_file').click(function() {
+	object_stored = true;
 	var thread = new Thread('main');
 	refresh_options();
 	var nodeName = mr.selectedNodeName;
@@ -497,21 +497,17 @@ $('#store_file').click(function() {
 	thread.waiting_list = list;
 	thread.waitAll();
 
-	mr.interactiveRetrieve(thread, obj);
-
 	thread.finish();
 	thread.start();
 });
 
-$('#retrieve_object').click(function() {
-	var thread = new Thread('main');
+$('#retrieve_file').click(function() {
 	//thread.setDebug('#debug');
 	refresh_options();
-	var nodeName = mr.selectedNodeName;
-	mr.unselectNode(thread);
 
-	var address = $('#address').val();
-	mr.retrieve(thread, nodeName, address);
+	var thread = new Thread('main');
+	obj.retrieve(thread, mr);
+
 	thread.finish();
 	thread.start();
 });
@@ -555,21 +551,11 @@ $('.menu .button').click(function() {
 	}
 
 	if ($(this).attr('data-body') == 'node') {
-		console.log('refresh objects');
-		$('#store_file').attr('disabled', false);
-
-		var address = $('#address').val();
-		if (address && mr.selectedNodeName) {
-			$('#retrieve_object').attr('disabled', false);
+		console.log(object_stored);
+		if (object_stored && mr.selectedNodeName) {
+			$('#store_file').attr('disabled', false);
+			$('#retrieve_file').attr('disabled', false);
 		}
-		console.log('address=' + address);
-
-		$('.body .node .object').attr('title', address)
-			.css('background-color', sim.NodeUtils.getColorFromAddress(address));
-	}
-
-	if ($(this).attr('data-body') == 'address') {
-		address_picker.refreshCache();
 	}
 
 	var body = $(this).attr('data-body');

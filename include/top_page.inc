@@ -25,12 +25,6 @@
 
 		<script src="js/widget_content_table.js"></script>
 		<link rel="stylesheet" href="js/theme/default/widget_content_table.css" />
-
-
-		<script src="js/jlg_commons.js"></script>
-		<script src="js/animation.js"></script>
-		<script src="js/multi_ring.js"></script>
-		<script src="js/processus.js"></script>
 	</head>
 
 	<body>

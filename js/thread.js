@@ -115,6 +115,19 @@ function Thread(name) {
 		});
 	};
 
+	this.do_waitAll = function() {
+		this.unshift({
+			function: function() {
+				var waiting_list = this.waiting_list.map(jlg.accessor('name')).join(' ');
+				console.log(this.name + ': waiting_list = ' + waiting_list);
+				this._wait.apply(this, this.waiting_list);
+			},
+			args: [ ],
+			name: 'waitAll',
+			object: this
+		});
+	};
+
 	this.wait = function() {
 		var waiting_list = Array.prototype.slice.call(arguments);
 		this.push({

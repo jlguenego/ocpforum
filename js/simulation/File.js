@@ -268,8 +268,6 @@
 						});
 		};
 
-
-
 		this.decrypt = function(thread) {
 			thread.push({
 				function: this._decrypt,
@@ -359,7 +357,7 @@
 					});
 		};
 
-		this.sendBlock = function(thread, block_name, ds, nodeName) {
+		this.sendBlock = function(thread, block_name, mr, nodeName) {
 			thread.push({
 				function: this._sendBlock,
 				args: arguments,
@@ -368,8 +366,8 @@
 			});
 		};
 
-		this._sendBlock = function(thread, block_name, ds, nodeName) {
-			var node = ds.nodes[nodeName];
+		this._sendBlock = function(thread, block_name, mr, nodeName) {
+			var node = mr.nodes[nodeName];
 			var coord = node.getAbsoluteCoordSVG();
 
 			var svg = this.group.select('svg#' + block_name)
@@ -382,7 +380,7 @@
 					});
 		};
 
-		this.receiveBlock = function(thread, block_name, ds, nodeName) {
+		this.receiveBlock = function(thread, block_name, mr, nodeName) {
 			thread.push({
 				function: this._receiveBlock,
 				args: arguments,
@@ -391,8 +389,8 @@
 			});
 		};
 
-		this._receiveBlock = function(thread, block_name, ds, nodeName) {
-			var node = ds.nodes[nodeName];
+		this._receiveBlock = function(thread, block_name, mr, nodeName) {
+			var node = mr.nodes[nodeName];
 			var coord = node.getAbsoluteCoordSVG();
 
 			var block = this.blocks[block_name];
@@ -487,6 +485,95 @@
 		this._onClick = function(thread ,callback) {
 			this.image.classed('clickable', true)
 				.on('click', callback);
+			thread.next();
+		};
+
+		this.retrieve = function(thread, mr) {
+			thread.push({
+				function: this._retrieve,
+				args: arguments,
+				name: 'retrieveFile',
+				object: this
+			});
+		};
+
+		this._retrieve = function(thread, mr) {
+			var new_thread = new Thread('interactive_retrieve_t');
+
+			var selectedNodeName = mr.selectedNodeName;
+			mr.unselectNode(new_thread);
+			this.retrieveAllBlocks(new_thread, mr, selectedNodeName);
+			new_thread.sleep(500);
+			this.regroupBlocks(new_thread, mr, selectedNodeName);
+			new_thread.sleep(500);
+			mr.transform(new_thread, 'translate(500, 450)', 0.4);
+			this.maximize(new_thread);
+			new_thread.sleep(500);
+			this.decrypt(new_thread);
+			new_thread.sleep(500);
+			this.merge(new_thread);
+			this.onClick(new_thread, function() {
+				var t = new Thread('obj_click');
+				d3.select(this).remove();
+				self.minimize(t);
+				mr.transform(t, 'translate(0, ' + (mr.svgbox.y / 2) + ')', 1);
+				t.finish();
+				t.start();
+			});
+
+			new_thread.start();
+
+			thread.do_wait(new_thread);
+			thread.next();
+		};
+
+		this.retrieveAllBlocks = function(thread, mr, nodeName) {
+			thread.push({
+				function: this._retrieveAllBlocks,
+				args: arguments,
+				name: 'retrieveAllBlocks',
+				object: this
+			});
+		};
+
+		this._retrieveAllBlocks = function(thread, mr, nodeName) {
+			var list = [];
+			for (var blockName in this.blocks) {
+				var block = this.blocks[blockName];
+				var tname = 't_retrieve_' + blockName;
+				var t = new Thread(tname);
+				list.push(t);
+
+				mr.retrieve(t, nodeName, block.address);
+				t.start();
+			}
+			thread.waiting_list = list;
+			thread.do_waitAll();
+			thread.next();
+		};
+
+		this.regroupBlocks = function(thread, mr, nodeName) {
+			thread.push({
+				function: this._regroupBlocks,
+				args: arguments,
+				name: 'regroupBlocks',
+				object: this
+			});
+		};
+
+		this._regroupBlocks = function(thread, mr, nodeName) {
+			var list = [];
+			for (var blockName in obj.blocks) {
+				var block = this.blocks[blockName];
+				var tname = 't_receive_' + blockName;
+				var t = new Thread(tname);
+				list.push(t);
+
+				this.receiveBlock(t, block.name, mr, nodeName);
+				t.start();
+			}
+			thread.waiting_list = list;
+			thread.waitAll();
 			thread.next();
 		};
 	};
