@@ -31,10 +31,10 @@
 		if (n > 2) {
 			result = 1 / jlg.log2(n - 1);
 		}
-		console.log('n=' + result);
-		console.log('result=' + result);
-		console.log('node_nbr=' + node_nbr);
-		console.log(mr.rings[ringName]);
+//		console.log('n=' + result);
+//		console.log('result=' + result);
+//		console.log('node_nbr=' + node_nbr);
+//		console.log(mr.rings[ringName]);
 		return result;
 	};
 })(sim)

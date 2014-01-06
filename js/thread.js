@@ -9,10 +9,12 @@ function Thread(name) {
 	this.waiting_list = [];
 
 	this.push = function(order) {
+		console.log(this.name + ': Pushing order ' + order.name);
 		this.orders.push(order);
 	};
 
 	this.unshift = function(order) {
+		console.log(this.name + ': Unshifting order ' + order.name);
 		this.orders.unshift(order);
 	};
 
@@ -77,6 +79,7 @@ function Thread(name) {
 		this.push({
 			function: function(t) {
 				t.start();
+				console.log(this.name + ': ' + t.name + ' started: go next.');
 				self.next();
 			},
 			args: arguments,
@@ -150,9 +153,11 @@ function Thread(name) {
 				console.log(main_thread.name + ': Child thread ' + child_thread.name + ' is already finished.');
 				continue;
 			}
+			console.log(main_thread.name + ': Child thread ' + child_thread.name + ' will wait me.');
 			counter++;
 			child_thread.push({
 				function: function(main_thread) {
+					console.log(thread_children_list);
 					var child_thread = this;
 					child_thread.isFinished = true;
 					var allFinished = true;
@@ -173,6 +178,7 @@ function Thread(name) {
 				name: 'checkwait',
 				object: child_thread
 			});
+			console.log(child_thread.name + ': order_list: ' + child_thread.orders.map(function(d) { return d.name}).join(', '));
 		}
 		if (counter == 0) {
 			// there is no thread to wait for.

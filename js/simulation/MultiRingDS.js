@@ -187,7 +187,7 @@
 				return;
 			}
 			var sponsor = this.nodes[nodeNames[0]];
-			console.log(sponsorName);
+			//console.log(sponsorName);
 			if (sponsorName) {
 				sponsor = this.nodes[sponsorName];
 			}
@@ -263,14 +263,14 @@
 		};
 
 		this._retrieveInterval = function(thread, nodeName, interval) {
-			console.log('Retrieve interval: ' + interval.start_address + ' ' + interval.end_address);
+			//console.log('Retrieve interval: ' + interval.start_address + ' ' + interval.end_address);
 			var node_list = this.nodes[nodeName].getRecoveryNodes(interval);
 
 			var new_thread = new Thread('retrieve_interval');
 
 			var list = [];
 			for (var i = 0; i < node_list.length; i++) {
-				console.log('node_list[' + i + ']=' + node_list[i]);
+				//console.log('node_list[' + i + ']=' + node_list[i]);
 				var t = new Thread('copy_' + node_list[i] + '_' + nodeName);
 				list.push(t);
 				t.push({
@@ -312,7 +312,7 @@
 		};
 
 		this._copy = function(thread, sourceName, targetName, interval) {
-			console.log(thread.name + ': Copy from ' + sourceName + ' to ' + targetName);
+			//console.log(thread.name + ': Copy from ' + sourceName + ' to ' + targetName);
 			var source = this.nodes[sourceName];
 			var target = this.nodes[targetName];
 			target.addNeighbor(source.toContact());
@@ -359,12 +359,12 @@
 				})
 				.each('end', function() {
 					g_obj.remove();
-					console.log(source);
+					//console.log(source);
 					for (var address in source.objects) {
-						console.log(thread.name + ': address=' + address);
+						//console.log(thread.name + ': address=' + address);
 						if (!source.isInsideInterval(address, interval)) {
-							console.log(thread.name + ': address is not inside interval.');
-							console.log(interval);
+							//console.log(thread.name + ': address is not inside interval.');
+							//console.log(interval);
 							continue;
 						}
 						var object = source.objects[address];
@@ -450,7 +450,7 @@
 				.attr('height', 50);
 
 			if (new_g.empty()) {
-				console.log(thread.name + ': _repaintNodes: No new node.');
+				//console.log(thread.name + ': _repaintNodes: No new node.');
 				self._repaintLinks(thread);
 			}
 			var doNext = true;
@@ -459,7 +459,7 @@
 				.style('opacity', 1)
 				.each('end', function() {
 					if (doNext) {
-						console.log('New node: repaintLinks.');
+						//console.log('New node: repaintLinks.');
 						self._repaintLinks(thread);
 						doNext = false;
 					}
@@ -532,7 +532,7 @@
 				});
 
 			if (new_path.empty()) {
-				console.log(thread.name + ': repaintLinks: new path is empty: thread.next');
+				//console.log(thread.name + ': repaintLinks: new path is empty: thread.next');
 				thread.next();
 			}
 			new_path.attr('stroke-dasharray', function(d) {
@@ -550,7 +550,7 @@
 					.attr('stroke-dashoffset', 0)
 					.each('end', function(d, i) {
 						if (doNext) {
-							console.log('repaintLinks: next');
+							//console.log('repaintLinks: next');
 							doNext = false;
 							thread.next();
 						}
@@ -600,7 +600,7 @@
 			objects.exit().remove();
 			var new_objects = objects.enter();
 			if (new_objects.empty()) {
-				console.log('repaintObjects empty: next');
+				//console.log('repaintObjects empty: next');
 				thread.next();
 			}
 			var doNext = true;
@@ -619,7 +619,7 @@
 					.style('opacity', 1)
 					.each('end', function() {
 						if (doNext) {
-							console.log('repaintObjects: next');
+							//console.log('repaintObjects: next');
 							doNext = false;
 							thread.next();
 						}
@@ -651,12 +651,12 @@
 		};
 
 		this._retrieve = function(thread, nodeName, objectAddress) {
-			console.log('_retrieve');
+			//console.log('_retrieve');
 			try {
 				var node = this.nodes[nodeName];
 				node._retrieve(thread, objectAddress);
 			} catch (e) {
-				console.log(e.message);
+				//console.log(e.message);
 				thread.next();
 			}
 		};
@@ -724,7 +724,7 @@
 				});
 		};
 
-		this.transform = function(thread, transform_val) {
+		this.transform = function(thread, transform_val, scale_val) {
 			thread.push({
 				function: this._transform,
 				args: arguments,
@@ -771,55 +771,65 @@
 			nodes.classed('clickable', true);
 
 			var retrieve = function(d) {
+				var new_thread = new Thread('interactive_retrieve_t');
+
 				nodes.classed('clickable', false);
 				nodes.on('click', function() {});
 
 				var retrieve_node = d.name;
 				var blocks = d3.values(obj.blocks);
 
-				var list = [];
-				for (var i = 0; i < blocks.length; i++) {
-					var tname = 'thread_' + i;
+				var list1 = [];
+				for (var blockName in obj.blocks) {
+					var block = obj.blocks[blockName];
+					var tname = 't_retrieve_' + blockName;
 					var t = new Thread(tname);
-					list.push(t);
+					list1.push(t);
 
-					self.retrieve(t, retrieve_node, blocks[i].name);
-					thread.do_startThread(t);
+					self.retrieve(t, retrieve_node, block.address);
+					new_thread.startThread(t);
 				}
-				thread.wait.apply(thread, list);
+				new_thread.execute(function() { this.waiting_list = list1; });
+				new_thread.waitAll();
 
-				obj.sleep(500);
+				new_thread.sleep(500);
 
-				list = [];
-				for (var i = 0; i < blocks.length; i++) {
-					var tname = 't' + i;
+				var list2 = [];
+				for (var blockName in obj.blocks) {
+					var block = obj.blocks[blockName];
+					var tname = 't_receive_' + blockName;
 					var t = new Thread(tname);
-					list.push(t);
+					list2.push(t);
 
-					obj.receiveBlock(t, blocks[i].name, self, retrieve_node);
-					thread.do_startThread(t);
+					obj.receiveBlock(t, block.name, self, retrieve_node);
+					new_thread.startThread(t);
 				}
-				thread.wait.apply(thread, list);
+				new_thread.execute(function() { this.waiting_list = list2; });
+				new_thread.waitAll();
 
-				self.transform('translate(500, 450)', 0.4);
-				obj.maximize();
-				obj.sleep($('#sleep').val());
-				obj.decrypt();
-				obj.sleep($('#sleep').val());
-				obj.merge();
-				obj.onClick(function(d) {
+				new_thread.sleep(500);
+				self.transform(new_thread, 'translate(500, 450)', 0.4);
+				obj.maximize(new_thread);
+				new_thread.sleep(500);
+				obj.decrypt(new_thread);
+				new_thread.sleep(500);
+				obj.merge(new_thread);
+				obj.onClick(new_thread, function(d) {
+					var t = new Thread('obj_click');
 					d3.select(this).remove();
-					obj.minimize();
-					self.transform('translate(0, ' + (self.svgbox.y / 2) + ')', 1);
-					thread.start();
+					obj.minimize(t);
+					self.transform(t, 'translate(0, ' + (self.svgbox.y / 2) + ')', 1);
 					nodes.classed('clickable', true)
 						.on('click', retrieve);
+					t.start();
 				});
 
-				thread.start();
-
+				new_thread.finish();
+				new_thread.start();
 			};
 			nodes.on('click', retrieve);
+
+			thread.next();
 		};
 
 		this.isSelected = function(d) {
@@ -866,7 +876,7 @@
 		};
 
 		this._setOption = function(thread, key, value) {
-			console.log(thread.name + ': ' + key + '=' + value);
+			//console.log(thread.name + ': ' + key + '=' + value);
 			this.options[key] = value;
 			thread.next();
 		};
