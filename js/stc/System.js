@@ -372,7 +372,7 @@
 			if (!this.options.report_elem) {
 				return;
 			}
-			var event = new CustomEvent('multi_ring_stat', { detail: report });
+			var event = new CustomEvent('system_stat', { detail: report });
 
 			this.options.report_elem.dispatchEvent(event);
 		};

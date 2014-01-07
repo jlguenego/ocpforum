@@ -222,6 +222,16 @@ input, select, table button {
 						</tr>
 					</table>
 				</div>
+
+				<div id="view">
+					<table>
+						<tr>
+							<th>Actor</td>
+							<th>STC</td>
+							<th>Nodes</td>
+						</tr>
+					</table>
+				</div>
 			</div>
 			<div id="frame"></div>
 		</div>
@@ -411,6 +421,7 @@ function s1() {
 
 	var cycle_qty = 10;
 	for (var i = 0; i < cycle_qty; i++) {
+		thread.sleep(500);
 		sys.nextCycle(thread);
 	}
 
@@ -458,7 +469,7 @@ function reset_stats() {
 	$('#stat td').html(0);
 };
 
-$('#stat').get(0).addEventListener("multi_ring_stat", function(e) {
+$('#stat').get(0).addEventListener("system_stat", function(e) {
 	var stats = e.detail;
 	var el = $(this);
 	//console.log(e);
