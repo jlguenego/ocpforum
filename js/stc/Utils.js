@@ -25,4 +25,16 @@
 
 		return result;
 	};
+
+	stc.Utils.disableButton = function(thread, selector) {
+		thread.execute(function() {
+			$(selector).attr('disabled', 'disabled');
+		});
+	};
+
+	stc.Utils.enableButton = function(thread, selector) {
+		thread.execute(function() {
+			$(selector).attr('disabled', null);
+		});
+	};
 })(stc)

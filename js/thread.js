@@ -9,7 +9,7 @@ function Thread(name) {
 	this.waiting_list = [];
 
 	this.push = function(order) {
-		console.log(this.name + ': Pushing order ' + order.name);
+		//console.log(this.name + ': Pushing order ' + order.name);
 		this.orders.push(order);
 	};
 

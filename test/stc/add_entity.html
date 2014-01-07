@@ -15,6 +15,7 @@
 		<script src="js/stc/System.js"></script>
 		<script src="js/stc/Actor.js"></script>
 		<script src="js/stc/Node.js"></script>
+		<script src="js/stc/CycleAmount.js"></script>
 
 		<style>
 html, body {
@@ -44,11 +45,11 @@ table {
 table th, table td {
 	vertical-align: middle;
 	text-align: center;
+	font-size: 14px;
 }
 
 th {
 	width: 100px;
-	font-size: 14px;
 	font-weight: 400;
 }
 
@@ -154,14 +155,32 @@ input, select, table button {
 			<div id="param">
 				<div class="menu">
 					<div class="button" data-body="settings">Settings</div>
-					<div class="button disabled" data-body="m1">Menu1</div>
-					<div class="button disabled" data-body="m2">Menu2</div>
+					<div class="button disabled" data-body="actor">Actor</div>
+					<div class="button disabled" data-body="node">Node</div>
 				</div>
 				<div class="body">
-					<div class="param_body m1">
+					<div class="param_body actor">
 						<table>
 							<tr>
-								<th></th>
+								<th>Name</th>
+								<td class="name"></td>
+							</tr>
+							<tr>
+								<th>STC</th>
+								<td class="amount"></td>
+							</tr>
+						</table>
+					</div>
+
+					<div class="param_body node">
+						<table>
+							<tr>
+								<th>Name</th>
+								<td class="name"></td>
+							</tr>
+							<tr>
+								<th>Owner</th>
+								<td class="owner"></td>
 							</tr>
 						</table>
 					</div>
@@ -179,9 +198,6 @@ input, select, table button {
 							</tr>
 						</table>
 					</div>
-
-					<div class="param_body m2">
-					</div>
 				</div>
 				<hr/>
 				<button id="start">Start</button>
@@ -190,12 +206,19 @@ input, select, table button {
 				<button id="add_actor" disabled="disabled">Add actor</button><input type="number" id="actor_qty" min="1" max="99" value="10" disabled="disabled" />
 				<button id="add_node" disabled="disabled">Add Node</button><input type="number" id="node_qty" min="1" max="99" value="10" disabled="disabled" /><br/>
 				<button id="debug">Debug</button><br/>
+				<hr/>
+				<button id="scenario1">Scenario 1</button><br/>
+				<hr/>
 
 				<div id="stat">
 					<table>
 						<tr>
 							<th>Actors:</th>
 							<td class="actors">0</td>
+						</tr>
+						<tr>
+							<th>Nodes:</th>
+							<td class="nodes">0</td>
 						</tr>
 					</table>
 				</div>
@@ -211,14 +234,23 @@ var nodeCounter = 0;
 
 
 var onActorSelected = function(actor) {
-	$('.menu [data-body=node]').click();
 	$('#add_node').attr('disabled', false);
 	$('#node_qty').attr('disabled', false);
+
+	console.log(actor);
+	var actorMenu = $('.param_body.actor');
+	actorMenu.find('.name').html(actor.name);
+	actorMenu.find('.amount').html(actor.amount);
+	$('.menu [data-body=actor]').click();
 };
 
 var onActorDeselected = function(actor) {
 	$('#add_node').attr('disabled', true);
 	$('#node_qty').attr('disabled', true);
+
+	var actorMenu = $('.param_body.actor');
+	actorMenu.find('.name').html('');
+	actorMenu.find('.amount').html('');
 };
 
 var sys = null;
@@ -231,8 +263,8 @@ function init() {
 	nodeIndex = 0;
 	nodeCounter = 0;
 
-	$('.menu [data-body=m1]').removeClass('disabled');
-	$('.menu [data-body=m2]').removeClass('disabled');
+	$('.menu [data-body=actor]').removeClass('disabled');
+	$('.menu [data-body=node]').removeClass('disabled');
 	$('#add_actor').attr('disabled', null);
 	$('#actor_qty').attr('disabled', null);
 	$('#next_cycle').attr('disabled', null);
@@ -314,8 +346,6 @@ $('#add_actor').click(function() {
 	thread.start();
 });
 
-
-
 $('#add_node').click(function() {
 	var node_qty = $('#node_qty').val();
 
@@ -340,9 +370,53 @@ $('#add_node').click(function() {
 	thread.start();
 });
 
+$('#next_cycle').click(function() {
+	refresh_options();
+
+	var thread = new Thread('main');
+	stc.Utils.disableButton(thread, '#next_cycle');
+	sys.nextCycle(thread);
+	stc.Utils.enableButton(thread, '#next_cycle');
+
+	thread.finish();
+	thread.start();
+});
+
 $('#stop').click(function() {
 	window.location.reload();
 });
+
+$('#scenario1').click(s1);
+
+function s1() {
+	init();
+	refresh_options();
+
+	var thread = new Thread('main');
+
+	var actor_qty = 10;
+	for (var i = 0; i < actor_qty; i++) {
+		var actor = new stc.Actor('A' + actorIndex);
+		sys.addActor(thread, actor);
+		actorCounter++;
+		actorIndex++;
+
+		var node_qty = Math.randomizeInt(1, 5);
+		for (var j = 0; j < node_qty; j++) {
+			sys.addNode(thread, new stc.Node('N' + nodeIndex, actor));
+			nodeCounter++;
+			nodeIndex++;
+		}
+	}
+
+	var cycle_qty = 10;
+	for (var i = 0; i < cycle_qty; i++) {
+		sys.nextCycle(thread);
+	}
+
+	thread.finish();
+	thread.start();
+}
 
 $(document).ready(function() {
 	$('.param_body').hide();
@@ -391,6 +465,9 @@ $('#stat').get(0).addEventListener("multi_ring_stat", function(e) {
 
 	if (stats.actors) {
 		el.find('.actors').html(stats.actors);
+	}
+	if (stats.nodes) {
+		el.find('.nodes').html(stats.nodes);
 	}
 });
 		</script>

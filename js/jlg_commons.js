@@ -16,6 +16,16 @@ Math.randomize = function(min, max) {
 	return Math.random() * (max - min) + min;
 };
 
+Math.randomizeInt = function(min, max) {
+	if (min === undefined) {
+		return Math.random();
+	}
+	if (max === undefined) {
+		throw new Error('No max specified.');
+	}
+	return Math.floor(Math.random() * (max - min + 1) + min);
+};
+
 
 var jlg = {
 };

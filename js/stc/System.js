@@ -52,6 +52,7 @@
 				onActorSelected: function() {},
 				onActorDeselected: function() {},
 			},
+			stcPerCycle: 100,
 			report_elem: null
 		};
 		this.scale = 1;
@@ -101,7 +102,7 @@
 					x: d.target.x + node_scale * 50,
 					y: d.target.y + node_scale * 50
 				};
-				var mid = stc.Utils.getMiddleLinkPoint(sys, d);
+				//var mid = stc.Utils.getMiddleLinkPoint(sys, d);
 				return 'M' + start.x + ',' + start.y + ' ' + end.x + ',' + end.y;
 			})
 		};
@@ -201,6 +202,32 @@
 			this._repaintNodes(thread);
 		};
 
+		this.nextCycle = function(thread) {
+			var ca = new stc.CycleAmount(this);
+			ca.show(thread);
+			ca.split(thread);
+			ca.sendReward(thread);
+			this.addReward(thread);
+		};
+
+		this.addReward = function(thread) {
+			thread.push({
+				function: this._addReward,
+				args: arguments,
+				name: 'addReward',
+				object: this
+			});
+		};
+
+		this._addReward = function(thread) {
+			var stc_qty = this.options.stcPerCycle / this.nodes.length;
+			for (var i = 0; i < this.nodes.length; i++) {
+				var node = this.nodes[i];
+				node.owner.amount += stc_qty;
+			}
+			thread.next();
+		};
+
 		this._repaintActors = function(thread) {
 			var actors = this.group.selectAll('g.actor').data(this.actors);
 			force.start();
@@ -261,6 +288,8 @@
 			actors.classed('selected', function(d) {
 				return d == self.selectedActor;
 			});
+
+			this.report({ actors: this.actors.length });
 		};
 
 		this._repaintNodes = function(thread) {
@@ -319,6 +348,8 @@
 			nodes.classed('selected', function(d) {
 				return d == self.selectedNode;
 			});
+
+			this.report({ nodes: this.nodes.length });
 		};
 
 		this._repaintLinks = function(thread) {
@@ -335,6 +366,15 @@
 				.style('opacity', 0);
 
 			thread.next();
+		};
+
+		this.report = function(report) {
+			if (!this.options.report_elem) {
+				return;
+			}
+			var event = new CustomEvent('multi_ring_stat', { detail: report });
+
+			this.options.report_elem.dispatchEvent(event);
 		};
 	};
 })(stc)

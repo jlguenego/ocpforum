@@ -2,9 +2,10 @@
 	stc.Actor = function(name) {
 		var self = this;
 
+		this.parent = null;
 		this.name = name;
 		this.color = stc.Utils.getColorFromString(this.name);
-		this.parent = null;
+		this.amount = 0;
 
 		this.showLinks = function() {
 			var g = this.parent.group;
