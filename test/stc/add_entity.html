@@ -14,6 +14,7 @@
 		<script src="js/stc/Utils.js"></script>
 		<script src="js/stc/System.js"></script>
 		<script src="js/stc/Actor.js"></script>
+		<script src="js/stc/Node.js"></script>
 
 		<style>
 html, body {
@@ -127,8 +128,23 @@ input, select, table button {
 	text-align: right;
 }
 
-g.actor {
-	fill: red;
+.actor.selected rect {
+	fill: #EEEEEE;
+}
+
+.actor rect {
+	stroke: transparent;
+	fill: transparent;
+	stroke-width: 0;
+}
+
+.link {
+	fill: none;
+	stroke-width: 1;
+}
+
+.clickable {
+	cursor: pointer;
 }
 		</style>
 	</head>
@@ -171,8 +187,8 @@ g.actor {
 				<button id="start">Start</button>
 				<button id="stop">Stop</button>
 				<button id="next_cycle" disabled="disabled">Next cycle</button><br/>
-				<button id="add_actor" disabled="disabled">Add actor</button><input type="number" id="actor_qty" min="1" max="99" value="1" disabled="disabled" />
-				<button id="add_node" disabled="disabled">Add Node</button><input type="number" id="node_qty" min="1" max="99" value="1" disabled="disabled" /><br/>
+				<button id="add_actor" disabled="disabled">Add actor</button><input type="number" id="actor_qty" min="1" max="99" value="10" disabled="disabled" />
+				<button id="add_node" disabled="disabled">Add Node</button><input type="number" id="node_qty" min="1" max="99" value="10" disabled="disabled" /><br/>
 				<button id="debug">Debug</button><br/>
 
 				<div id="stat">
@@ -190,16 +206,35 @@ g.actor {
 		<script>
 var actorIndex = 0;
 var actorCounter = 0;
+var nodeIndex = 0;
+var nodeCounter = 0;
+
+
+var onActorSelected = function(actor) {
+	$('.menu [data-body=node]').click();
+	$('#add_node').attr('disabled', false);
+	$('#node_qty').attr('disabled', false);
+};
+
+var onActorDeselected = function(actor) {
+	$('#add_node').attr('disabled', true);
+	$('#node_qty').attr('disabled', true);
+};
 
 var sys = null;
 
 function init() {
+	Math.seedrandom('Hello');
+
+	actorIndex = 0;
+	actorCounter = 0;
+	nodeIndex = 0;
+	nodeCounter = 0;
+
 	$('.menu [data-body=m1]').removeClass('disabled');
 	$('.menu [data-body=m2]').removeClass('disabled');
 	$('#add_actor').attr('disabled', null);
 	$('#actor_qty').attr('disabled', null);
-	$('#add_node').attr('disabled', null);
-	$('#node_qty').attr('disabled', null);
 	$('#next_cycle').attr('disabled', null);
 
 	d3.select('#frame').select('svg').remove();
@@ -214,26 +249,38 @@ function init() {
 
 function set_screen_size() {
 	var size = $('#screen_size').val();
+	var svg = d3.select('#frame').select('svg');
 
 	switch(size) {
 		case 'fullscreen':
-			d3.select('#frame').select('svg')
-				.attr('width', 1000)
+			svg.attr('width', 1000)
 				.attr('height', 600);
 			$('#param').css('height', 600);
 			break;
 
 		case 'debug':
-			d3.select('#frame').select('svg')
-				.attr('width', 800)
+			svg.attr('width', 800)
 				.attr('height', 300);
 			$('#param').css('height', 300);
 			break;
+	}
+	if (sys) {
+		sys.svgbox = {
+			x: svg.attr('width'),
+			y: svg.attr('height')
+		};
 	}
 }
 
 function refresh_options() {
 	sys.options.report_elem = $('#stat').get(0);
+	sys.options.callback.onActorSelected = onActorSelected;
+	sys.options.callback.onActorDeselected = onActorDeselected;
+
+	sys.options.duration = {
+		addActor: 200,
+		addNode: 200
+	};
 }
 
 $('#screen_size').change(set_screen_size);
@@ -261,6 +308,32 @@ $('#add_actor').click(function() {
 
 	thread.execute(function() {
 		$('#add_actor').attr('disabled', null);
+	});
+
+	thread.finish();
+	thread.start();
+});
+
+
+
+$('#add_node').click(function() {
+	var node_qty = $('#node_qty').val();
+
+	refresh_options();
+
+	var thread = new Thread('main');
+	thread.execute(function() {
+		$('#add_node').attr('disabled', 'disabled');
+	});
+
+	for (var i = 0; i < node_qty; i++) {
+		sys.addNode(thread, new stc.Node('N' + nodeIndex, sys.selectedActor));
+		nodeCounter++;
+		nodeIndex++;
+	}
+
+	thread.execute(function() {
+		$('#add_node').attr('disabled', null);
 	});
 
 	thread.finish();
