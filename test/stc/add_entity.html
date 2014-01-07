@@ -11,6 +11,7 @@
 		<script src="js/jlg_commons.js"></script>
 		<script src="js/thread.js"></script>
 		<script src="js/stc/main.js"></script>
+		<script src="js/stc/Utils.js"></script>
 		<script src="js/stc/System.js"></script>
 		<script src="js/stc/Actor.js"></script>
 
@@ -125,6 +126,10 @@ input, select, table button {
 	height: 24px;
 	text-align: right;
 }
+
+g.actor {
+	fill: red;
+}
 		</style>
 	</head>
 
@@ -200,9 +205,10 @@ function init() {
 	d3.select('#frame').select('svg').remove();
 	var svg = d3.select('#frame').append('svg');
 
+	set_screen_size();
+
 	sys = new stc.System(svg);
 
-	set_screen_size();
 	refresh_options();
 }
 
