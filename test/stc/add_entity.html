@@ -129,14 +129,14 @@ input, select, table button {
 	text-align: right;
 }
 
-.actor.selected rect {
-	fill: #EEEEEE;
-}
-
-.actor rect {
+.actor rect, .node rect {
 	stroke: transparent;
 	fill: transparent;
 	stroke-width: 0;
+}
+
+.selected rect {
+	fill: #EEEEEE;
 }
 
 .link {
@@ -256,24 +256,45 @@ var nodeIndex = 0;
 var nodeCounter = 0;
 
 
-var onActorSelected = function(actor) {
-	$('#add_node').attr('disabled', false);
-	$('#node_qty').attr('disabled', false);
+var onObjectSelected = function(object) {
+	console.log(object);
+	if (object instanceof stc.Actor) {
+		$('#add_node').attr('disabled', false);
+		$('#node_qty').attr('disabled', false);
 
-	console.log(actor);
-	var actorMenu = $('.param_body.actor');
-	actorMenu.find('.name').html(actor.name);
-	actorMenu.find('.amount').html(actor.amount);
-	$('.menu [data-body=actor]').click();
+		var actorMenu = $('.param_body.actor');
+		actorMenu.find('.name').html(object.name);
+		actorMenu.find('.amount').html(object.amount);
+		$('.menu [data-body=actor]').click();
+	}
+
+	if (object instanceof stc.Node) {
+		$('#rm_node').attr('disabled', false);
+
+		var nodeMenu = $('.param_body.node');
+		nodeMenu.find('.name').html(object.name);
+		nodeMenu.find('.owner').html(object.owner.name);
+		$('.menu [data-body=node]').click();
+	}
 };
 
-var onActorDeselected = function(actor) {
-	$('#add_node').attr('disabled', true);
-	$('#node_qty').attr('disabled', true);
+var onObjectDeselected = function(object) {
+	if (object instanceof stc.Actor) {
+		$('#add_node').attr('disabled', true);
+		$('#node_qty').attr('disabled', true);
 
-	var actorMenu = $('.param_body.actor');
-	actorMenu.find('.name').html('');
-	actorMenu.find('.amount').html('');
+		var actorMenu = $('.param_body.actor');
+		actorMenu.find('.name').html('');
+		actorMenu.find('.amount').html('');
+	}
+
+	if (object instanceof stc.Node) {
+		$('#rm_node').attr('disabled', true);
+
+		var nodeMenu = $('.param_body.node');
+		nodeMenu.find('.name').html('');
+		nodeMenu.find('.owner').html('');
+	}
 };
 
 var sys = null;
@@ -333,8 +354,8 @@ function set_screen_size() {
 
 function refresh_options() {
 	sys.options.report_elem = $('#stat').get(0);
-	sys.options.callback.onActorSelected = onActorSelected;
-	sys.options.callback.onActorDeselected = onActorDeselected;
+	sys.options.callback.onObjectSelected = onObjectSelected;
+	sys.options.callback.onObjectDeselected = onObjectDeselected;
 
 	sys.options.duration = {
 		addActor: 200,
@@ -384,7 +405,7 @@ $('#add_node').click(function() {
 	});
 
 	for (var i = 0; i < node_qty; i++) {
-		sys.addNode(thread, new stc.Node('N' + nodeIndex, sys.selectedActor));
+		sys.addNode(thread, new stc.Node('N' + nodeIndex, sys.selectedObject));
 		nodeCounter++;
 		nodeIndex++;
 	}
@@ -455,23 +476,6 @@ $(document).ready(function() {
 $('.menu .button').click(function() {
 	if ($(this).hasClass('disabled')) {
 		return;
-	}
-
-	if ($(this).attr('data-body') == 'node') {
-		console.log('refresh objects');
-		var address = $('#address').val();
-		if (address && mr.selectedNodeName) {
-			$('#add_object').attr('disabled', false);
-			$('#retrieve_object').attr('disabled', false);
-		}
-		console.log('address=' + address);
-
-		$('.body .node .object').attr('title', address)
-			.css('background-color', sim.NodeUtils.getColorFromAddress(address));
-	}
-
-	if ($(this).attr('data-body') == 'address') {
-		address_picker.refreshCache();
 	}
 
 	var body = $(this).attr('data-body');

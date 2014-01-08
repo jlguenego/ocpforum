@@ -5,7 +5,7 @@
 		this.svg = svg;
 		this.svg.on('click', function(d) {
 			var thread = new Thread('select');
-			self.unselectActor(thread, null);
+			self.unselectObject(thread, self.selectedObject);
 			thread.finish();
 			thread.start();
 		});
@@ -36,12 +36,12 @@
 
 		var node = this.defs.append('symbol')
 			.attr('id', 'node_symbol')
-			.attr('viewBox', '0 0 50 50')
+			.attr('viewBox', '0 0 24 24')
 			.attr('preserveAspectRatio', 'xMinYMin')
 			.append('circle')
-				.attr('cx', 25)
-				.attr('cy', 25)
-				.attr('r', 12)
+				.attr('cx', 12)
+				.attr('cy', 12)
+				.attr('r', 10)
 				.attr('fill', 'currentColor');
 
 		this.group = this.svg.insert('g', ':first-child').classed('main', true);
@@ -67,13 +67,14 @@
 			node: {x: 2 * this.svgbox.x / 3, y: this.svgbox.y / 2}
 		};
 		this.actors = [];
-		this.selectedActor = null;
+		this.selectedObject = null;
 		this.nodes = [];
 
 		this.forceNodes = [];
 		this.forceLinks = [];
 
 		this.totalSTC = 0;
+		this.NODE_SIZE = 50;
 
 
 		var tick = function(e) {
@@ -106,8 +107,8 @@
 					y: d.source.y + actor_scale * 25
 				};
 				var end = {
-					x: d.target.x + node_scale * 50,
-					y: d.target.y + node_scale * 50
+					x: d.target.x + node_scale * 25,
+					y: d.target.y + node_scale * 25
 				};
 				//var mid = stc.Utils.getMiddleLinkPoint(sys, d);
 				return 'M' + start.x + ',' + start.y + ' ' + end.x + ',' + end.y;
@@ -121,9 +122,9 @@
 			.charge(function(d) {
 				var scale = 1.0;
 				if (d.id == 'actor') {
-					scale = stc.Utils.getActorScale(self)
+					scale = stc.Utils.getActorScale(self);
 				} else {
-					scale = stc.Utils.getNodeScale(self)
+					scale = stc.Utils.getNodeScale(self);
 				}
 				return -100 * scale;
 			})
@@ -132,38 +133,40 @@
 			.on("tick", tick)
 			.start();
 
-		this.isSelectedActor = function(d) {
-			return this.selectedActor == d;
+		this.isSelectedObject = function(d) {
+			return this.selectedObject == d;
 		};
 
-		this.selectActor = function(thread, d) {
+		this.selectObject = function(thread, d) {
 			thread.push({
-				function: this._selectActor,
+				function: this._selectObject,
 				args: arguments,
-				name: 'selectActor',
+				name: 'selectObject',
 				object: this
 			});
 		};
 
-		this._selectActor = function(thread, d) {
-			this.selectedActor = d;
-			this.options.callback.onActorSelected(d);
-			this._repaintActors(thread);
+		this._selectObject = function(thread, d) {
+			this.selectedObject = d;
+			this.options.callback.onObjectSelected(d);
+			this._repaintActors(null);
+			this._repaintNodes(thread);
 		};
 
-		this.unselectActor = function(thread, d) {
+		this.unselectObject = function(thread, d) {
 			thread.push({
-				function: this._unselectActor,
+				function: this._unselectObject,
 				args: arguments,
-				name: 'unselectActor',
+				name: 'unselectObject',
 				object: this
 			});
 		};
 
-		this._unselectActor = function(thread, d) {
-			this.selectedActor = null;
-			this.options.callback.onActorDeselected(d);
-			this._repaintActors(thread);
+		this._unselectObject = function(thread, d) {
+			this.selectedObject = null;
+			this.options.callback.onObjectDeselected(d);
+			this._repaintActors(null);
+			this._repaintNodes(thread);
 		};
 
 		this.addActor = function(thread, actor) {
@@ -248,7 +251,9 @@
 			var new_actors = actors.enter().append('g');
 
 			if (new_actors.empty()) {
-				thread.next();
+				if (thread) {
+					thread.next();
+				}
 			}
 
 			new_actors.classed('actor', true)
@@ -266,17 +271,7 @@
 				.attr('color', jlg.accessor('color'));
 
 			new_actors
-				.on('click', function(d) {
-					d3.event.stopPropagation();
-					var thread = new Thread('select');
-					if (self.isSelectedActor(d)) {
-						self.unselectActor(thread, d);
-					} else {
-						self.selectActor(thread, d);
-					}
-					thread.finish();
-					thread.start();
-				})
+				.on('click', this.onclick)
 				.on('mouseover', function(d) {
 					d.showLinks();
 				})
@@ -291,13 +286,15 @@
 				.each('end', function() {
 					if (doNext) {
 						doNext = false;
-						thread.next();
+						if (thread) {
+							thread.next();
+						}
 					}
 				});
 
 
 			actors.classed('selected', function(d) {
-				return d == self.selectedActor;
+				return d == self.selectedObject;
 			});
 
 			this.report({ actors: this.actors.length });
@@ -313,17 +310,20 @@
 			var new_nodes = nodes.enter().append('g');
 
 			if (new_nodes.empty()) {
-				thread.next();
+				self._repaintLinks(thread);
 			}
 
 			new_nodes.classed('node', true)
 				.classed('force_node', true)
 				.classed('clickable', true)
 				.style('opacity', 0);
+			new_nodes.append('rect')
+				.attr('width', this.NODE_SIZE)
+				.attr('height', this.NODE_SIZE);
 			new_nodes.append('use')
 				.attr('xlink:href', window.location.href + '#node_symbol')
-				.attr('width', 100)
-				.attr('height', 100)
+				.attr('width', this.NODE_SIZE)
+				.attr('height', this.NODE_SIZE)
 				.attr('color', jlg.accessor('color'));
 
 			new_nodes
@@ -332,18 +332,8 @@
 				})
 				.on('mouseout', function(d) {
 					d.hideLinks();
-				});
-//				.on('click', function(d) {
-//					d3.event.stopPropagation();
-//					var thread = new Thread('select');
-//					if (self.isSelectedNode(d)) {
-//						self.unselectNode(thread, d);
-//					} else {
-//						self.selectNode(thread, d);
-//					}
-//					thread.finish();
-//					thread.start();
-//				});
+				})
+				.on('click', this.onclick);
 
 			var doNext = true;
 			new_nodes.transition()
@@ -358,7 +348,7 @@
 
 
 			nodes.classed('selected', function(d) {
-				return d == self.selectedNode;
+				return d == self.selectedObject;
 			});
 
 			this.report({ nodes: this.nodes.length });
@@ -378,7 +368,9 @@
 				.style('stroke', function(d) { return d.source.color; })
 				.style('opacity', 0);
 
-			thread.next();
+			if (thread) {
+				thread.next();
+			}
 		};
 
 		this.report = function(report) {
@@ -415,6 +407,18 @@
 			total.append('th').classed('name', true).text('Total');
 			total.append('th').classed('stc', true).text(this.totalSTC);
 			total.append('th').classed('nodes', true).text(this.nodes.length);
+		};
+
+		this.onclick = function(d) {
+			d3.event.stopPropagation();
+			var thread = new Thread('select');
+			if (self.isSelectedObject(d)) {
+				self.unselectObject(thread, d);
+			} else {
+				self.selectObject(thread, d);
+			}
+			thread.finish();
+			thread.start();
 		};
 	};
 })(stc)
