@@ -147,6 +147,14 @@ input, select, table button {
 .clickable {
 	cursor: pointer;
 }
+
+#view th {
+	font-weight: bold;
+}
+
+#view .stc, #view .nodes {
+	text-align: right;
+}
 		</style>
 	</head>
 
@@ -224,11 +232,16 @@ input, select, table button {
 				</div>
 
 				<div id="view">
-					<table>
+					<table class="actors">
 						<tr>
 							<th>Actor</td>
-							<th>STC</td>
-							<th>Nodes</td>
+							<th class="stc">STC</td>
+							<th class="nodes">Nodes</td>
+						</tr>
+						<tr class="total">
+							<th>Total</td>
+							<th class="stc">0</td>
+							<th class="nodes">0</td>
 						</tr>
 					</table>
 				</div>
@@ -284,7 +297,11 @@ function init() {
 
 	set_screen_size();
 
-	sys = new stc.System(svg);
+	sys = new stc.System(svg, {
+		sideView: '#view',
+		actorsView: '.param_body.actor',
+		nodesView: '.param_body.node'
+	});
 
 	refresh_options();
 }

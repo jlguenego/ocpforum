@@ -1,5 +1,5 @@
 (function(sim, undefined) {
-	stc.System = function(svg) {
+	stc.System = function(svg, viewSelectors) {
 		var self = this;
 
 		this.svg = svg;
@@ -13,6 +13,11 @@
 			x: svg.attr('width'),
 			y: svg.attr('height')
 		};
+
+		this.sideView = d3.select(viewSelectors.sideView);
+		this.actorsView = d3.select(viewSelectors.actorsView);
+		this.nodesView = d3.select(viewSelectors.nodesView);
+
 		this.defs = this.svg.append('defs');
 		this.defs.append('filter')
 			.attr('id', 'darker')
@@ -67,6 +72,8 @@
 
 		this.forceNodes = [];
 		this.forceLinks = [];
+
+		this.totalSTC = 0;
 
 
 		var tick = function(e) {
@@ -199,6 +206,8 @@
 				source: jlg.find(this.actors, function(d) { return d == node.owner; }),
 				target: node
 			});
+
+			node.owner.nodes.push(node);
 			this._repaintNodes(thread);
 		};
 
@@ -220,12 +229,14 @@
 		};
 
 		this._addReward = function(thread) {
+			this.totalSTC += this.options.stcPerCycle;
 			var stc_qty = this.options.stcPerCycle / this.nodes.length;
 			for (var i = 0; i < this.nodes.length; i++) {
 				var node = this.nodes[i];
 				node.owner.amount += stc_qty;
 			}
 			thread.next();
+			this.repaintSideView();
 		};
 
 		this._repaintActors = function(thread) {
@@ -290,6 +301,7 @@
 			});
 
 			this.report({ actors: this.actors.length });
+			this.repaintSideView();
 		};
 
 		this._repaintNodes = function(thread) {
@@ -350,6 +362,7 @@
 			});
 
 			this.report({ nodes: this.nodes.length });
+			this.repaintSideView();
 		};
 
 		this._repaintLinks = function(thread) {
@@ -375,6 +388,33 @@
 			var event = new CustomEvent('system_stat', { detail: report });
 
 			this.options.report_elem.dispatchEvent(event);
+		};
+
+		this.repaintSideView = function() {
+			var tr = this.sideView.select('table.actors').selectAll('tr.actor').data(this.actors);
+
+			tr.exit().remove();
+
+			var new_tr = tr.enter().insert('tr').classed('actor', true);
+			new_tr.append('td').classed('name', true);
+			new_tr.append('td').classed('stc', true);
+			new_tr.append('td').classed('nodes', true);
+
+			tr.select('td.name').text(jlg.accessor('name'));
+			tr.select('td.stc').text(jlg.accessor('amount'));
+			tr.select('td.nodes').text(function(d) {
+				return d.nodes.length;
+			});
+
+			if (this.selectedActor) {
+				this.actorsView.select('table').select('.amount').text(this.selectedActor.amount);
+			}
+
+			this.sideView.select('table.actors').select('tr.total').remove();
+			var total = this.sideView.select('table.actors').append('tr').classed('total', true);
+			total.append('th').classed('name', true).text('Total');
+			total.append('th').classed('stc', true).text(this.totalSTC);
+			total.append('th').classed('nodes', true).text(this.nodes.length);
 		};
 	};
 })(stc)
