@@ -5,6 +5,7 @@
 		this.name = name;
 		this.owner = owner;
 		this.color = this.owner.color;
+		this.type = 'node';
 
 		this.showLinks = function() {
 			var g = this.owner.parent.group;

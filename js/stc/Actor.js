@@ -7,6 +7,7 @@
 		this.color = stc.Utils.getColorFromString(this.name);
 		this.amount = 0;
 		this.nodes = [];
+		this.type = 'actor';
 
 		this.showLinks = function() {
 			var g = this.parent.group;

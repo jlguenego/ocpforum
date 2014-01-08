@@ -82,8 +82,8 @@
 
 			// Push nodes toward their designated focus.
 			self.forceNodes.forEach(function(d, i) {
-				d.y += (self.foci[d.id].y - d.y) * k;
-				d.x += (self.foci[d.id].x - d.x) * k;
+				d.y += (self.foci[d.type].y - d.y) * k;
+				d.x += (self.foci[d.type].x - d.x) * k;
 			});
 
 			var actor_scale = stc.Utils.getActorScale(self);
@@ -92,7 +92,7 @@
 			var force_node = self.group.selectAll('g.force_node');
 			force_node.attr('transform', function(d) {
 				var scale = 1.0;
-				if (d.id == 'actor') {
+				if (d.type == 'actor') {
 					scale = actor_scale;
 				} else {
 					scale = node_scale;
@@ -121,7 +121,7 @@
 			.linkStrength(0)
 			.charge(function(d) {
 				var scale = 1.0;
-				if (d.id == 'actor') {
+				if (d.type == 'actor') {
 					scale = stc.Utils.getActorScale(self);
 				} else {
 					scale = stc.Utils.getNodeScale(self);
@@ -179,7 +179,6 @@
 		};
 
 		this._addActor = function(thread, actor) {
-			actor.id = 'actor';
 			actor.x = Math.randomize(0, this.svgbox.x);
 			actor.y = Math.randomize(0, this.svgbox.y);
 			actor.parent = this;
@@ -199,18 +198,52 @@
 		};
 
 		this._addNode = function(thread, node) {
-			node.id = 'node';
 			node.x = Math.randomize(0, this.svgbox.x);
 			node.y = Math.randomize(0, this.svgbox.y);
 
 			this.nodes.push(node);
 			this.forceNodes.push(node);
 			this.forceLinks.push({
-				source: jlg.find(this.actors, function(d) { return d == node.owner; }),
-				target: node
+				source: node.owner,
+				target: node,
+				name: node.owner.name + '_' + node.name
 			});
 
 			node.owner.nodes.push(node);
+			this._repaintNodes(thread);
+		};
+
+		this.removeNode = function(thread, node) {
+			thread.push({
+				function: this._removeNode,
+				args: arguments,
+				name: 'removeNode',
+				object: this
+			});
+		};
+
+		this._removeNode = function(thread, node) {
+			var index = this.nodes.indexOf(node);
+			if (index > -1) {
+				this.nodes.splice(index, 1);
+			}
+
+			index = this.forceNodes.indexOf(node);
+			if (index > -1) {
+				this.forceNodes.splice(index, 1);
+			}
+
+			var link = jlg.find(this.forceLinks, function(d) { return d.target == node});
+			index = this.forceLinks.indexOf(link);
+			if (index > -1) {
+				this.forceLinks.splice(index, 1);
+			}
+
+			index = node.owner.nodes.indexOf(node);
+			if (index > -1) {
+				node.owner.nodes.splice(index, 1);
+			}
+
 			this._repaintNodes(thread);
 		};
 
@@ -302,7 +335,7 @@
 		};
 
 		this._repaintNodes = function(thread) {
-			var nodes = this.group.selectAll('g.node').data(this.nodes);
+			var nodes = this.group.selectAll('g.node').data(this.nodes, function(d) { return d.name; });
 			force.start();
 
 			nodes.exit().remove();
@@ -356,7 +389,8 @@
 		};
 
 		this._repaintLinks = function(thread) {
-			var links = this.links.selectAll('path.link').data(this.forceLinks);
+			var links = this.links.selectAll('path.link')
+				.data(this.forceLinks, function(d) { return d.name; });
 
 			links.exit().remove();
 
@@ -365,7 +399,7 @@
 			new_links.classed('link', true)
 				.attr('data-source', function(d) { return d.source.name; })
 				.attr('data-target', function(d) { return d.target.name; })
-				.style('stroke', function(d) { return d.source.color; })
+				.style('stroke', function(d) { return d.target.color; })
 				.style('opacity', 0);
 
 			if (thread) {

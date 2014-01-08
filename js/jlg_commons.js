@@ -71,6 +71,17 @@ var jlg = {
 		return Math.min.apply(null, array);
 	};
 
+	jlg.Sequence = function() {
+		var seq = 0;
 
+		this.reset = function() {
+			seq = 0;
+		};
 
+		this.next= function() {
+			var result = seq;
+			seq++;
+			return result;
+		};
+	};
 })(jlg);

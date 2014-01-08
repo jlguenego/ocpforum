@@ -191,6 +191,7 @@ input, select, table button {
 								<td class="owner"></td>
 							</tr>
 						</table>
+						<button id="rm_node" disabled="disabled">Remove Node</button>
 					</div>
 
 					<div class="param_body settings">
@@ -199,8 +200,8 @@ input, select, table button {
 								<th>Screen size</th>
 								<td>
 									<select id="screen_size">
-										<option value="debug">Debug</option>
-										<option value="fullscreen" selected>Full Screen</option>
+										<option value="debug" selected>Debug</option>
+										<option value="fullscreen">Full Screen</option>
 									</select>
 								</td>
 							</tr>
@@ -211,8 +212,8 @@ input, select, table button {
 				<button id="start">Start</button>
 				<button id="stop">Stop</button>
 				<button id="next_cycle" disabled="disabled">Next cycle</button><br/>
-				<button id="add_actor" disabled="disabled">Add actor</button><input type="number" id="actor_qty" min="1" max="99" value="10" disabled="disabled" />
-				<button id="add_node" disabled="disabled">Add Node</button><input type="number" id="node_qty" min="1" max="99" value="10" disabled="disabled" /><br/>
+				<button id="add_actor" disabled="disabled">Add actor</button><input type="number" id="actor_qty" min="1" max="99" value="1" disabled="disabled" />
+				<button id="add_node" disabled="disabled">Add Node</button><input type="number" id="node_qty" min="1" max="99" value="1" disabled="disabled" /><br/>
 				<button id="debug">Debug</button><br/>
 				<hr/>
 				<button id="scenario1">Scenario 1</button><br/>
@@ -254,6 +255,7 @@ var actorIndex = 0;
 var actorCounter = 0;
 var nodeIndex = 0;
 var nodeCounter = 0;
+var seq = new jlg.Sequence();
 
 
 var onObjectSelected = function(object) {
@@ -413,6 +415,18 @@ $('#add_node').click(function() {
 	thread.execute(function() {
 		$('#add_node').attr('disabled', null);
 	});
+
+	thread.finish();
+	thread.start();
+});
+
+$('#rm_node').click(function() {
+	refresh_options();
+	var selectedNode = sys.selectedObject;
+
+	var thread = new Thread('main');
+	sys.unselectObject(thread, sys.selectedObject);
+	sys.removeNode(thread, selectedNode);
 
 	thread.finish();
 	thread.start();
