@@ -8,16 +8,6 @@
 		this.amount = 0;
 		this.nodes = [];
 		this.type = 'actor';
-
-		this.showLinks = function() {
-			var g = this.parent.group;
-			var links = g.selectAll('path[data-source=' + this.name + ']');
-			links.style('opacity', 1);
-		};
-
-		this.hideLinks = function() {
-			var links = this.parent.links.selectAll('path[data-source=' + this.name + ']');
-			links.style('opacity', 0);
-		};
+		this.mouse = false;
 	};
 })(stc)

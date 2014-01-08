@@ -148,6 +148,14 @@ input, select, table button {
 	cursor: pointer;
 }
 
+#view table {
+	border-collapse: collapse;
+}
+
+#view tr.selected {
+	background-color: #FFC68C;
+}
+
 #view th {
 	font-weight: bold;
 }
@@ -200,8 +208,8 @@ input, select, table button {
 								<th>Screen size</th>
 								<td>
 									<select id="screen_size">
-										<option value="debug" selected>Debug</option>
-										<option value="fullscreen">Full Screen</option>
+										<option value="debug">Debug</option>
+										<option value="fullscreen" selected>Full Screen</option>
 									</select>
 								</td>
 							</tr>

@@ -149,8 +149,7 @@
 		this._selectObject = function(thread, d) {
 			this.selectedObject = d;
 			this.options.callback.onObjectSelected(d);
-			this._repaintActors(null);
-			this._repaintNodes(thread);
+			this._repaintAll(thread);
 		};
 
 		this.unselectObject = function(thread, d) {
@@ -165,8 +164,7 @@
 		this._unselectObject = function(thread, d) {
 			this.selectedObject = null;
 			this.options.callback.onObjectDeselected(d);
-			this._repaintActors(null);
-			this._repaintNodes(thread);
+			this._repaintAll(thread);
 		};
 
 		this.addActor = function(thread, actor) {
@@ -275,6 +273,11 @@
 			this.repaintSideView();
 		};
 
+		this._repaintAll = function(thread) {
+			this._repaintActors();
+			this._repaintNodes(thread);
+		};
+
 		this._repaintActors = function(thread) {
 			var actors = this.group.selectAll('g.actor').data(this.actors);
 			force.start();
@@ -306,10 +309,12 @@
 			new_actors
 				.on('click', this.onclick)
 				.on('mouseover', function(d) {
-					d.showLinks();
+					d.mouse = true;
+					self._repaintAll();
 				})
 				.on('mouseout', function(d) {
-					d.hideLinks();
+					d.mouse = false;
+					self._repaintAll();
 				});
 
 			var doNext = true;
@@ -327,7 +332,7 @@
 
 
 			actors.classed('selected', function(d) {
-				return d == self.selectedObject;
+				return self.isSelectedObject(d);
 			});
 
 			this.report({ actors: this.actors.length });
@@ -361,10 +366,12 @@
 
 			new_nodes
 				.on('mouseover', function(d) {
-					d.showLinks();
+					d.mouse = true;
+					self._repaintAll();
 				})
 				.on('mouseout', function(d) {
-					d.hideLinks();
+					d.mouse = false;
+					self._repaintAll();
 				})
 				.on('click', this.onclick);
 
@@ -399,8 +406,17 @@
 			new_links.classed('link', true)
 				.attr('data-source', function(d) { return d.source.name; })
 				.attr('data-target', function(d) { return d.target.name; })
-				.style('stroke', function(d) { return d.target.color; })
-				.style('opacity', 0);
+				.style('stroke', function(d) { return d.target.color; });
+
+			links.style('opacity', function(d) {
+					if (self.isSelectedObject(d.target) || self.isSelectedObject(d.source)) {
+						return 1;
+					}
+					if (d.target.mouse || d.source.mouse) {
+						return 1;
+					}
+					return 0;
+				});
 
 			if (thread) {
 				thread.next();
@@ -427,19 +443,25 @@
 			new_tr.append('td').classed('nodes', true);
 
 			tr.select('td.name').text(jlg.accessor('name'));
-			tr.select('td.stc').text(jlg.accessor('amount'));
+			tr.select('td.stc').text(function(d) {
+				return d.amount.toFixed(5);
+			});
 			tr.select('td.nodes').text(function(d) {
 				return d.nodes.length;
 			});
 
-			if (this.selectedActor) {
-				this.actorsView.select('table').select('.amount').text(this.selectedActor.amount);
+			tr.classed('selected', function(d) {
+				return self.selectedObject == d;
+			});
+
+			if (this.selectedObject instanceof stc.Actor) {
+				this.actorsView.select('table').select('.amount').text(this.selectedObject.amount.toFixed(5));
 			}
 
 			this.sideView.select('table.actors').select('tr.total').remove();
 			var total = this.sideView.select('table.actors').append('tr').classed('total', true);
 			total.append('th').classed('name', true).text('Total');
-			total.append('th').classed('stc', true).text(this.totalSTC);
+			total.append('th').classed('stc', true).text(this.totalSTC.toFixed(5));
 			total.append('th').classed('nodes', true).text(this.nodes.length);
 		};
 
