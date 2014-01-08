@@ -509,10 +509,10 @@ $('#stat').get(0).addEventListener("system_stat", function(e) {
 	var el = $(this);
 	//console.log(e);
 
-	if (stats.actors) {
+	if (stats.actors != undefined) {
 		el.find('.actors').html(stats.actors);
 	}
-	if (stats.nodes) {
+	if (stats.nodes != undefined) {
 		el.find('.nodes').html(stats.nodes);
 	}
 });
