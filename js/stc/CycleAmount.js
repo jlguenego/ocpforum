@@ -96,16 +96,14 @@
 		this._sendReward = function(thread) {
 			var scale = stc.Utils.getNodeScale(this.sys);
 			var doNext = true;
-			var rect_size = 10;
+			var rect_size = 10 * scale;
 			this.group.selectAll('rect.reward')
 				.transition()
 					.duration(1000)
 					.attr('x', function(d) {
-						console.log(d);
 						return d.x + scale * sys.NODE_SIZE / 2 - rect_size / 2;
 					})
 					.attr('y', function(d) {
-						console.log(d);
 						return d.y + scale * sys.NODE_SIZE / 2 - rect_size / 2;
 					})
 					.attr('width', rect_size)

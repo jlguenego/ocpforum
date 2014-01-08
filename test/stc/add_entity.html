@@ -16,6 +16,7 @@
 		<script src="js/stc/Actor.js"></script>
 		<script src="js/stc/Node.js"></script>
 		<script src="js/stc/CycleAmount.js"></script>
+		<script src="js/stc/Scenario.js"></script>
 
 		<style>
 html, body {
@@ -224,7 +225,8 @@ input, select, table button {
 				<button id="add_node" disabled="disabled">Add Node</button><input type="number" id="node_qty" min="1" max="99" value="1" disabled="disabled" /><br/>
 				<button id="debug">Debug</button><br/>
 				<hr/>
-				<button id="scenario1">Scenario 1</button><br/>
+				<button id="scenario1">Scenario 1</button>
+				<button id="scenario2">Scenario 2</button><br/>
 				<hr/>
 
 				<div id="stat">
@@ -236,6 +238,14 @@ input, select, table button {
 						<tr>
 							<th>Nodes:</th>
 							<td class="nodes">0</td>
+						</tr>
+						<tr>
+							<th>Capacity:</th>
+							<td class="capacity">0 GB</td>
+						</tr>
+						<tr>
+							<th>1 STC:</th>
+							<td class="stc_gb">0.00 GB</td>
 						</tr>
 					</table>
 				</div>
@@ -344,7 +354,7 @@ function set_screen_size() {
 	switch(size) {
 		case 'fullscreen':
 			svg.attr('width', 1000)
-				.attr('height', 600);
+				.attr('height', 400);
 			$('#param').css('height', 600);
 			break;
 
@@ -366,6 +376,7 @@ function refresh_options() {
 	sys.options.report_elem = $('#stat').get(0);
 	sys.options.callback.onObjectSelected = onObjectSelected;
 	sys.options.callback.onObjectDeselected = onObjectDeselected;
+	sys.options.nodeCapacity = 50;
 
 	sys.options.duration = {
 		addActor: 200,
@@ -457,10 +468,10 @@ $('#stop').click(function() {
 });
 
 $('#scenario1').click(s1);
+$('#scenario2').click(s2);
 
 function s1() {
 	init();
-	refresh_options();
 
 	var thread = new Thread('main');
 
@@ -487,6 +498,31 @@ function s1() {
 
 	thread.finish();
 	thread.start();
+}
+
+function s2() {
+	init();
+
+	var scenario = new stc.Scenario(sys);
+
+	scenario.addProvider();
+
+	var cycle_qty = 20;
+	for (var i = 0; i < cycle_qty; i++) {
+
+		// Remove some node(s).
+		scenario.removeRandomNodes(0.5);
+
+		// Add some provider(s).
+		scenario.addRandomProviders(0, 3);
+
+		// Add some node(s).
+		scenario.addRandomNodes();
+
+		scenario.nextCycle();
+	}
+
+	scenario.start();
 }
 
 $(document).ready(function() {
@@ -522,6 +558,15 @@ $('#stat').get(0).addEventListener("system_stat", function(e) {
 	}
 	if (stats.nodes != undefined) {
 		el.find('.nodes').html(stats.nodes);
+	}
+	if (stats.capacity != undefined) {
+		el.find('.capacity').html(stats.capacity + ' GB');
+
+		var stc = 0;
+		if (sys.totalSTC) {
+			stc = stats.capacity / sys.totalSTC;
+		}
+		el.find('.stc_gb').html(stc.toFixed(2) + ' GB');
 	}
 });
 		</script>

@@ -58,7 +58,8 @@
 				onActorDeselected: function() {},
 			},
 			stcPerCycle: 100,
-			report_elem: null
+			report_elem: null,
+			nodeCapacity: 50
 		};
 		this.scale = 1;
 
@@ -391,7 +392,7 @@
 				return d == self.selectedObject;
 			});
 
-			this.report({ nodes: this.nodes.length });
+			this.report({ nodes: this.nodes.length, capacity: this.nodes.length * this.options.nodeCapacity });
 			this.repaintSideView();
 		};
 
