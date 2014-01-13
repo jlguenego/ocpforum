@@ -50,6 +50,11 @@
 		this._split = function(thread) {
 			var rects = this.group.selectAll('rect.reward').data(this.sys.nodes);
 
+			if (this.sys.nodes.length < 1) {
+				thread.next();
+				return;
+			}
+
 			var reward_width = 300 / this.sys.nodes.length;
 			var new_rects = rects.enter().append('rect')
 				.classed('reward', true)
@@ -94,6 +99,12 @@
 		};
 
 		this._sendReward = function(thread) {
+			if (this.sys.nodes.length < 1) {
+				this.group.remove();
+				thread.next();
+				return;
+			}
+
 			var scale = stc.Utils.getNodeScale(this.sys);
 			var doNext = true;
 			var rect_size = 10 * scale;

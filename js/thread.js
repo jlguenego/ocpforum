@@ -14,14 +14,14 @@ function Thread(name) {
 	};
 
 	this.unshift = function(order) {
-		console.log(this.name + ': Unshifting order ' + order.name);
+		//console.log(this.name + ': Unshifting order ' + order.name);
 		this.orders.unshift(order);
 	};
 
 	this.setDebug = function(selector) {
 		this.debug = selector;
 		$(this.debug).click(function() {
-			console.log('debug next.');
+			//console.log('debug next.');
 			self._next();
 		});
 	};
@@ -35,7 +35,7 @@ function Thread(name) {
 	this._next = function() {
 		var order = this.orders.shift();
 		if (order) {
-			console.log(this.name + ': Executing order: ' + order.name);
+			//console.log(this.name + ': Executing order: ' + order.name);
 			order.function.apply(order.object, order.args);
 		} else {
 			this.isFinished = true;

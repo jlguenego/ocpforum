@@ -8,6 +8,12 @@
 		<script src="_ext/jquery-1.10.2.min.js"></script>
 		<script src="_ext/sha1.js"></script>
 		<script src="_ext/seedrandom-min.js"></script>
+		<script type="text/javascript" src="_ext/crossfilter.min.js"></script>
+		<script type="text/javascript" src="_ext/dc.min.js"></script>
+
+		<link rel="stylesheet" href="_ext/dc.css" />
+
+
 		<script src="js/jlg_commons.js"></script>
 		<script src="js/thread.js"></script>
 		<script src="js/stc/main.js"></script>
@@ -71,7 +77,7 @@ input, select, table button {
 }
 
 #stat td {
-	width: 25px;
+	width: 50px;
 	text-align: left;
 }
 
@@ -247,6 +253,10 @@ input, select, table button {
 							<th>1 STC:</th>
 							<td class="stc_gb">0.00 GB</td>
 						</tr>
+						<tr>
+							<th>TOTAL STC:</th>
+							<td class="stc_total" data-value="0">0 STC</td>
+						</tr>
 					</table>
 				</div>
 
@@ -266,15 +276,19 @@ input, select, table button {
 				</div>
 			</div>
 			<div id="frame"></div>
+			<div id="chart"></div>
 		</div>
 
 		<script>
 var actorIndex = 0;
-var actorCounter = 0;
 var nodeIndex = 0;
 var nodeCounter = 0;
-var seq = new jlg.Sequence();
 
+// CHART STUFF
+var dc_dataset = [{ cycle: 0, stc: 0 }];
+var stc_grp = null;
+var chart = dc.lineChart("#chart");
+// END CHART STUFF
 
 var onObjectSelected = function(object) {
 	console.log(object);
@@ -319,11 +333,12 @@ var onObjectDeselected = function(object) {
 
 var sys = null;
 
-function init() {
+function start() {
+	reset_stats();
+	reset_chart();
 	Math.seedrandom('Hello');
 
 	actorIndex = 0;
-	actorCounter = 0;
 	nodeIndex = 0;
 	nodeCounter = 0;
 
@@ -344,7 +359,10 @@ function init() {
 		nodesView: '.param_body.node'
 	});
 
+	sys.repaintSideView();
+
 	refresh_options();
+	refresh_chart();
 }
 
 function set_screen_size() {
@@ -359,7 +377,7 @@ function set_screen_size() {
 			break;
 
 		case 'debug':
-			svg.attr('width', 800)
+			svg.attr('width', 1000)
 				.attr('height', 300);
 			$('#param').css('height', 300);
 			break;
@@ -388,7 +406,7 @@ $('#screen_size').change(set_screen_size);
 
 
 $('#start').click(function() {
-	init();
+	start();
 });
 
 $('#add_actor').click(function() {
@@ -403,7 +421,6 @@ $('#add_actor').click(function() {
 
 	for (var i = 0; i < actor_qty; i++) {
 		sys.addActor(thread, new stc.Actor('A' + actorIndex));
-		actorCounter++;
 		actorIndex++;
 	}
 
@@ -471,7 +488,7 @@ $('#scenario1').click(s1);
 $('#scenario2').click(s2);
 
 function s1() {
-	init();
+	start();
 
 	var thread = new Thread('main');
 
@@ -479,7 +496,6 @@ function s1() {
 	for (var i = 0; i < actor_qty; i++) {
 		var actor = new stc.Actor('A' + actorIndex);
 		sys.addActor(thread, actor);
-		actorCounter++;
 		actorIndex++;
 
 		var node_qty = Math.randomizeInt(1, 5);
@@ -501,7 +517,7 @@ function s1() {
 }
 
 function s2() {
-	init();
+	start();
 
 	var scenario = new stc.Scenario(sys);
 
@@ -546,29 +562,89 @@ $('.menu .button').click(function() {
 
 function reset_stats() {
 	$('#stat td').html(0);
+	$('#stat .capacity').html('0 GB');
+	$('#stat .stc_gb').html('0.00 GB');
+	$('#stat .stc_total').html('0 STC');
 };
 
 $('#stat').get(0).addEventListener("system_stat", function(e) {
 	var stats = e.detail;
 	var el = $(this);
-	//console.log(e);
 
-	if (stats.actors != undefined) {
-		el.find('.actors').html(stats.actors);
+	switch (stats.action) {
+		case 'add_actor':
+			break;
+		case 'add_node':
+			break;
+		case 'remove_node':
+			break;
+		case 'next_cycle':
+			update_dc_dataset();
+			refresh_chart();
+			break;
 	}
-	if (stats.nodes != undefined) {
-		el.find('.nodes').html(stats.nodes);
-	}
-	if (stats.capacity != undefined) {
-		el.find('.capacity').html(stats.capacity + ' GB');
 
-		var stc = 0;
-		if (sys.totalSTC) {
-			stc = stats.capacity / sys.totalSTC;
-		}
-		el.find('.stc_gb').html(stc.toFixed(2) + ' GB');
+	el.find('.actors').html(sys.actors.length);
+	el.find('.nodes').html(sys.nodes.length);
+	var capacity = sys.nodes.length * sys.options.nodeCapacity;
+	el.find('.capacity').html(capacity + ' GB');
+	el.find('.stc_total').html(sys.totalSTC + ' STC');
+
+	var stc = 0;
+	if (sys.totalSTC > 0) {
+		stc = capacity / sys.totalSTC;
 	}
+	el.find('.stc_gb').html(stc.toFixed(2) + ' GB')
+		.attr('data-value', stc.toFixed(2));
+
+
 });
+
+function update_dc_dataset() {
+	var stc = $('#stat').find('.stc_gb').attr('data-value');
+
+	dc_dataset.push({
+		cycle: sys.cycle_id,
+		stc: stc
+	});
+}
+
+function refresh_chart() {
+	var x_min = jlg.min(dc_dataset.map(jlg.accessor('cycle')));
+	var x_max = jlg.max(dc_dataset.map(jlg.accessor('cycle')));
+
+	var y_min = jlg.min(dc_dataset.map(jlg.accessor('stc')));
+	var y_max = jlg.max(dc_dataset.map(jlg.accessor('stc')));
+
+	var ndx = crossfilter(dc_dataset);
+	var dim = ndx.dimension(jlg.accessor('cycle'));
+	stc_grp = dim.group().reduceSum(jlg.accessor('stc'));
+	print_filter("stc_grp");
+	chart.width(1000).height(190)
+		.dimension(dim)
+		.group(stc_grp)
+		.brushOn(false)
+		.x(d3.scale.linear().domain([x_min, x_max]))
+		.y(d3.scale.linear().domain([y_min, y_max]));
+	dc.renderAll();
+}
+
+function reset_chart() {
+	dc_dataset = [{ cycle: 0, stc: 0 }];
+	stc_grp = null;
+	refresh_chart();
+}
+
+// For crossfilter debuging.
+function print_filter(filter){
+	var f=eval(filter);
+	if (typeof(f.length) != "undefined") {}else{}
+	if (typeof(f.top) != "undefined") {f=f.top(Infinity);}else{}
+	if (typeof(f.dimension) != "undefined")
+	{f=f.dimension(function(d) { return "";}).top(Infinity);}else{}
+	console.log(filter+"("+f.length+") = "+JSON.stringify
+	(f).replace("[","[\n\t").replace(/}\,/g,"},\n\t").replace("]","\n]"));
+}
 		</script>
 	</body>
 </html>

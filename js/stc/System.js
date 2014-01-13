@@ -76,6 +76,7 @@
 
 		this.totalSTC = 0;
 		this.NODE_SIZE = 50;
+		this.cycle_id = 0;
 
 
 		var tick = function(e) {
@@ -184,6 +185,9 @@
 
 			this.actors.push(actor);
 			this.forceNodes.push(actor);
+
+			this.report({ action: 'add_actor' });
+
 			this._repaintActors(thread);
 		};
 
@@ -209,6 +213,10 @@
 			});
 
 			node.owner.nodes.push(node);
+			this.report({
+				action: 'add_node'
+			});
+
 			this._repaintNodes(thread);
 		};
 
@@ -243,6 +251,10 @@
 				node.owner.nodes.splice(index, 1);
 			}
 
+			this.report({
+				action: 'remove_node'
+			});
+
 			this._repaintNodes(thread);
 		};
 
@@ -272,6 +284,9 @@
 			}
 			thread.next();
 			this.repaintSideView();
+			this.cycle_id++;
+
+			this.report({ action: 'next_cycle' });
 		};
 
 		this._repaintAll = function(thread) {
@@ -336,7 +351,6 @@
 				return self.isSelectedObject(d);
 			});
 
-			this.report({ actors: this.actors.length });
 			this.repaintSideView();
 		};
 
@@ -392,7 +406,6 @@
 				return d == self.selectedObject;
 			});
 
-			this.report({ nodes: this.nodes.length, capacity: this.nodes.length * this.options.nodeCapacity });
 			this.repaintSideView();
 		};
 

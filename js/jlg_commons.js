@@ -67,7 +67,7 @@ var jlg = {
 		return Math.max.apply(null, array);
 	};
 
-	jlg.min = function() {
+	jlg.min = function(array) {
 		return Math.min.apply(null, array);
 	};
 
