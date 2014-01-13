@@ -238,6 +238,9 @@ input, select, table button {
 				<button id="scenario1">Scenario 1</button>
 				<button id="scenario2">Scenario 2</button><br/>
 				<hr/>
+				<button class="change_chart" data-value="stc" data-title="STC">STC</button>
+				<button class="change_chart" data-value="nodes" data-title="Nodes">Nodes</button><br/>
+				<hr/>
 
 				<div id="stat">
 					<table>
@@ -625,24 +628,6 @@ function update_dc_dataset() {
 }
 
 function refresh_chart() {
-//	var x_min = jlg.min(dc_dataset.map(jlg.accessor('cycle')));
-//	var x_max = jlg.max(dc_dataset.map(jlg.accessor('cycle')));
-//
-//	var y_min = jlg.min(dc_dataset.map(jlg.accessor('stc')));
-//	var y_max = jlg.max(dc_dataset.map(jlg.accessor('stc')));
-//
-//	var ndx = crossfilter(dc_dataset);
-//	var dim = ndx.dimension(jlg.accessor('cycle'));
-//	stc_grp = dim.group().reduceSum(jlg.accessor('stc'));
-//	print_filter("stc_grp");
-//	chart.width(1000).height(190)
-//		.dimension(dim)
-//		.group(stc_grp)
-//		.brushOn(false)
-//		.x(d3.scale.linear().domain([x_min, x_max]))
-//		.y(d3.scale.linear().domain([y_min, y_max]));
-//	dc.renderAll();
-
 	lineChart.x(d3.scale.linear().domain([0,sys.cycle_id])).elasticX(true);
 	dc.redrawAll();
 }
@@ -668,13 +653,21 @@ function init_graph() {
 	lineChart = dc.lineChart("#chart")
 		.width(1000).height(190)
 		.dimension(xDim)
-		.group(group, 'kiki')
+		.group(group, 'STC')
 		.legend(dc.legend().x(40).y(20).itemHeight(10).gap(5))
 		.x(d3.scale.linear().domain([0,sys.cycle_id]))
 		.elasticY(true)
 		.brushOn(false);
 	dc.renderAll();
 }
+
+$('.change_chart').click(function() {
+	var val_to_show = $(this).attr('data-value');
+	var title = $(this).attr('data-title');
+	group = xDim.group().reduceSum(jlg.accessor(val_to_show));
+	lineChart.group(group, title);
+	refresh_chart();
+});
 
 
 // For crossfilter debuging.
