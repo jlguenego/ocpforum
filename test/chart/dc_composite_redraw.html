@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<base href="../../" />
+		<meta charset="utf-8" />
+
+
+		<script type="text/javascript" src="_ext/d3.v3.min.js"></script>
+		<script type="text/javascript" src="_ext/crossfilter.min.js"></script>
+		<script type="text/javascript" src="_ext/dc.js"></script>
+		<script src="_ext/jquery-1.10.2.min.js"></script>
+
+		<link rel="stylesheet" href="_ext/dc.css" />
+
+		<script src="js/jlg_commons.js"></script>
+	</head>
+
+	<body>
+		<button id="continue">Continue</button>
+		<button id="total">Total</button>
+		<button id="404">404</button>
+		<button id="200">200</button>
+		<button id="302">302</button>
+		<div id="chart-line-hitsperday"></div>
+		<script>
+var counter = 0;
+var ndx = crossfilter();
+
+var dateDim = ndx.dimension(dc.pluck('date'));
+
+var http_404 = dateDim.group().reduceSum(dc.pluck('http_404'));
+var http_200 = dateDim.group().reduceSum(dc.pluck('http_200'));
+var http_302 = dateDim.group().reduceSum(dc.pluck('http_302'));
+var total = dateDim.group().reduceSum(dc.pluck('total'));
+
+var chart = dc.compositeChart("#chart-line-hitsperday");
+chart
+	.width(500).height(200)
+	.dimension(dateDim)
+	.group(total)
+	.x(d3.scale.linear().domain([0,0]))
+	.elasticX(true)
+	.elasticY(true)
+	.brushOn(false)
+	.legend(dc.legend().x(40).y(20).itemHeight(10).gap(5))
+	.renderTitle(true)
+	.title('coucou');
+
+var lineChart = dc.lineChart(chart)
+        .dimension(dateDim)
+        .colors('blue')
+        .group(total, "Total");
+chart.compose([ lineChart ]);
+
+dc.renderAll();
+
+$('#continue').click(function() {
+	for (var i = 0; i < 10; i++) {
+		var d = {
+			date: counter,
+			http_404: Math.floor(Math.random() * 200),
+			http_200: Math.floor(Math.random() * 200),
+			http_302: Math.floor(Math.random() * 200)
+		};
+		d.total= d.http_404+d.http_200+d.http_302;
+		counter++;
+
+		ndx.add([d]);
+		dc.redrawAll();
+	}
+});
+
+$('#200').click(function() {
+	lineChart.group(http_200, '200');
+	dc.redrawAll();
+});
+$('#404').click(function() {
+	lineChart.group(http_404, '404');
+	dc.redrawAll();
+});
+$('#302').click(function() {
+	lineChart.group(http_302, '302');
+	dc.redrawAll();
+});
+$('#total').click(function() {
+	lineChart.group(total, 'Total');
+	dc.redrawAll();
+});
+		</script>
+	</body>
+</html>

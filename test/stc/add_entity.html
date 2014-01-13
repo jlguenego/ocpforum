@@ -159,6 +159,10 @@ input, select, table button {
 	border-collapse: collapse;
 }
 
+#view table td, #view table th {
+	font-size: 12px;
+}
+
 #view tr.selected {
 	background-color: #FFC68C;
 }
@@ -167,7 +171,7 @@ input, select, table button {
 	font-weight: bold;
 }
 
-#view .stc, #view .nodes {
+#view .stc, #view .nodes, #view .volume {
 	text-align: right;
 }
 		</style>
@@ -265,11 +269,13 @@ input, select, table button {
 						<tr>
 							<th>Actor</td>
 							<th class="stc">STC</td>
+							<th class="volume">Volume</td>
 							<th class="nodes">Nodes</td>
 						</tr>
 						<tr class="total">
 							<th>Total</td>
 							<th class="stc">0</td>
+							<th class="volume">0 GB</td>
 							<th class="nodes">0</td>
 						</tr>
 					</table>
@@ -285,9 +291,15 @@ var nodeIndex = 0;
 var nodeCounter = 0;
 
 // CHART STUFF
-var dc_dataset = [{ cycle: 0, stc: 0 }];
-var stc_grp = null;
-var chart = dc.lineChart("#chart");
+var ndx;
+var xDim;
+var group;
+var lineChart;
+var dataset = [{
+	cycle: 0,
+	stc: 0,
+	nodes: 0
+}];
 // END CHART STUFF
 
 var onObjectSelected = function(object) {
@@ -362,7 +374,7 @@ function start() {
 	sys.repaintSideView();
 
 	refresh_options();
-	refresh_chart();
+	init_graph();
 }
 
 function set_screen_size() {
@@ -571,18 +583,6 @@ $('#stat').get(0).addEventListener("system_stat", function(e) {
 	var stats = e.detail;
 	var el = $(this);
 
-	switch (stats.action) {
-		case 'add_actor':
-			break;
-		case 'add_node':
-			break;
-		case 'remove_node':
-			break;
-		case 'next_cycle':
-			update_dc_dataset();
-			refresh_chart();
-			break;
-	}
 
 	el.find('.actors').html(sys.actors.length);
 	el.find('.nodes').html(sys.nodes.length);
@@ -597,43 +597,85 @@ $('#stat').get(0).addEventListener("system_stat", function(e) {
 	el.find('.stc_gb').html(stc.toFixed(2) + ' GB')
 		.attr('data-value', stc.toFixed(2));
 
-
+	switch (stats.action) {
+		case 'add_actor':
+			break;
+		case 'add_node':
+			break;
+		case 'remove_node':
+			break;
+		case 'next_cycle':
+			update_dc_dataset();
+			refresh_chart();
+			break;
+	}
 });
 
 function update_dc_dataset() {
 	var stc = $('#stat').find('.stc_gb').attr('data-value');
 
-	dc_dataset.push({
+	dataset.push({
 		cycle: sys.cycle_id,
-		stc: stc
+		stc: stc,
+		nodes: sys.nodes.length
 	});
+	ndx.remove();
+	ndx.add(dataset);
+	console.log(dataset);
 }
 
 function refresh_chart() {
-	var x_min = jlg.min(dc_dataset.map(jlg.accessor('cycle')));
-	var x_max = jlg.max(dc_dataset.map(jlg.accessor('cycle')));
+//	var x_min = jlg.min(dc_dataset.map(jlg.accessor('cycle')));
+//	var x_max = jlg.max(dc_dataset.map(jlg.accessor('cycle')));
+//
+//	var y_min = jlg.min(dc_dataset.map(jlg.accessor('stc')));
+//	var y_max = jlg.max(dc_dataset.map(jlg.accessor('stc')));
+//
+//	var ndx = crossfilter(dc_dataset);
+//	var dim = ndx.dimension(jlg.accessor('cycle'));
+//	stc_grp = dim.group().reduceSum(jlg.accessor('stc'));
+//	print_filter("stc_grp");
+//	chart.width(1000).height(190)
+//		.dimension(dim)
+//		.group(stc_grp)
+//		.brushOn(false)
+//		.x(d3.scale.linear().domain([x_min, x_max]))
+//		.y(d3.scale.linear().domain([y_min, y_max]));
+//	dc.renderAll();
 
-	var y_min = jlg.min(dc_dataset.map(jlg.accessor('stc')));
-	var y_max = jlg.max(dc_dataset.map(jlg.accessor('stc')));
-
-	var ndx = crossfilter(dc_dataset);
-	var dim = ndx.dimension(jlg.accessor('cycle'));
-	stc_grp = dim.group().reduceSum(jlg.accessor('stc'));
-	print_filter("stc_grp");
-	chart.width(1000).height(190)
-		.dimension(dim)
-		.group(stc_grp)
-		.brushOn(false)
-		.x(d3.scale.linear().domain([x_min, x_max]))
-		.y(d3.scale.linear().domain([y_min, y_max]));
-	dc.renderAll();
+	lineChart.x(d3.scale.linear().domain([0,sys.cycle_id])).elasticX(true);
+	dc.redrawAll();
 }
 
 function reset_chart() {
-	dc_dataset = [{ cycle: 0, stc: 0 }];
-	stc_grp = null;
-	refresh_chart();
+	dataset = [{
+		cycle: 0,
+		stc: 0,
+		nodes: 0
+	}];
+	group = null;
+	if (sys) {
+		refresh_chart();
+	}
 }
+
+
+
+function init_graph() {
+	ndx = crossfilter();
+	xDim = ndx.dimension(function(d) {return d.cycle;});
+	group = xDim.group().reduceSum(function(d) {return d.stc;});
+	lineChart = dc.lineChart("#chart")
+		.width(1000).height(190)
+		.dimension(xDim)
+		.group(group, 'kiki')
+		.legend(dc.legend().x(40).y(20).itemHeight(10).gap(5))
+		.x(d3.scale.linear().domain([0,sys.cycle_id]))
+		.elasticY(true)
+		.brushOn(false);
+	dc.renderAll();
+}
+
 
 // For crossfilter debuging.
 function print_filter(filter){

@@ -40,20 +40,29 @@ data.forEach(function(d) {
 print_filter("data");
 
 var dateDim = ndx.dimension(function(d) {return d.date;});
-var hits = dateDim.group().reduceSum(dc.pluck('total'));
-print_filter("hits");
-console.log(hits);
+var http_404 = dateDim.group().reduceSum(dc.pluck('http_404'));
+var http_200 = dateDim.group().reduceSum(dc.pluck('http_200'));
+var http_302 = dateDim.group().reduceSum(dc.pluck('http_302'));
+var total = dateDim.group().reduceSum(dc.pluck('total'));
+print_filter("http_404");
+print_filter("http_200");
+print_filter("http_302");
+print_filter("total");
 
 var minDate = dateDim.bottom(1)[0].date;
 var maxDate = dateDim.top(1)[0].date;
 
-var hitslineChart = dc.lineChart("#chart-line-hitsperday");
-hitslineChart
+var chart = dc.lineChart("#chart-line-hitsperday");
+chart
 	.width(500).height(200)
 	.dimension(dateDim)
-	.group(hits)
 	.x(d3.time.scale().domain([minDate,maxDate]))
-	//.brushOn(false);
+	.brushOn(false)
+	.legend(dc.legend().x(40).y(20).itemHeight(13).gap(5))
+	.group(total, "Total")
+	.stack(http_404, "404")
+	.stack(http_200, "200")
+	.stack(http_302, "302");
 dc.renderAll();
 
 

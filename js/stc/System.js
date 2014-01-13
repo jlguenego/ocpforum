@@ -454,7 +454,13 @@
 			var new_tr = tr.enter().insert('tr').classed('actor', true);
 			new_tr.append('td').classed('name', true);
 			new_tr.append('td').classed('stc', true);
+			new_tr.append('td').classed('volume', true);
 			new_tr.append('td').classed('nodes', true);
+
+			var gb_per_stc = this.totalSTC / (this.nodes.length * this.options.nodeCapacity);
+			if (this.nodes.length < 1) {
+				stc_rate = 0;
+			}
 
 			tr.select('td.name').text(jlg.accessor('name'));
 			tr.select('td.stc').text(function(d) {
@@ -462,6 +468,9 @@
 			});
 			tr.select('td.nodes').text(function(d) {
 				return d.nodes.length;
+			});
+			tr.select('td.volume').text(function(d) {
+				return (d.amount / gb_per_stc).toFixed(2) + ' GB';
 			});
 
 			tr.classed('selected', function(d) {
@@ -476,6 +485,7 @@
 			var total = this.sideView.select('table.actors').append('tr').classed('total', true);
 			total.append('th').classed('name', true).text('Total');
 			total.append('th').classed('stc', true).text(this.totalSTC.toFixed(5));
+			total.append('th').classed('volume', true).text(this.nodes.length * this.options.nodeCapacity + ' GB');
 			total.append('th').classed('nodes', true).text(this.nodes.length);
 		};
 
