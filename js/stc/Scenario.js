@@ -71,6 +71,28 @@
 			this.sys.nextCycle(this.thread);
 		};
 
+		this.doCycle = function() {
+			var n = Math.floor(Math.randomize(1, 2) * this.actors.length);
+			n = Math.max(n, 10);
+			for (var i = 0; i < n; i++) {
+				var p = Math.randomize(1, 100);
+				if (p < 15) {
+					this.addProvider();
+				} else if (p < 60) {
+					var a = Math.randomizeInt(0, this.actors.length - 1);
+					this.addNode(a);
+				} else {
+					if (this.nodes.length > 0) {
+						var node_index = Math.randomizeInt(0, this.nodes.length - 1);
+						this.removeNode(node_index);
+					}
+				}
+
+			}
+
+			this.nextCycle();
+		};
+
 		this.start = function() {
 			this.thread.finish();
 			this.thread.start();

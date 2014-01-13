@@ -236,7 +236,8 @@ input, select, table button {
 				<button id="debug">Debug</button><br/>
 				<hr/>
 				<button id="scenario1">Scenario 1</button>
-				<button id="scenario2">Scenario 2</button><br/>
+				<button id="scenario2">Scenario 2</button>
+				<button id="scenario3">Scenario 3</button><br/>
 				<hr/>
 				<button class="change_chart" data-value="stc" data-title="STC">STC</button>
 				<button class="change_chart" data-value="nodes" data-title="Nodes">Nodes</button><br/>
@@ -501,6 +502,7 @@ $('#stop').click(function() {
 
 $('#scenario1').click(s1);
 $('#scenario2').click(s2);
+$('#scenario3').click(s3);
 
 function s1() {
 	start();
@@ -551,6 +553,21 @@ function s2() {
 		scenario.addRandomNodes();
 
 		scenario.nextCycle();
+	}
+
+	scenario.start();
+}
+
+function s3() {
+	start();
+
+	var scenario = new stc.Scenario(sys);
+
+	scenario.addProvider();
+
+	var cycle_qty = 20;
+	for (var i = 0; i < cycle_qty; i++) {
+		scenario.doCycle();
 	}
 
 	scenario.start();
