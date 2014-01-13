@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<base href="../../ocpforum/" />
+		<meta charset="utf-8" />
+
+		<script src="_ext/d3.v3.min.js"></script>
+		<script src="_ext/jquery-1.10.2.min.js"></script>
+		<script type="text/javascript" src="_ext/crossfilter.min.js"></script>
+		<script type="text/javascript" src="_ext/dc.min.js"></script>
+		<script type="text/javascript" src="js/jlg_commons.js"></script>
+		<link rel="stylesheet" href="_ext/dc.css" />
+		<style>
+
+		</style>
+	</head>
+
+	<body>
+		<button id="continue">Continue</button>
+		<button id="f1">Sinus</button>
+		<button id="f2">Cosinus</button>
+		<div id="frame">
+		</div>
+		<script>
+
+function generate_dataset(min, max, sampling_nbr, f) {
+	var dataset = [];
+	for (var i = 0; i < sampling_nbr; i++) {
+		var x = min + (max - min) * i / sampling_nbr;
+		var y = f(x);
+		dataset.push({ x: x, y: y });
+	}
+	return dataset;
+}
+
+
+var min = 0;
+var max = 4* Math.PI;
+var sampling_nbr = 40;
+var f1 = Math.sin;
+var f2 = Math.cos;
+var f = f1;
+var dataset = [];
+
+var ndx;
+var xDim;
+var group;
+var lineChart;
+
+var dataset1 = [];
+var dataset2 = [];
+var dataset = dataset1;
+
+function init_graph() {
+	ndx = crossfilter();
+	//ndx = crossfilter([ { x: 0, y: 0 } ]);
+	//ndx = crossfilter(generate_dataset(min, max, 50, Math.sin));
+	xDim = ndx.dimension(function(d) {return d.x;});
+	group = xDim.group().reduceSum(function(d) {return d.y;});
+	lineChart = dc.lineChart("#frame")
+		.width(500).height(200)
+		.dimension(xDim)
+		.group(group)
+		.x(d3.scale.linear().domain([min,max]))
+		.elasticY(true)
+		;
+	dc.renderAll();
+}
+
+function plot(samples) {
+
+	for (var i = 0; i < samples; i++) {
+		var size = dataset.length;
+		var x = min + (max - min) * size / sampling_nbr;
+		var y = f(x);
+		var p = { x: x, y: y };
+		dataset.push(p);
+		ndx.add([{ x: x, y: y }]);
+		var size = ndx.size();
+		console.log('size=' + size);
+		var new_max = min + (max - min) * size / sampling_nbr;
+
+		lineChart.x(d3.scale.linear().domain([min,new_max])).elasticX(true);
+
+		dc.redrawAll();
+	}
+
+}
+
+init_graph();
+
+$('#continue').click(function() {
+	console.log('click');
+	plot(10);
+});
+
+function switch_to(new_ds, new_f) {
+	return function() {
+		f = new_f;
+		dataset = new_ds;
+		ndx.remove();
+		ndx.add(dataset);
+		var new_max = min + (max - min) * dataset.length / sampling_nbr;
+		lineChart.x(d3.scale.linear().domain([min,new_max])).elasticX(true);
+		dc.redrawAll();
+	}
+}
+
+$('#f1').click(switch_to(dataset1, f1));
+$('#f2').click(switch_to(dataset2, f2));
+
+
+		</script>
+	</body>
+</html>

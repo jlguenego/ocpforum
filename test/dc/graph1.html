@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<base href="../../ocpforum/" />
+		<meta charset="utf-8" />
+
+		<script src="_ext/d3.v3.min.js"></script>
+		<script src="_ext/jquery-1.10.2.min.js"></script>
+		<script type="text/javascript" src="_ext/crossfilter.min.js"></script>
+		<script type="text/javascript" src="_ext/dc.min.js"></script>
+		<script type="text/javascript" src="js/jlg_commons.js"></script>
+		<link rel="stylesheet" href="_ext/dc.css" />
+		<style>
+
+		</style>
+	</head>
+
+	<body>
+		<div id="frame">
+		</div>
+		<script>
+
+function generate_dataset(min, max, sampling_nbr, f) {
+	var dataset = [];
+	for (var i = 0; i < sampling_nbr; i++) {
+		var x = min + (max - min) * i / sampling_nbr;
+		var y = f(x);
+		dataset.push({ x: x, y: y });
+	}
+	return dataset;
+}
+
+var min = 0;
+var max = 4* Math.PI;
+var dataset = generate_dataset(min, max, 500, Math.sin);
+console.log(dataset);
+var ndx = crossfilter(dataset);
+
+var xDim = ndx.dimension(function(d) {return d.x;});
+var group = xDim.group().reduceSum(function(d) {return d.y;});
+
+var lineChart  = dc.lineChart("#frame");
+lineChart
+	.width(500).height(200)
+	.dimension(xDim)
+	.group(group)
+	.x(d3.scale.linear().domain([min,max]));
+dc.renderAll();
+
+		</script>
+	</body>
+</html>
