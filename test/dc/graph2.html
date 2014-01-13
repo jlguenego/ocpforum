@@ -60,9 +60,11 @@ function init_graph() {
 	lineChart = dc.lineChart("#frame")
 		.width(500).height(200)
 		.dimension(xDim)
-		.group(group)
+		.group(group, 'kiki')
+		.legend(dc.legend().x(40).y(20).itemHeight(10).gap(5))
 		.x(d3.scale.linear().domain([min,max]))
 		.elasticY(true)
+		.brushOn(false)
 		;
 	dc.renderAll();
 }
