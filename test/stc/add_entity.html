@@ -34,7 +34,7 @@ html, body {
 
 #param {
 	float: left;
-	width: 250px;
+	width: 300px;
 	height: 600px;
 	overflow: auto;
 
@@ -229,8 +229,9 @@ input, select, table button {
 				</div>
 				<hr/>
 				<button id="start">Start</button>
-				<button id="stop">Stop</button>
-				<button id="next_cycle" disabled="disabled">Next cycle</button><br/>
+				<button id="stop">Stop</button><br/>
+				<button id="next_cycle" disabled="disabled">Next cycle</button>
+				<button id="do_cycle" disabled="disabled">Do cycle</button><br/>
 				<button id="add_actor" disabled="disabled">Add actor</button><input type="number" id="actor_qty" min="1" max="99" value="1" disabled="disabled" />
 				<button id="add_node" disabled="disabled">Add Node</button><input type="number" id="node_qty" min="1" max="99" value="1" disabled="disabled" /><br/>
 				<button id="debug">Debug</button><br/>
@@ -363,6 +364,7 @@ function start() {
 	$('#add_actor').attr('disabled', null);
 	$('#actor_qty').attr('disabled', null);
 	$('#next_cycle').attr('disabled', null);
+	$('#do_cycle').attr('disabled', null);
 
 	d3.select('#frame').select('svg').remove();
 	var svg = d3.select('#frame').append('svg');
@@ -494,6 +496,15 @@ $('#next_cycle').click(function() {
 
 	thread.finish();
 	thread.start();
+});
+
+$('#do_cycle').click(function() {
+	refresh_options();
+	var scenario = new stc.Scenario(sys);
+	stc.Utils.disableButton(scenario.thread, '#do_cycle');
+	scenario.doCycle();
+	stc.Utils.enableButton(scenario.thread, '#do_cycle');
+	scenario.start();
 });
 
 $('#stop').click(function() {
