@@ -352,7 +352,7 @@ var dataset = [{
 }];
 var actor_dataset_aa = {};
 var chart_group_selector = 'system';
-var current_chart_title = '';
+var current_chart_title = 'STC';
 // END CHART STUFF
 
 var onObjectSelected = function(object) {
@@ -627,19 +627,9 @@ function s2() {
 
 	scenario.addProvider();
 
-	var cycle_qty = 20;
+	var cycle_qty = 3;
 	for (var i = 0; i < cycle_qty; i++) {
-
-		// Remove some node(s).
-		scenario.removeRandomNodes(0.5);
-
-		// Add some provider(s).
-		scenario.addRandomProviders(0, 3);
-
-		// Add some node(s).
-		scenario.addRandomNodes();
-
-		scenario.nextCycle();
+		scenario.doCycle();
 	}
 
 	scenario.start();
@@ -727,21 +717,19 @@ $('#stat').get(0).addEventListener("system_stat", function(e) {
 });
 
 function update_dataset() {
-	var stc = $('#stat').find('.stc_gb').attr('data-value');
+	var gb_per_stc = 0;
+	if (sys.nodes.length > 0) {
+		gb_per_stc = (sys.nodes.length * sys.options.nodeCapacity) / sys.totalSTC;
+	}
 
 	dataset.push({
 		cycle: sys.cycle_id,
-		stc: stc,
+		stc: gb_per_stc,
 		total_stc: sys.totalSTC,
 		nodes: sys.nodes.length,
 		actors: sys.actors.length,
 		capacity: sys.nodes.length * sys.options.nodeCapacity
 	});
-
-	var stc_per_gb = 0;
-	if (sys.nodes.length > 0) {
-		stc_per_gb = sys.totalSTC / (sys.nodes.length * sys.options.nodeCapacity);
-	}
 
 	for (var i = 0; i < sys.actors.length; i++) {
 		var actor = sys.actors[i];
@@ -749,7 +737,7 @@ function update_dataset() {
 			cycle: sys.cycle_id,
 			stc: actor.amount,
 			nodes: actor.nodes.length,
-			volume: (actor.amount / stc_per_gb).toFixed(2)
+			volume: (actor.amount * gb_per_stc).toFixed(2)
 		});
 	}
 
