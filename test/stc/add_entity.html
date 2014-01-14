@@ -351,7 +351,7 @@ var dataset = [{
 	capacity: 0
 }];
 var actor_dataset_aa = {};
-var current_dataset = 'system';
+var chart_group_selector = 'system';
 var current_chart_title = '';
 // END CHART STUFF
 
@@ -362,20 +362,16 @@ var onObjectSelected = function(object) {
 		$('#node_qty').attr('disabled', false);
 		$('#chart_buttons .actor button').attr('disabled', false);
 
+		// Disable nodes buttons
+		$('#rm_node').attr('disabled', false);
+
 		var actorMenu = $('.param_body.actor');
 		actorMenu.find('.name').html(object.name);
 		actorMenu.find('.amount').html(object.amount);
 		$('.menu [data-body=actor]').click();
 
-		if (current_dataset != 'actor') {
-			current_dataset = 'actor';
-			group = xDim.group().reduceSum(jlg.accessor('stc'));
-			current_chart_title = 'STC';
-		}
+		update_chart('actor');
 		refresh_chart();
-
-		// Disable nodes buttons
-		$('#rm_node').attr('disabled', false);
 	}
 
 	if (object instanceof stc.Node) {
@@ -396,7 +392,8 @@ var onObjectSelected = function(object) {
 		$('#node_qty').attr('disabled', true);
 		$('#chart_buttons .actor button').attr('disabled', true);
 
-		display_system_chart();
+		update_chart('system');
+		refresh_chart();
 	}
 };
 
@@ -414,15 +411,15 @@ var onObjectDeselected = function(object) {
 	nodeMenu.find('.name').html('');
 	nodeMenu.find('.owner').html('');
 
-	display_system_chart();
+	update_chart('system');
+	refresh_chart();
 };
 
-function display_system_chart() {
-	if (current_dataset != 'system') {
-		current_dataset = 'system';
+function update_chart(selector) {
+	if (chart_group_selector != selector) {
+		chart_group_selector = selector;
 		group = xDim.group().reduceSum(jlg.accessor('stc'));
-		lineChart.group(group, 'STC');
-		refresh_chart();
+		current_chart_title = 'STC';
 	}
 }
 
@@ -761,9 +758,10 @@ function update_dataset() {
 
 function refresh_chart() {
 	ndx.remove();
-	if (current_dataset == 'system') {
+	if (chart_group_selector == 'system') {
 		ndx.add(dataset);
-	} else if (current_dataset == 'actor' && sys.selectedObject instanceof stc.Actor) {
+		lineChart.group(group, current_chart_title);
+	} else {
 		ndx.add(actor_dataset_aa[sys.selectedObject.name]);
 		lineChart.group(group, sys.selectedObject.name + ' ' + current_chart_title);
 	}
@@ -806,24 +804,21 @@ function init_graph() {
 }
 
 $('.change_chart').click(function() {
-	var title = $(this).html();
-	set_chart($(this), title);
-	current_dataset = 'system';
+	set_chart($(this));
+	chart_group_selector = 'system';
 	refresh_chart();
 });
 
 $('.change_chart_actor').click(function() {
-	current_chart_title = $(this).html();
-	var title = sys.selectedObject.name + ' ' + current_chart_title;
-	set_chart($(this), title);
-	current_dataset = 'actor'
+	set_chart($(this));
+	chart_group_selector = 'actor'
 	refresh_chart();
 });
 
-function set_chart(el, title) {
+function set_chart(el) {
+	current_chart_title = el.html();
 	var val_to_show = el.attr('data-value');
 	group = xDim.group().reduceSum(jlg.accessor(val_to_show));
-	lineChart.group(group, title);
 }
 
 
