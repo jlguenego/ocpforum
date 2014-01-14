@@ -538,5 +538,18 @@
 			console.log(stc_amount);
 			thread.next();
 		};
+
+		this.publishOffer = function(thread, provider, percent) {
+			thread.push({
+				function: this._publishOffer,
+				args: arguments,
+				name: 'publishOffer',
+				object: this
+			});
+		};
+
+		this._publishOffer = function(thread, provider, percent) {
+			thread.next();
+		};
 	};
 })(stc)

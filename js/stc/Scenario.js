@@ -32,25 +32,23 @@
 			context.consumers.push(actor);
 		};
 
-		this.randomBuy = function() {
-			var t = new Thread('buy');
-			t.execute(function() {
-				if (self.context.consumers.length > 0 && self.context.providers.length > 0) {
-					var consumer_i = Math.randomizeInt(0, self.context.consumers.length - 1);
-					var consumer = this.context.consumers[consumer_i];
-					var provider_i = Math.randomizeInt(0, self.context.providers.length - 1);
-					var provider = self.context.providers[provider_i];
-
-					var stc_amount = Math.randomize(0, provider.amount);
-					self.buy(consumer, provider, stc_amount);
-				}
-			});
-			this.thread.startThread(t);
-			this.thread.wait(t);
-		};
-
 		this.buy = function(consumer, provider, stc_amount) {
 			this.sys.buy(this.thread, consumer, provider, stc_amount);
+		};
+
+		this.publishOffers = function() {
+			for (var i = 0; i < this.context.providers.length; i++) {
+				var provider = this.context.providers[i];
+				var offer = this.context.offers_aa[provider.name];
+				if (offer) {
+					delete this.context.offers_aa[provider.name];
+				}
+				var p = Math.randomize(0, 100);
+				if (p < 40) {
+					var percent = Math.randomize(0, 100);
+					this.sys.publishOffer(this.thread, provider, percent);
+				}
+			}
 		};
 
 		this.addNode = function(index) {
@@ -100,9 +98,7 @@
 			n = Math.max(n, 10);
 			for (var i = 0; i < n; i++) {
 				var p = Math.randomize(1, 100);
-				if (p < 5) {
-					this.addConsumer();
-				} else if (p < 15) {
+				if (p < 15) {
 					this.addProvider();
 				} else if (p < 60) {
 					var a = Math.randomizeInt(0, context.providers.length - 1);

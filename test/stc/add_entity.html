@@ -273,8 +273,7 @@ input, select, table button {
 				<hr/>
 				<button id="scenario1">Scenario 1</button>
 				<button id="scenario2">Scenario 2</button>
-				<button id="scenario3">Scenario 3</button>
-				<button id="scenario4">Scenario 4</button><br/>
+				<button id="scenario3">Scenario 3</button><br/>
 				<hr/>
 
 				<div id="stat">
@@ -607,7 +606,6 @@ $('#stop').click(function() {
 $('#scenario1').click(s1);
 $('#scenario2').click(s2);
 $('#scenario3').click(s3);
-$('#scenario4').click(s4);
 
 function s1() {
 	start();
@@ -663,19 +661,6 @@ function s3() {
 	for (var i = 0; i < cycle_qty; i++) {
 		scenario.doCycle();
 	}
-
-	scenario.start();
-}
-
-function s4() {
-	start();
-
-	var scenario = new stc.Scenario(sys, context);
-
-	scenario.addProvider();
-	scenario.addConsumer();
-	scenario.nextCycle();
-	scenario.buy(context.consumers[0], context.providers[0], 80);
 
 	scenario.start();
 }
