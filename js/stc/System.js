@@ -517,5 +517,26 @@
 			thread.finish();
 			thread.start();
 		};
+
+		this.buy = function(thread, consumer, provider, stc_amount) {
+			thread.push({
+				function: this._buy,
+				args: arguments,
+				name: 'buy',
+				object: this
+			});
+		};
+
+		this._buy = function(thread, consumer, provider, stc_amount) {
+			if (provider.amount < stc_amount) {
+				throw new Error('Not enough STC for the transaction.');
+			}
+			consumer.amount += stc_amount;
+			provider.amount -= stc_amount;
+			console.log(consumer);
+			console.log(provider);
+			console.log(stc_amount);
+			thread.next();
+		};
 	};
 })(stc)

@@ -8,13 +8,13 @@
 		this.thread = new Thread('main');
 
 		this.addProvider = function() {
-			var actor = new stc.Actor('Provider_' + this.context.actorIndex);
-			this.context.actorIndex++;
+			var actor = new stc.Actor('Provider_' + this.context.providerIndex);
+			this.context.providerIndex++;
 
 			this.sys.addActor(this.thread, actor);
-			context.actors.push(actor);
+			context.providers.push(actor);
 
-			this.addNode(context.actors.length - 1);
+			this.addNode(context.providers.length - 1);
 		};
 
 		this.addRandomProviders = function(min, max) {
@@ -25,15 +25,36 @@
 		};
 
 		this.addConsumer = function() {
-			var actor = new stc.Actor('Consumer_' + this.context.actorIndex);
-			this.context.actorIndex++;
+			var actor = new stc.Actor('Consumer_' + this.context.userIndex);
+			this.context.userIndex++;
 
 			this.sys.addActor(this.thread, actor);
-			context.actors.push(actor);
+			context.consumers.push(actor);
+		};
+
+		this.randomBuy = function() {
+			var t = new Thread('buy');
+			t.execute(function() {
+				if (self.context.consumers.length > 0 && self.context.providers.length > 0) {
+					var consumer_i = Math.randomizeInt(0, self.context.consumers.length - 1);
+					var consumer = this.context.consumers[consumer_i];
+					var provider_i = Math.randomizeInt(0, self.context.providers.length - 1);
+					var provider = self.context.providers[provider_i];
+
+					var stc_amount = Math.randomize(0, provider.amount);
+					self.buy(consumer, provider, stc_amount);
+				}
+			});
+			this.thread.startThread(t);
+			this.thread.wait(t);
+		};
+
+		this.buy = function(consumer, provider, stc_amount) {
+			this.sys.buy(this.thread, consumer, provider, stc_amount);
 		};
 
 		this.addNode = function(index) {
-			var node = new stc.Node('Node_' + this.context.nodeIndex, context.actors[index]);
+			var node = new stc.Node('Node_' + this.context.nodeIndex, context.providers[index]);
 			this.context.nodeIndex++;
 
 			this.sys.addNode(this.thread, node);
@@ -54,7 +75,7 @@
 		};
 
 		this.addRandomNodes = function() {
-			for (var j = 0; j < context.actors.length; j++) {
+			for (var j = 0; j < context.providers.length; j++) {
 				if (Math.randomizeInt(0, 10) > 5) {
 					// Don't add node for this actor.
 					continue;
@@ -72,17 +93,19 @@
 		};
 
 		this.doCycle = function() {
-			if (context.actors.length < 1) {
+			if (context.providers.length < 1) {
 				this.addProvider();
 			}
-			var n = Math.floor(Math.randomize(1, 2) * context.actors.length);
+			var n = Math.floor(Math.randomize(1, 2) * (context.providers.length + context.consumers.length));
 			n = Math.max(n, 10);
 			for (var i = 0; i < n; i++) {
 				var p = Math.randomize(1, 100);
-				if (p < 15) {
+				if (p < 5) {
+					this.addConsumer();
+				} else if (p < 15) {
 					this.addProvider();
 				} else if (p < 60) {
-					var a = Math.randomizeInt(0, context.actors.length - 1);
+					var a = Math.randomizeInt(0, context.providers.length - 1);
 					this.addNode(a);
 				} else {
 					if (context.nodes.length > 0) {
@@ -90,9 +113,7 @@
 						this.removeNode(node_index);
 					}
 				}
-
 			}
-
 			this.nextCycle();
 		};
 

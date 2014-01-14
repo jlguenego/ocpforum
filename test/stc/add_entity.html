@@ -273,7 +273,8 @@ input, select, table button {
 				<hr/>
 				<button id="scenario1">Scenario 1</button>
 				<button id="scenario2">Scenario 2</button>
-				<button id="scenario3">Scenario 3</button><br/>
+				<button id="scenario3">Scenario 3</button>
+				<button id="scenario4">Scenario 4</button><br/>
 				<hr/>
 
 				<div id="stat">
@@ -341,9 +342,11 @@ input, select, table button {
 
 		<script>
 var context = {
-	actorIndex: 0,
+	providerIndex: 0,
+	userIndex: 0,
 	nodeIndex: 0,
-	actors: [],
+	providers: [],
+	consumers: [],
 	nodes: []
 }
 
@@ -441,9 +444,11 @@ function start() {
 	Math.seedrandom('Hello');
 
 	context = {
-		actorIndex: 0,
+		providerIndex: 0,
+		userIndex: 0,
 		nodeIndex: 0,
-		actors: [],
+		providers: [],
+		consumers: [],
 		nodes: []
 	}
 
@@ -527,8 +532,8 @@ $('#add_actor').click(function() {
 	});
 
 	for (var i = 0; i < actor_qty; i++) {
-		sys.addActor(thread, new stc.Actor('Provider_' + context.actorIndex));
-		context.actorIndex++;
+		sys.addActor(thread, new stc.Actor('Provider_' + context.providerIndex));
+		context.providerIndex++;
 	}
 
 	thread.execute(function() {
@@ -602,6 +607,7 @@ $('#stop').click(function() {
 $('#scenario1').click(s1);
 $('#scenario2').click(s2);
 $('#scenario3').click(s3);
+$('#scenario4').click(s4);
 
 function s1() {
 	start();
@@ -610,9 +616,9 @@ function s1() {
 
 	var actor_qty = 10;
 	for (var i = 0; i < actor_qty; i++) {
-		var actor = new stc.Actor('Provider_' + context.actorIndex);
+		var actor = new stc.Actor('Provider_' + context.providerIndex);
 		sys.addActor(thread, actor);
-		context.actorIndex++;
+		context.providerIndex++;
 
 		var node_qty = Math.randomizeInt(1, 5);
 		for (var j = 0; j < node_qty; j++) {
@@ -657,6 +663,19 @@ function s3() {
 	for (var i = 0; i < cycle_qty; i++) {
 		scenario.doCycle();
 	}
+
+	scenario.start();
+}
+
+function s4() {
+	start();
+
+	var scenario = new stc.Scenario(sys, context);
+
+	scenario.addProvider();
+	scenario.addConsumer();
+	scenario.nextCycle();
+	scenario.buy(context.consumers[0], context.providers[0], 80);
 
 	scenario.start();
 }

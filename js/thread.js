@@ -226,4 +226,15 @@ function Thread(name) {
 			object: this
 		});
 	};
+
+	this.execute_no_next = function(f) {
+		this.push({
+			function: function() {
+				f();
+			},
+			args: arguments,
+			name: 'execute',
+			object: this
+		});
+	};
 }
