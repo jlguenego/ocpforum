@@ -340,9 +340,10 @@ input, select, table button {
 		</div>
 
 		<script>
-var actorIndex = 0;
-var nodeIndex = 0;
-var nodeCounter = 0;
+var context = {
+	actorIndex: 0,
+	nodeIndex: 0
+}
 
 // CHART STUFF
 var ndx;
@@ -437,10 +438,8 @@ function start() {
 	reset_chart();
 	Math.seedrandom('Hello');
 
-	actorIndex = 0;
-	nodeIndex = 0;
-	nodeCounter = 0;
-
+	context.actorIndex = 0;
+	context.nodeIndex = 0;
 	$('.menu [data-body=actor]').removeClass('disabled');
 	$('.menu [data-body=node]').removeClass('disabled');
 	$('#add_actor').attr('disabled', null);
@@ -521,8 +520,8 @@ $('#add_actor').click(function() {
 	});
 
 	for (var i = 0; i < actor_qty; i++) {
-		sys.addActor(thread, new stc.Actor('Provider_' + actorIndex));
-		actorIndex++;
+		sys.addActor(thread, new stc.Actor('Provider_' + context.actorIndex));
+		context.actorIndex++;
 	}
 
 	thread.execute(function() {
@@ -544,9 +543,8 @@ $('#add_node').click(function() {
 	});
 
 	for (var i = 0; i < node_qty; i++) {
-		sys.addNode(thread, new stc.Node('Node_' + nodeIndex, sys.selectedObject));
-		nodeCounter++;
-		nodeIndex++;
+		sys.addNode(thread, new stc.Node('Node_' + context.nodeIndex, sys.selectedObject));
+		context.nodeIndex++;
 	}
 
 	thread.execute(function() {
@@ -583,7 +581,7 @@ $('#next_cycle').click(function() {
 
 $('#do_cycle').click(function() {
 	refresh_options();
-	var scenario = new stc.Scenario(sys);
+	var scenario = new stc.Scenario(sys, context);
 	stc.Utils.disableButton(scenario.thread, '#do_cycle');
 	scenario.doCycle();
 	stc.Utils.enableButton(scenario.thread, '#do_cycle');
@@ -605,15 +603,14 @@ function s1() {
 
 	var actor_qty = 10;
 	for (var i = 0; i < actor_qty; i++) {
-		var actor = new stc.Actor('A' + actorIndex);
+		var actor = new stc.Actor('Provider_' + context.actorIndex);
 		sys.addActor(thread, actor);
-		actorIndex++;
+		context.actorIndex++;
 
 		var node_qty = Math.randomizeInt(1, 5);
 		for (var j = 0; j < node_qty; j++) {
-			sys.addNode(thread, new stc.Node('N' + nodeIndex, actor));
-			nodeCounter++;
-			nodeIndex++;
+			sys.addNode(thread, new stc.Node('Node_' + context.nodeIndex, actor));
+			context.nodeIndex++;
 		}
 	}
 
@@ -630,7 +627,7 @@ function s1() {
 function s2() {
 	start();
 
-	var scenario = new stc.Scenario(sys);
+	var scenario = new stc.Scenario(sys, context);
 
 	scenario.addProvider();
 
@@ -645,7 +642,7 @@ function s2() {
 function s3() {
 	start();
 
-	var scenario = new stc.Scenario(sys);
+	var scenario = new stc.Scenario(sys, context);
 
 	scenario.addProvider();
 
@@ -747,8 +744,6 @@ function update_dataset() {
 			volume: (actor.amount * gb_per_stc).toFixed(2)
 		});
 	}
-
-	console.log(actor_dataset_aa);
 }
 
 function refresh_chart() {

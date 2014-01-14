@@ -1,17 +1,18 @@
 (function(sim, undefined) {
-	stc.Scenario = function(sys) {
+	stc.Scenario = function(sys, context) {
 		var self = this;
 
 		this.sys = sys;
-		this.actors = [];
-		this.nodes = [];
-		this.actor_seq = new jlg.Sequence();
-		this.node_seq = new jlg.Sequence();
+		this.context = context;
+
+		this.actors = sys.actors.slice(0);
+		this.nodes = sys.nodes.slice(0);
 
 		this.thread = new Thread('main');
 
 		this.addProvider = function() {
-			var actor = new stc.Actor('Provider_' + this.actor_seq.next());
+			var actor = new stc.Actor('Provider_' + this.context.actorIndex);
+			this.context.actorIndex++;
 
 			this.sys.addActor(this.thread, actor);
 			this.actors.push(actor);
@@ -27,14 +28,16 @@
 		};
 
 		this.addConsumer = function() {
-			var actor = new stc.Actor('Consumer_' + this.actor_seq.next());
+			var actor = new stc.Actor('Consumer_' + this.context.actorIndex);
+			this.context.actorIndex++;
 
 			this.sys.addActor(this.thread, actor);
 			this.actors.push(actor);
 		};
 
 		this.addNode = function(index) {
-			var node = new stc.Node('Node_' + this.node_seq.next(), this.actors[index]);
+			var node = new stc.Node('Node_' + this.context.nodeIndex, this.actors[index]);
+			this.context.nodeIndex++;
 
 			this.sys.addNode(this.thread, node);
 			this.nodes.push(node);

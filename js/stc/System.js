@@ -201,6 +201,14 @@
 		};
 
 		this._addNode = function(thread, node) {
+			var already_exists = jlg.find(this.nodes, function(d) {
+				return d.name == node.name;
+			});
+
+			if (already_exists) {
+				throw new Error('Node already exists with name=' + node.name);
+			}
+
 			node.x = Math.randomize(0, this.svgbox.x);
 			node.y = Math.randomize(0, this.svgbox.y);
 
