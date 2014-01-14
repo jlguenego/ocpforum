@@ -74,14 +74,15 @@ input, select, table button {
 
 #stat table {
 	width: 100%;
+	white-space: nowrap;
 }
 
 #stat th {
 	text-align: right;
+	width: 0px;
 }
 
 #stat td {
-	min-width: 90px;
 	text-align: left;
 }
 
@@ -497,8 +498,8 @@ function refresh_options() {
 	sys.options.nodeCapacity = 50;
 
 	sys.options.duration = {
-		addActor: 200,
-		addNode: 200
+		addActor: 20,
+		addNode: 20
 	};
 }
 
