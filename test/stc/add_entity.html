@@ -36,7 +36,7 @@ html, body {
 	float: left;
 	width: 300px;
 	height: 600px;
-	overflow: auto;
+	overflow: hidden;
 
 	background-color: #E6F2FF;
 }
@@ -72,12 +72,16 @@ input, select, table button {
 	font-size: 12px;
 }
 
+#stat table {
+	width: 100%;
+}
+
 #stat th {
 	text-align: right;
 }
 
 #stat td {
-	width: 50px;
+	min-width: 90px;
 	text-align: left;
 }
 
@@ -153,6 +157,11 @@ input, select, table button {
 
 .clickable {
 	cursor: pointer;
+}
+
+#view {
+	overflow: auto;
+	max-height: 252px;
 }
 
 #view table {
@@ -271,16 +280,12 @@ input, select, table button {
 						<tr>
 							<th>Actors:</th>
 							<td class="actors">0</td>
-						</tr>
-						<tr>
 							<th>Nodes:</th>
 							<td class="nodes">0</td>
 						</tr>
 						<tr>
 							<th>Capacity:</th>
 							<td class="capacity">0 GB</td>
-						</tr>
-						<tr>
 							<th>TOTAL STC:</th>
 							<td class="stc_total" data-value="0">0 STC</td>
 						</tr>
@@ -290,6 +295,7 @@ input, select, table button {
 						</tr>
 					</table>
 				</div>
+				<hr/>
 
 				<div id="view">
 					<table class="actors">
