@@ -389,13 +389,13 @@ function set_screen_size() {
 
 	switch(size) {
 		case 'fullscreen':
-			svg.attr('width', 1000)
+			svg.attr('width', 950)
 				.attr('height', 400);
 			$('#param').css('height', 600);
 			break;
 
 		case 'debug':
-			svg.attr('width', 1000)
+			svg.attr('width', 950)
 				.attr('height', 300);
 			$('#param').css('height', 300);
 			break;
@@ -679,7 +679,7 @@ function init_graph() {
 	xDim = ndx.dimension(function(d) {return d.cycle;});
 	group = xDim.group().reduceSum(function(d) {return d.stc;});
 	lineChart = dc.lineChart("#chart")
-		.width(1000).height(190)
+		.width(950).height(190)
 		.dimension(xDim)
 		.group(group, 'STC')
 		.legend(dc.legend().x(40).y(20).itemHeight(10).gap(5))
