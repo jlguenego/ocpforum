@@ -186,7 +186,7 @@
 			this.actors.push(actor);
 			this.forceNodes.push(actor);
 
-			this.report({ action: 'add_actor' });
+			this.report({ action: 'add_actor', actor: actor });
 
 			this._repaintActors(thread);
 		};
@@ -451,15 +451,21 @@
 
 			tr.exit().remove();
 
-			var new_tr = tr.enter().insert('tr').classed('actor', true);
+			var new_tr = tr.enter().insert('tr').classed('actor', true).classed('clickable', true);
 			new_tr.append('td').classed('name', true);
 			new_tr.append('td').classed('stc', true);
 			new_tr.append('td').classed('volume', true);
 			new_tr.append('td').classed('nodes', true);
+			new_tr.on('click', function(d) {
+				var thread = new Thread('select_actor_sideView');
+				self.selectObject(thread, d);
+				thread.finish();
+				thread.start();
+			});
 
 			var gb_per_stc = this.totalSTC / (this.nodes.length * this.options.nodeCapacity);
 			if (this.nodes.length < 1) {
-				stc_rate = 0;
+				gb_per_stc = 0;
 			}
 
 			tr.select('td.name').text(jlg.accessor('name'));
@@ -470,6 +476,9 @@
 				return d.nodes.length;
 			});
 			tr.select('td.volume').text(function(d) {
+				if (gb_per_stc == 0) {
+					return '0.00 GB';
+				}
 				return (d.amount / gb_per_stc).toFixed(2) + ' GB';
 			});
 

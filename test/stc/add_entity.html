@@ -163,6 +163,10 @@ input, select, table button {
 	font-size: 12px;
 }
 
+#view tr.actor:hover {
+	background-color: #CECECE;
+}
+
 #view tr.selected {
 	background-color: #FFC68C;
 }
@@ -173,6 +177,27 @@ input, select, table button {
 
 #view .stc, #view .nodes, #view .volume {
 	text-align: right;
+}
+
+#chart_buttons {
+	display: none;
+}
+
+#chart_buttons table {
+	width: 950px;
+}
+
+#chart_buttons th {
+	font-weight: bold;
+	text-align: right;
+}
+
+#chart_buttons td {
+	text-align: left;
+}
+
+#chart_buttons button {
+	width: auto;
 }
 		</style>
 	</head>
@@ -240,9 +265,6 @@ input, select, table button {
 				<button id="scenario2">Scenario 2</button>
 				<button id="scenario3">Scenario 3</button><br/>
 				<hr/>
-				<button class="change_chart" data-value="stc" data-title="STC">STC</button>
-				<button class="change_chart" data-value="nodes" data-title="Nodes">Nodes</button><br/>
-				<hr/>
 
 				<div id="stat">
 					<table>
@@ -287,6 +309,26 @@ input, select, table button {
 				</div>
 			</div>
 			<div id="frame"></div>
+			<div id="chart_buttons">
+				<table>
+					<tr>
+						<th>System:</th>
+						<td class="system">
+							<button class="change_chart" data-value="stc">STC</button>
+							<button class="change_chart" data-value="total_stc">Total STC</button>
+							<button class="change_chart" data-value="actors">Actors</button>
+							<button class="change_chart" data-value="nodes">Nodes</button>
+							<button class="change_chart" data-value="capacity">Capacity</button>
+						</td>
+						<th>Actor:</th>
+						<td class="actor">
+							<button class="change_chart_actor" data-value="stc" disabled="disabled">STC</button>
+							<button class="change_chart_actor" data-value="nodes" disabled="disabled">Nodes</button>
+							<button class="change_chart_actor" data-value="volume" disabled="disabled">Volume</button>
+						</td>
+					</tr>
+				</table>
+			</div>
 			<div id="chart"></div>
 		</div>
 
@@ -303,8 +345,14 @@ var lineChart;
 var dataset = [{
 	cycle: 0,
 	stc: 0,
-	nodes: 0
+	total_stc: 0,
+	nodes: 0,
+	actors: 0,
+	capacity: 0
 }];
+var actor_dataset_aa = {};
+var current_dataset = 'system';
+var current_chart_title = '';
 // END CHART STUFF
 
 var onObjectSelected = function(object) {
@@ -312,11 +360,22 @@ var onObjectSelected = function(object) {
 	if (object instanceof stc.Actor) {
 		$('#add_node').attr('disabled', false);
 		$('#node_qty').attr('disabled', false);
+		$('#chart_buttons .actor button').attr('disabled', false);
 
 		var actorMenu = $('.param_body.actor');
 		actorMenu.find('.name').html(object.name);
 		actorMenu.find('.amount').html(object.amount);
 		$('.menu [data-body=actor]').click();
+
+		if (current_dataset != 'actor') {
+			current_dataset = 'actor';
+			group = xDim.group().reduceSum(jlg.accessor('stc'));
+			current_chart_title = 'STC';
+		}
+		refresh_chart();
+
+		// Disable nodes buttons
+		$('#rm_node').attr('disabled', false);
 	}
 
 	if (object instanceof stc.Node) {
@@ -325,28 +384,47 @@ var onObjectSelected = function(object) {
 		var nodeMenu = $('.param_body.node');
 		nodeMenu.find('.name').html(object.name);
 		nodeMenu.find('.owner').html(object.owner.name);
+
+		var actorMenu = $('.param_body.actor');
+		actorMenu.find('.name').html(object.owner.name);
+		actorMenu.find('.amount').html(object.owner.amount);
+
 		$('.menu [data-body=node]').click();
+
+		// Disable actors buttons
+		$('#add_node').attr('disabled', true);
+		$('#node_qty').attr('disabled', true);
+		$('#chart_buttons .actor button').attr('disabled', true);
+
+		display_system_chart();
 	}
 };
 
 var onObjectDeselected = function(object) {
-	if (object instanceof stc.Actor) {
-		$('#add_node').attr('disabled', true);
-		$('#node_qty').attr('disabled', true);
+	$('#add_node').attr('disabled', true);
+	$('#node_qty').attr('disabled', true);
+	$('#chart_buttons .actor button').attr('disabled', true);
+	$('#rm_node').attr('disabled', true);
 
-		var actorMenu = $('.param_body.actor');
-		actorMenu.find('.name').html('');
-		actorMenu.find('.amount').html('');
-	}
+	var actorMenu = $('.param_body.actor');
+	actorMenu.find('.name').html('');
+	actorMenu.find('.amount').html('');
 
-	if (object instanceof stc.Node) {
-		$('#rm_node').attr('disabled', true);
+	var nodeMenu = $('.param_body.node');
+	nodeMenu.find('.name').html('');
+	nodeMenu.find('.owner').html('');
 
-		var nodeMenu = $('.param_body.node');
-		nodeMenu.find('.name').html('');
-		nodeMenu.find('.owner').html('');
-	}
+	display_system_chart();
 };
+
+function display_system_chart() {
+	if (current_dataset != 'system') {
+		current_dataset = 'system';
+		group = xDim.group().reduceSum(jlg.accessor('stc'));
+		lineChart.group(group, 'STC');
+		refresh_chart();
+	}
+}
 
 var sys = null;
 
@@ -365,6 +443,7 @@ function start() {
 	$('#actor_qty').attr('disabled', null);
 	$('#next_cycle').attr('disabled', null);
 	$('#do_cycle').attr('disabled', null);
+	$('#chart_buttons').css('display', 'block');
 
 	d3.select('#frame').select('svg').remove();
 	var svg = d3.select('#frame').append('svg');
@@ -390,7 +469,7 @@ function set_screen_size() {
 	switch(size) {
 		case 'fullscreen':
 			svg.attr('width', 950)
-				.attr('height', 400);
+				.attr('height', 350);
 			$('#param').css('height', 600);
 			break;
 
@@ -438,7 +517,7 @@ $('#add_actor').click(function() {
 	});
 
 	for (var i = 0; i < actor_qty; i++) {
-		sys.addActor(thread, new stc.Actor('A' + actorIndex));
+		sys.addActor(thread, new stc.Actor('Provider_' + actorIndex));
 		actorIndex++;
 	}
 
@@ -461,7 +540,7 @@ $('#add_node').click(function() {
 	});
 
 	for (var i = 0; i < node_qty; i++) {
-		sys.addNode(thread, new stc.Node('N' + nodeIndex, sys.selectedObject));
+		sys.addNode(thread, new stc.Node('Node_' + nodeIndex, sys.selectedObject));
 		nodeCounter++;
 		nodeIndex++;
 	}
@@ -630,32 +709,65 @@ $('#stat').get(0).addEventListener("system_stat", function(e) {
 
 	switch (stats.action) {
 		case 'add_actor':
+			actor_dataset_aa[stats.actor.name] = [
+				{
+					cycle: sys.cycle_id,
+					stc: 0,
+					nodes: 0,
+					volume: 0
+				}
+			];
 			break;
 		case 'add_node':
 			break;
 		case 'remove_node':
 			break;
 		case 'next_cycle':
-			update_dc_dataset();
+			update_dataset();
 			refresh_chart();
 			break;
 	}
 });
 
-function update_dc_dataset() {
+function update_dataset() {
 	var stc = $('#stat').find('.stc_gb').attr('data-value');
 
 	dataset.push({
 		cycle: sys.cycle_id,
 		stc: stc,
-		nodes: sys.nodes.length
+		total_stc: sys.totalSTC,
+		nodes: sys.nodes.length,
+		actors: sys.actors.length,
+		capacity: sys.nodes.length * sys.options.nodeCapacity
 	});
-	ndx.remove();
-	ndx.add(dataset);
-	console.log(dataset);
+
+	var stc_per_gb = 0;
+	if (sys.nodes.length > 0) {
+		stc_per_gb = sys.totalSTC / (sys.nodes.length * sys.options.nodeCapacity);
+	}
+
+	for (var i = 0; i < sys.actors.length; i++) {
+		var actor = sys.actors[i];
+		actor_dataset_aa[actor.name].push({
+			cycle: sys.cycle_id,
+			stc: actor.amount,
+			nodes: actor.nodes.length,
+			volume: (actor.amount / stc_per_gb).toFixed(2)
+		});
+	}
+
+	console.log(actor_dataset_aa);
 }
 
 function refresh_chart() {
+	ndx.remove();
+	if (current_dataset == 'system') {
+		ndx.add(dataset);
+	} else if (current_dataset == 'actor' && sys.selectedObject instanceof stc.Actor) {
+		ndx.add(actor_dataset_aa[sys.selectedObject.name]);
+		lineChart.group(group, sys.selectedObject.name + ' ' + current_chart_title);
+	}
+
 	lineChart.x(d3.scale.linear().domain([0,sys.cycle_id])).elasticX(true);
 	dc.redrawAll();
 }
@@ -664,8 +776,12 @@ function reset_chart() {
 	dataset = [{
 		cycle: 0,
 		stc: 0,
-		nodes: 0
+		total_stc: 0,
+		nodes: 0,
+		actors: 0,
+		capacity: 0
 	}];
+	actor_dataset_aa = {};
 	group = null;
 	if (sys) {
 		refresh_chart();
@@ -690,12 +806,25 @@ function init_graph() {
 }
 
 $('.change_chart').click(function() {
-	var val_to_show = $(this).attr('data-value');
-	var title = $(this).attr('data-title');
-	group = xDim.group().reduceSum(jlg.accessor(val_to_show));
-	lineChart.group(group, title);
+	var title = $(this).html();
+	set_chart($(this), title);
+	current_dataset = 'system';
 	refresh_chart();
 });
+
+$('.change_chart_actor').click(function() {
+	current_chart_title = $(this).html();
+	var title = sys.selectedObject.name + ' ' + current_chart_title;
+	set_chart($(this), title);
+	current_dataset = 'actor'
+	refresh_chart();
+});
+
+function set_chart(el, title) {
+	var val_to_show = el.attr('data-value');
+	group = xDim.group().reduceSum(jlg.accessor(val_to_show));
+	lineChart.group(group, title);
+}
 
 
 // For crossfilter debuging.

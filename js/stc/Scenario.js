@@ -72,6 +72,9 @@
 		};
 
 		this.doCycle = function() {
+			if (this.actors.length < 1) {
+				this.addProvider();
+			}
 			var n = Math.floor(Math.randomize(1, 2) * this.actors.length);
 			n = Math.max(n, 10);
 			for (var i = 0; i < n; i++) {
