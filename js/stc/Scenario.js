@@ -5,9 +5,6 @@
 		this.sys = sys;
 		this.context = context;
 
-		this.actors = sys.actors.slice(0);
-		this.nodes = sys.nodes.slice(0);
-
 		this.thread = new Thread('main');
 
 		this.addProvider = function() {
@@ -15,9 +12,9 @@
 			this.context.actorIndex++;
 
 			this.sys.addActor(this.thread, actor);
-			this.actors.push(actor);
+			context.actors.push(actor);
 
-			this.addNode(this.actors.length - 1);
+			this.addNode(context.actors.length - 1);
 		};
 
 		this.addRandomProviders = function(min, max) {
@@ -32,24 +29,24 @@
 			this.context.actorIndex++;
 
 			this.sys.addActor(this.thread, actor);
-			this.actors.push(actor);
+			context.actors.push(actor);
 		};
 
 		this.addNode = function(index) {
-			var node = new stc.Node('Node_' + this.context.nodeIndex, this.actors[index]);
+			var node = new stc.Node('Node_' + this.context.nodeIndex, context.actors[index]);
 			this.context.nodeIndex++;
 
 			this.sys.addNode(this.thread, node);
-			this.nodes.push(node);
+			context.nodes.push(node);
 		};
 
 		this.removeNode = function(index) {
-			this.sys.removeNode(this.thread, this.nodes[index]);
-			this.nodes.splice(index, 1);
+			this.sys.removeNode(this.thread, context.nodes[index]);
+			context.nodes.splice(index, 1);
 		};
 
 		this.removeRandomNodes = function(probability) {
-			for (var j = 0; j < this.nodes.length; j++) {
+			for (var j = 0; j < context.nodes.length; j++) {
 				if (Math.randomize(0, 1) <= probability) {
 					this.removeNode(j);
 				}
@@ -57,7 +54,7 @@
 		};
 
 		this.addRandomNodes = function() {
-			for (var j = 0; j < this.actors.length; j++) {
+			for (var j = 0; j < context.actors.length; j++) {
 				if (Math.randomizeInt(0, 10) > 5) {
 					// Don't add node for this actor.
 					continue;
@@ -75,21 +72,21 @@
 		};
 
 		this.doCycle = function() {
-			if (this.actors.length < 1) {
+			if (context.actors.length < 1) {
 				this.addProvider();
 			}
-			var n = Math.floor(Math.randomize(1, 2) * this.actors.length);
+			var n = Math.floor(Math.randomize(1, 2) * context.actors.length);
 			n = Math.max(n, 10);
 			for (var i = 0; i < n; i++) {
 				var p = Math.randomize(1, 100);
 				if (p < 15) {
 					this.addProvider();
 				} else if (p < 60) {
-					var a = Math.randomizeInt(0, this.actors.length - 1);
+					var a = Math.randomizeInt(0, context.actors.length - 1);
 					this.addNode(a);
 				} else {
-					if (this.nodes.length > 0) {
-						var node_index = Math.randomizeInt(0, this.nodes.length - 1);
+					if (context.nodes.length > 0) {
+						var node_index = Math.randomizeInt(0, context.nodes.length - 1);
 						this.removeNode(node_index);
 					}
 				}

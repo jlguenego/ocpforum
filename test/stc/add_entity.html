@@ -342,7 +342,9 @@ input, select, table button {
 		<script>
 var context = {
 	actorIndex: 0,
-	nodeIndex: 0
+	nodeIndex: 0,
+	actors: [],
+	nodes: []
 }
 
 // CHART STUFF
@@ -438,8 +440,13 @@ function start() {
 	reset_chart();
 	Math.seedrandom('Hello');
 
-	context.actorIndex = 0;
-	context.nodeIndex = 0;
+	context = {
+		actorIndex: 0,
+		nodeIndex: 0,
+		actors: [],
+		nodes: []
+	}
+
 	$('.menu [data-body=actor]').removeClass('disabled');
 	$('.menu [data-body=node]').removeClass('disabled');
 	$('#add_actor').attr('disabled', null);
@@ -770,8 +777,10 @@ function reset_chart() {
 		capacity: 0
 	}];
 	actor_dataset_aa = {};
-	group = null;
+	current_chart_title = 'STC';
+	chart_group_selector == 'system'
 	if (sys) {
+		group = xDim.group().reduceSum(jlg.accessor('stc'));
 		refresh_chart();
 	}
 }
