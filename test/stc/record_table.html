@@ -8,6 +8,7 @@
 		<script type="text/javascript" src="_ext/crossfilter.min.js"></script>
 		<script type="text/javascript" src="_ext/dc.min.js"></script>
 		<script src="_ext/seedrandom-min.js"></script>
+		<script src="_ext/jquery-1.10.2.min.js"></script>
 
 
 		<script src="js/jlg_commons.js"></script>
@@ -15,15 +16,26 @@
 #table {
 	width: 500px;
 	white-space: nowrap;
+	border-collapse: collapse;
 }
 
 th {
 	text-align: left;
 }
+
+.cell {
+	overflow: hidden;
+}
+
+.selected {
+	background-color: red;
+}
 		</style>
 	</head>
 
 	<body>
+		<button id="add">Add entry</button>
+		<button id="remove">Remove entry</button>
 		<table id="table">
 			<thead>
 				<tr>
@@ -38,8 +50,20 @@ th {
 			</tbody>
 		</table>
 		<script>
+$('#add').click(function() {
+	addEntry();
+	repaint();
+});
+
+$('#remove').click(function() {
+	removeEntry();
+	repaint();
+});
+
+
 Math.seedrandom('Hello');
 var dataset = [];
+var selected_row = null;
 var counter = 0;
 var tbody = d3.select('#table').select('tbody');
 var dateFormat = d3.time.format("%m/%d/%Y").parse;
@@ -63,17 +87,47 @@ function addEntry() {
 	counter++;
 }
 
+function removeEntry() {
+	var index = dataset.indexOf(selected_row);
+	if (index >= 0) {
+		dataset.splice(index, 1);
+	}
+}
+
 function row2array(d) {
-	return [ d.date, d.name, d.offer, d.rate, d.rate * d.offer ];
+	return [ d.date, d.name, d.offer, d.rate, (d.rate * d.offer).toFixed(2) ];
 }
 
 function repaint() {
 	var tr = tbody.selectAll('tr').data(dataset, jlg.accessor('name'));
+
+	var exit_tr = tr.exit();
+	exit_tr.selectAll('div.cell')
+		.transition()
+			.duration(100)
+			.style('height', '0px')
+			.each('end', function(d, i) {
+				if (i == 0) {
+					exit_tr.remove()
+				}
+			});
+
+
 	var new_tr = tr.enter().append('tr');
+	new_tr.on('click', function(d) {
+		d3.select(this).classed('selected', true);
+		selected_row = d;
+	});
 
 	var td = new_tr.selectAll('td').data(row2array);
 	var new_td = td.enter().append('td');
-	new_td.text(function(d) { console.log(d);return d; });
+	new_td.append('div')
+		.classed('cell', true)
+		.style('height', '0px')
+		.text(function(d) { return d; })
+		.transition()
+			.duration(100)
+			.style('height', '20px');
 }
 		</script>
 	</body>
