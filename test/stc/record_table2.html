@@ -16,12 +16,17 @@
 #table {
 	width: 500px;
 }
+
+.moving_box {
+	position: absolute;
+}
 		</style>
 	</head>
 
 	<body>
 		<button id="add">Add entry</button>
 		<button id="remove">Remove entry</button>
+		<button id="move">Move</button>
 		<div id="table"></div>
 		<script>
 Math.seedrandom('Hello');
@@ -38,6 +43,10 @@ $('#add').click(function() {
 $('#remove').click(function() {
 	table.removeRecord();
 	table.repaint();
+});
+
+$('#move').click(function() {
+	table.move({ x: 600, y: 100 });
 });
 
 for (var i = 0; i < 3; i++) {
