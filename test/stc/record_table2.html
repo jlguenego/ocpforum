@@ -21,7 +21,6 @@
 
 	<body>
 		<button id="add">Add entry</button>
-		<button id="insert">Insert entry</button>
 		<button id="remove">Remove entry</button>
 		<button id="move">Move</button>
 		<button id="copy">Copy</button>
@@ -39,12 +38,8 @@ table.options.sort = function(a, b) {
 var counter = 0;
 
 $('#add').click(function() {
-	addEntry();
-	table.repaint();
-});
-
-$('#insert').click(function() {
-	insertEntry();
+	var record = getEntry();
+	table.addRecord(record);
 	table.repaint();
 });
 
@@ -67,19 +62,10 @@ $('#order').click(function() {
 });
 
 for (var i = 0; i < 3; i++) {
-	addEntry();
-}
-table.repaint();
-
-function addEntry() {
-	record = getEntry();
+	var record = getEntry();
 	table.addRecord(record);
 }
-
-function insertEntry() {
-	record = getEntry();
-	table.insertRecord(record);
-}
+table.repaint();
 
 function getEntry() {
 	var y = Math.randomizeInt(2013, 2014);

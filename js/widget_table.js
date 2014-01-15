@@ -165,7 +165,6 @@
 				return;
 			}
 			this.dataset.sort(this.options.sort);
-			//this.repaint(0);
 		};
 	};
 })(jlg);
