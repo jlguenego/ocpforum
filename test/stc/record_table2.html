@@ -16,10 +16,6 @@
 #table {
 	width: 500px;
 }
-
-.moving_box {
-	position: absolute;
-}
 		</style>
 	</head>
 
@@ -27,6 +23,7 @@
 		<button id="add">Add entry</button>
 		<button id="remove">Remove entry</button>
 		<button id="move">Move</button>
+		<button id="copy">Copy</button>
 		<div id="table"></div>
 		<script>
 Math.seedrandom('Hello');
@@ -46,7 +43,11 @@ $('#remove').click(function() {
 });
 
 $('#move').click(function() {
-	table.move({ x: 600, y: 100 });
+	table.moveRow(table.selected_row, { x: 600, y: 100 });
+});
+
+$('#copy').click(function() {
+	table.copyRow(table.selected_row, { x: 600, y: 100 });
 });
 
 for (var i = 0; i < 3; i++) {

@@ -1,25 +1,26 @@
-.ocp_table {
+.jlg_table {
 	width: 100%;
 	white-space: nowrap;
 	border-collapse: collapse;
 }
 
-.ocp_table th {
+.jlg_table th {
 	text-align: left;
 }
 
-.ocp_table .ocp_row {
+.jlg_table .jlg_row {
 	cursor: pointer;
 }
 
-.ocp_table .cell {
-	overflow: hidden;
-}
-
-.ocp_table .ocp_row:hover {
+.jlg_table .jlg_row:hover {
 	background-color: #EEEEEE;
 }
 
-.ocp_table .ocp_row.selected, .ocp_table .ocp_row.selected:hover {
+.jlg_table .jlg_row.jlg_selected,
+.jlg_table .jlg_row.jlg_selected:hover {
 	background-color: #FFCCCC !important;
+}
+
+.jlg_table .jlg_cell {
+	overflow: hidden;
 }

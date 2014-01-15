@@ -6,14 +6,13 @@
 		this.dataset = dataset;
 		this.selected_row = null;
 
-		this.table = d3.select(selector).append('table').classed('ocp_table', true);
+		this.table = d3.select(selector).append('table').classed('jlg_table', true);
 		this.header = this.table.append('thead').append('tr');
 		this.body = this.table.append('tbody');
 
 		// Build header
 		for (var i = 0; i < this.columns.length; i++) {
 			this.header.append('th')
-				.classed('ocp_th', true)
 				.html(this.columns[i]);
 		}
 
@@ -21,8 +20,8 @@
 			this.dataset.push(record);
 		};
 
-		this.removeRecord = function() {
-			var index = this.dataset.indexOf(this.selected_row);
+		this.removeRecord = function(index) {
+			index = index || this.dataset.indexOf(this.selected_row);
 			if (index >= 0) {
 				this.dataset.splice(index, 1);
 			}
@@ -33,7 +32,7 @@
 			var tr = this.body.selectAll('tr').data(this.dataset, function(d) {return d;});
 
 			var exit_tr = tr.exit();
-			exit_tr.selectAll('div.cell')
+			exit_tr.selectAll('div.jlg_cell')
 				.transition()
 					.duration(100)
 					.style('height', '0px')
@@ -44,18 +43,18 @@
 					});
 
 			var new_tr = tr.enter().append('tr')
-				.classed('ocp_row', true);
+				.classed('jlg_row', true);
 
 			new_tr.on('click', function(d) {
-				tr.classed('selected', false);
-				d3.select(this).classed('selected', true);
+				tr.classed('jlg_selected', false);
+				d3.select(this).classed('jlg_selected', true);
 				self.selected_row = d;
 			});
 
 			var td = new_tr.selectAll('td').data(function(d) { return d; });
 			var new_td = td.enter().append('td');
 			new_td.append('div')
-				.classed('cell', true)
+				.classed('jlg_cell', true)
 				.style('height', '0px')
 				.text(function(d) { return d; })
 				.transition()
@@ -63,46 +62,65 @@
 					.style('height', '20px');
 		};
 
-		this.move = function(p) {
-			var tr = this.body.selectAll('tr.selected');
-			if (tr.empty()) {
+		this.copyRow = function(row, p) {
+			this._animateRow(row, p, false);
+		};
+
+		this.moveRow = function(row, p) {
+			this._animateRow(row, p, true);
+		};
+
+		this._animateRow = function(row, p, remove_flag) {
+			var all_tr = this.body.selectAll('tr.jlg_row');
+			var tr;
+
+			all_tr.each( function(d, i){
+				if (d == row){
+					tr = d3.select(this);
+				}
+			});
+
+			if (!tr) {
 				return;
 			}
 
 			var data = [];
-			var old_data = tr.datum();
-			var old_div = tr.selectAll('div');
+			var row_div = tr.selectAll('div');
 
-			old_div[0].forEach(function(d, i) {
-				var width = d.getBoundingClientRect().width;
-				data[i] = { width: width, data: old_data[i] };
+			row_div.each(function(d, i) {
+				var bbox = this.getBoundingClientRect();
+				data[i] = { bbox: bbox, data: row[i] };
 			});
 
 			var bbox = tr.node().getBoundingClientRect();
 
-			var div = d3.select('body').append('div').classed('moving_box', true);
-			div
+			var div = d3.select('body').append('div').classed('jlg_moving_box', true);
+			div.style('position', 'absolute')
 				.style('top', bbox.top + 'px')
 				.style('left', bbox.left + 'px')
 				.style('width', bbox.width + 'px')
 				.style('height', bbox.height + 'px');
 
 			var moving_tr = div.append('table')
-				.classed('ocp_table', true)
+				.classed('jlg_table', true)
 				.append('tr')
-					.classed('ocp_row', true);
+					.classed('jlg_row', true);
 
 			var td = moving_tr.selectAll('td').data(data);
 			var new_td = td.enter().append('td');
 			new_td.append('div')
-				.classed('cell', true)
-				.style('height', '20px')
+				.classed('jlg_cell', true)
+				.style('height', function(d) {
+					return d.bbox.height + 'px';
+				})
 				.style('width', function(d) {
-					return d.width + 'px';
+					return d.bbox.width + 'px';
 				})
 				.text(function(d) { return d.data; });
 
-			tr.style('opacity', 0);
+			if (remove_flag) {
+				tr.style('opacity', 0);
+			}
 
 			div
 				.transition()
@@ -110,8 +128,11 @@
 					.style('top', p.y + 'px')
 					.style('left', p.x + 'px')
 					.each('end', function() {
-						self.removeRecord();
-						self.repaint();
+						if (remove_flag) {
+							var index = self.dataset.indexOf(row);
+							self.removeRecord(index);
+							self.repaint();
+						}
 					})
 				.transition()
 					.duration(500)
