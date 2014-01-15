@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<base href="../../" />
+		<meta charset="utf-8" />
+
+		<script src="_ext/d3.v3.min.js"></script>
+		<script type="text/javascript" src="_ext/crossfilter.min.js"></script>
+		<script type="text/javascript" src="_ext/dc.min.js"></script>
+		<script src="_ext/seedrandom-min.js"></script>
+
+
+		<script src="js/jlg_commons.js"></script>
+		<style>
+#table {
+	width: 500px;
+	white-space: nowrap;
+}
+
+th {
+	text-align: left;
+}
+		</style>
+	</head>
+
+	<body>
+		<table id="table">
+			<thead>
+				<tr>
+					<th>Date</th>
+					<th>Name</th>
+					<th>Offer</th>
+					<th>Rate</th>
+					<th>Volume</th>
+				</tr>
+			</thead>
+			<tbody>
+			</tbody>
+		</table>
+		<script>
+Math.seedrandom('Hello');
+var dataset = [];
+var counter = 0;
+var tbody = d3.select('#table').select('tbody');
+var dateFormat = d3.time.format("%m/%d/%Y").parse;
+
+for (var i = 0; i < 3; i++) {
+	addEntry();
+}
+
+repaint();
+
+function addEntry() {
+	var y = Math.randomizeInt(2013, 2014);
+	var m = Math.randomizeInt(1, 12);
+	var d = Math.randomizeInt(1, 31);
+	dataset.push({
+		date: new Date(y, m, d).toDateString(),
+		name: 'Provider_' + counter,
+		offer: Math.randomize(1, 100).toFixed(5),
+		rate: Math.randomize(1, 10).toFixed(2)
+	});
+	counter++;
+}
+
+function row2array(d) {
+	return [ d.date, d.name, d.offer, d.rate, d.rate * d.offer ];
+}
+
+function repaint() {
+	var tr = tbody.selectAll('tr').data(dataset, jlg.accessor('name'));
+	var new_tr = tr.enter().append('tr');
+
+	var td = new_tr.selectAll('td').data(row2array);
+	var new_td = td.enter().append('td');
+	new_td.text(function(d) { console.log(d);return d; });
+}
+		</script>
+	</body>
+</html>
