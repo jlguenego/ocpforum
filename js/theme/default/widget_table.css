@@ -1,0 +1,25 @@
+.ocp_table {
+	width: 100%;
+	white-space: nowrap;
+	border-collapse: collapse;
+}
+
+.ocp_table th {
+	text-align: left;
+}
+
+.ocp_table .ocp_row {
+	cursor: pointer;
+}
+
+.ocp_table .cell {
+	overflow: hidden;
+}
+
+.ocp_table .ocp_row:hover {
+	background-color: #EEEEEE;
+}
+
+.ocp_table .ocp_row.selected, .ocp_table .ocp_row.selected:hover {
+	background-color: #FFCCCC !important;
+}

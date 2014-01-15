@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<base href="../../" />
+		<meta charset="utf-8" />
+
+		<script src="_ext/d3.v3.min.js"></script>
+		<script src="_ext/seedrandom-min.js"></script>
+		<script src="_ext/jquery-1.10.2.min.js"></script>
+
+
+		<script src="js/jlg_commons.js"></script>
+		<script src="js/widget_table.js"></script>
+		<link rel="stylesheet" href="js/theme/default/widget_table.css" />
+		<style>
+#table {
+	width: 500px;
+}
+		</style>
+	</head>
+
+	<body>
+		<button id="add">Add entry</button>
+		<button id="remove">Remove entry</button>
+		<div id="table"></div>
+		<script>
+Math.seedrandom('Hello');
+var dataset = [];
+var columns = [ 'Date', 'Name', 'Offer', 'Rate', 'Volume' ];
+var table = new jlg.Table('#table', columns, dataset);
+var counter = 0;
+
+$('#add').click(function() {
+	addEntry();
+	table.repaint();
+});
+
+$('#remove').click(function() {
+	table.removeRecord();
+	table.repaint();
+});
+
+for (var i = 0; i < 3; i++) {
+	addEntry();
+}
+table.repaint();
+
+function addEntry() {
+	var y = Math.randomizeInt(2013, 2014);
+	var m = Math.randomizeInt(1, 12);
+	var d = Math.randomizeInt(1, 31);
+	var offer = Math.randomize(1, 100).toFixed(5);
+	var rate = Math.randomize(1, 10).toFixed(2);
+
+	var record = [
+		new Date(y, m, d).toDateString(),
+		'Provider_' + counter,
+		offer,
+		rate,
+		(rate * offer).toFixed(2)
+	];
+	counter++;
+	table.addRecord(record);
+}
+		</script>
+	</body>
+</html>
