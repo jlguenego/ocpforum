@@ -10,6 +10,10 @@
 		this.header = this.table.append('thead').append('tr');
 		this.body = this.table.append('tbody');
 
+		this.options = {
+			repaintDuration: 300,
+		};
+
 		// Build header
 		for (var i = 0; i < this.columns.length; i++) {
 			this.header.append('th')
@@ -34,7 +38,7 @@
 			var exit_tr = tr.exit();
 			exit_tr.selectAll('div.jlg_cell')
 				.transition()
-					.duration(100)
+					.duration(this.options.repaintDuration)
 					.style('height', '0px')
 					.each('end', function(d, i) {
 						if (i == 0) {
@@ -58,7 +62,7 @@
 				.style('height', '0px')
 				.text(function(d) { return d; })
 				.transition()
-					.duration(100)
+					.duration(this.options.repaintDuration)
 					.style('height', '20px');
 		};
 
@@ -139,5 +143,11 @@
 					.style('opacity', 0)
 				.remove();
 		};
+
+		this.clean = function() {
+			this.dataset = [];
+			this.selected_row = null;
+			this.repaint();
+		}
 	};
 })( jlg );

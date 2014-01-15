@@ -24,6 +24,10 @@
 		<script src="js/stc_mp/CycleAmount.js"></script>
 		<script src="js/stc_mp/Scenario.js"></script>
 
+
+		<script src="js/widget_table.js"></script>
+		<link rel="stylesheet" href="js/theme/default/widget_table.css" />
+
 		<style>
 html, body {
 	width: 100%;
@@ -209,6 +213,20 @@ input, select, table button {
 #chart_buttons button {
 	width: auto;
 }
+
+#offers {
+	float: left;
+}
+
+#demands {
+	float: right;
+}
+
+#frame .title {
+	text-align: center;
+	font-size: 20px;
+	font-weight: bold;
+}
 		</style>
 	</head>
 
@@ -316,7 +334,10 @@ input, select, table button {
 					</table>
 				</div>
 			</div>
-			<div id="frame"></div>
+			<div id="frame">
+				<div id="offers"><div class="title">Offers</div></div>
+				<div id="demands"><div class="title">Demands</div></div>
+			</div>
 			<div id="chart_buttons">
 				<table>
 					<tr>
@@ -367,6 +388,18 @@ var actor_dataset_aa = {};
 var chart_group_selector = 'system';
 var current_chart_title = 'STC';
 // END CHART STUFF
+
+// MARKET PLACE STUFF
+// Offers
+var offers_dataset = [];
+var offers_columns = [ 'Name', 'Quantity', 'Price/STC', 'GB/STC', 'Price' ];
+var offers_table = new jlg.Table('#offers', offers_columns, offers_dataset);
+
+// Demands
+var demands_dataset = [];
+var demands_columns = [ 'Name', 'Quantity', 'Price/STC', 'GB/STC', 'Price' ];
+var demands_table = new jlg.Table('#demands', demands_columns, demands_dataset);
+// END MARKET PLACE STUFF
 
 var onObjectSelected = function(object) {
 	console.log(object);
@@ -465,7 +498,10 @@ function start() {
 
 	set_screen_size();
 
-	sys = new stc.System(svg, {
+	offers_table.clean();
+	demands_table.clean();
+
+	sys = new stc.System(svg, offers_table, demands_table, {
 		sideView: '#view',
 		actorsView: '.param_body.actor',
 		nodesView: '.param_body.node'
@@ -484,13 +520,13 @@ function set_screen_size() {
 	switch(size) {
 		case 'fullscreen':
 			svg.attr('width', 950)
-				.attr('height', 350);
+				.attr('height', 50);
 			$('#param').css('height', 600);
 			break;
 
 		case 'debug':
 			svg.attr('width', 950)
-				.attr('height', 300);
+				.attr('height', 50);
 			$('#param').css('height', 300);
 			break;
 	}
@@ -613,25 +649,22 @@ function s1() {
 	start();
 
 	var thread = new Thread('main');
+	var provider = new stc.Actor('Provider_' + context.providerIndex);
+	sys.addActor(thread, provider);
 
-	var actor_qty = 10;
-	for (var i = 0; i < actor_qty; i++) {
-		var actor = new stc.Actor('Provider_' + context.providerIndex);
-		sys.addActor(thread, actor);
-		context.providerIndex++;
+	sys.addNode(thread, new stc.Node('Node_' + context.nodeIndex, provider));
+	context.nodeIndex++;
+	sys.addNode(thread, new stc.Node('Node_' + context.nodeIndex, provider));
+	context.nodeIndex++;
 
-		var node_qty = Math.randomizeInt(1, 5);
-		for (var j = 0; j < node_qty; j++) {
-			sys.addNode(thread, new stc.Node('Node_' + context.nodeIndex, actor));
-			context.nodeIndex++;
-		}
-	}
+	sys.nextCycle(thread);
 
-	var cycle_qty = 10;
-	for (var i = 0; i < cycle_qty; i++) {
-		thread.sleep(500);
-		sys.nextCycle(thread);
-	}
+	var consumer = new stc.Actor('Consumer_' + context.userIndex);
+	sys.addActor(thread, consumer);
+
+	sys.publishOffer(thread, provider, 80, 1.2);
+
+	sys.publishDemand(thread, consumer, 20, 1.5);
 
 	thread.finish();
 	thread.start();
@@ -718,13 +751,8 @@ $('#stat').get(0).addEventListener("system_stat", function(e) {
 	var capacity = sys.nodes.length * sys.options.nodeCapacity;
 	el.find('.capacity').html(capacity + ' GB');
 	el.find('.stc_total').html(sys.totalSTC + ' STC');
-
-	var stc = 0;
-	if (sys.totalSTC > 0) {
-		stc = capacity / sys.totalSTC;
-	}
-	el.find('.stc_gb').html(stc.toFixed(2) + ' GB')
-		.attr('data-value', stc.toFixed(2));
+	el.find('.stc_gb').html(sys.gb_per_stc.toFixed(2) + ' GB')
+		.attr('data-value', sys.gb_per_stc.toFixed(2));
 
 	switch (stats.action) {
 		case 'add_actor':

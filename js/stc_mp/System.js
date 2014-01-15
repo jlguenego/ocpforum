@@ -1,6 +1,9 @@
 (function(sim, undefined) {
-	stc.System = function(svg, viewSelectors) {
+	stc.System = function(svg, offers_table, demands_table, viewSelectors) {
 		var self = this;
+
+		this.offers_table = offers_table;
+		this.demands_table = demands_table;
 
 		this.svg = svg;
 		this.svg.on('click', function(d) {
@@ -77,6 +80,7 @@
 		this.totalSTC = 0;
 		this.NODE_SIZE = 50;
 		this.cycle_id = 0;
+		this.gb_per_stc = 0;
 
 
 		var tick = function(e) {
@@ -179,12 +183,9 @@
 		};
 
 		this._addActor = function(thread, actor) {
-			actor.x = Math.randomize(0, this.svgbox.x);
-			actor.y = Math.randomize(0, this.svgbox.y);
 			actor.parent = this;
 
 			this.actors.push(actor);
-			this.forceNodes.push(actor);
 
 			this.report({ action: 'add_actor', actor: actor });
 
@@ -209,16 +210,7 @@
 				throw new Error('Node already exists with name=' + node.name);
 			}
 
-			node.x = Math.randomize(0, this.svgbox.x);
-			node.y = Math.randomize(0, this.svgbox.y);
-
 			this.nodes.push(node);
-			this.forceNodes.push(node);
-			this.forceLinks.push({
-				source: node.owner,
-				target: node,
-				name: node.owner.name + '_' + node.name
-			});
 
 			node.owner.nodes.push(node);
 			this.report({
@@ -243,17 +235,6 @@
 				this.nodes.splice(index, 1);
 			}
 
-			index = this.forceNodes.indexOf(node);
-			if (index > -1) {
-				this.forceNodes.splice(index, 1);
-			}
-
-			var link = jlg.find(this.forceLinks, function(d) { return d.target == node});
-			index = this.forceLinks.indexOf(link);
-			if (index > -1) {
-				this.forceLinks.splice(index, 1);
-			}
-
 			index = node.owner.nodes.indexOf(node);
 			if (index > -1) {
 				node.owner.nodes.splice(index, 1);
@@ -270,7 +251,6 @@
 			var ca = new stc.CycleAmount(this);
 			ca.show(thread);
 			ca.split(thread);
-			ca.sendReward(thread);
 			this.addReward(thread);
 		};
 
@@ -290,11 +270,16 @@
 				var node = this.nodes[i];
 				node.owner.amount += stc_qty;
 			}
-			thread.next();
+
+			if (this.totalSTC > 0) {
+				this.gb_per_stc = this.nodes.length * this.options.nodeCapacity / this.totalSTC;
+			}
+
 			this.repaintSideView();
 			this.cycle_id++;
 
 			this.report({ action: 'next_cycle' });
+			thread.next();
 		};
 
 		this._repaintAll = function(thread) {
@@ -303,146 +288,13 @@
 		};
 
 		this._repaintActors = function(thread) {
-			var actors = this.group.selectAll('g.actor').data(this.actors);
-			force.start();
-
-			actors.exit().remove();
-
-			var new_actors = actors.enter().append('g');
-
-			if (new_actors.empty()) {
-				if (thread) {
-					thread.next();
-				}
-			}
-
-			new_actors.classed('actor', true)
-				.classed('force_node', true)
-				.classed('clickable', true)
-				.style('opacity', 0);
-			new_actors.append('rect')
-				.attr('transform', 'translate(-5, -5)')
-				.attr('width', 35)
-				.attr('height', 60);
-			new_actors.append('use')
-				.attr('xlink:href', window.location.href + '#actor_symbol')
-				.attr('width', 25)
-				.attr('height', 50)
-				.attr('color', jlg.accessor('color'));
-
-			new_actors
-				.on('click', this.onclick)
-				.on('mouseover', function(d) {
-					d.mouse = true;
-					self._repaintAll();
-				})
-				.on('mouseout', function(d) {
-					d.mouse = false;
-					self._repaintAll();
-				});
-
-			var doNext = true;
-			new_actors.transition()
-				.duration(this.options.duration.addActor)
-				.style('opacity', 1)
-				.each('end', function() {
-					if (doNext) {
-						doNext = false;
-						if (thread) {
-							thread.next();
-						}
-					}
-				});
-
-
-			actors.classed('selected', function(d) {
-				return self.isSelectedObject(d);
-			});
-
 			this.repaintSideView();
+			thread.next();
 		};
 
 		this._repaintNodes = function(thread) {
-			var nodes = this.group.selectAll('g.node').data(this.nodes, function(d) { return d.name; });
-			force.start();
-
-			nodes.exit().remove();
-
-			var new_nodes = nodes.enter().append('g');
-
-			if (new_nodes.empty()) {
-				self._repaintLinks(thread);
-			}
-
-			new_nodes.classed('node', true)
-				.classed('force_node', true)
-				.classed('clickable', true)
-				.style('opacity', 0);
-			new_nodes.append('rect')
-				.attr('width', this.NODE_SIZE)
-				.attr('height', this.NODE_SIZE);
-			new_nodes.append('use')
-				.attr('xlink:href', window.location.href + '#node_symbol')
-				.attr('width', this.NODE_SIZE)
-				.attr('height', this.NODE_SIZE)
-				.attr('color', jlg.accessor('color'));
-
-			new_nodes
-				.on('mouseover', function(d) {
-					d.mouse = true;
-					self._repaintAll();
-				})
-				.on('mouseout', function(d) {
-					d.mouse = false;
-					self._repaintAll();
-				})
-				.on('click', this.onclick);
-
-			var doNext = true;
-			new_nodes.transition()
-				.duration(this.options.duration.addNode)
-				.style('opacity', 1)
-				.each('end', function() {
-					if (doNext) {
-						doNext = false;
-						self._repaintLinks(thread);
-					}
-				});
-
-
-			nodes.classed('selected', function(d) {
-				return d == self.selectedObject;
-			});
-
 			this.repaintSideView();
-		};
-
-		this._repaintLinks = function(thread) {
-			var links = this.links.selectAll('path.link')
-				.data(this.forceLinks, function(d) { return d.name; });
-
-			links.exit().remove();
-
-			var new_links = links.enter().append('path');
-
-			new_links.classed('link', true)
-				.attr('data-source', function(d) { return d.source.name; })
-				.attr('data-target', function(d) { return d.target.name; })
-				.style('stroke', function(d) { return d.target.color; });
-
-			links.style('opacity', function(d) {
-					if (self.isSelectedObject(d.target) || self.isSelectedObject(d.source)) {
-						return 1;
-					}
-					if (d.target.mouse || d.source.mouse) {
-						return 1;
-					}
-					return 0;
-				});
-
-			if (thread) {
-				thread.next();
-			}
+			thread.next();
 		};
 
 		this.report = function(report) {
@@ -539,7 +391,7 @@
 			thread.next();
 		};
 
-		this.publishOffer = function(thread, provider, percent) {
+		this.publishOffer = function(thread, provider, percent, price_per_stc) {
 			thread.push({
 				function: this._publishOffer,
 				args: arguments,
@@ -548,8 +400,43 @@
 			});
 		};
 
-		this._publishOffer = function(thread, provider, percent) {
-			thread.next();
+		this._publishOffer = function(thread, provider, percent, price_per_stc) {
+			var quantity = provider.amount * percent / 100;
+			this.offers_table.addRecord([
+				provider.name,
+				quantity,
+				price_per_stc,
+				this.gb_per_stc,
+				quantity * price_per_stc
+			]);
+			this.offers_table.repaint();
+			setTimeout(function() {
+				thread.next();
+			}, this.offers_table.options.repaintDuration);
+		};
+
+		this.publishDemand = function(thread, consumer, percent, max_price_per_stc) {
+			thread.push({
+				function: this._publishDemand,
+				args: arguments,
+				name: 'publishDemand',
+				object: this
+			});
+		};
+
+		this._publishDemand = function(thread, consumer, gb_needed, max_price_per_stc) {
+			var quantity = gb_needed / this.gb_per_stc;
+			this.demands_table.addRecord([
+				consumer.name,
+				quantity,
+				max_price_per_stc,
+				this.gb_per_stc,
+				quantity * max_price_per_stc
+			]);
+			this.demands_table.repaint();
+			setTimeout(function() {
+				thread.next();
+			}, this.demands_table.options.repaintDuration);
 		};
 	};
 })(stc)

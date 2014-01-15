@@ -63,7 +63,7 @@
 					var x = self.sys.svgbox.x / 2 - 150 + offset_x;
 					return x;
 				})
-				.attr('y', 50)
+				.attr('y', 5)
 				.attr('height', 10)
 				.attr('width', reward_width);
 
@@ -81,44 +81,9 @@
 					var x = ((self.sys.svgbox.x / 2) - (self.options.h * 300) / 2) + offset_x;
 					return x;
 				})
-				.each('end', function(d) {
-					if (doNext) {
-						doNext = false;
-						thread.next();
-					}
-				});
-		};
-
-		this.sendReward = function(thread) {
-			thread.push({
-				function: this._sendReward,
-				args: arguments,
-				name: 'sendReward',
-				object: this
-			});
-		};
-
-		this._sendReward = function(thread) {
-			if (this.sys.nodes.length < 1) {
-				this.group.remove();
-				thread.next();
-				return;
-			}
-
-			var scale = stc.Utils.getNodeScale(this.sys);
-			var doNext = true;
-			var rect_size = 10 * scale;
-			this.group.selectAll('rect.reward')
 				.transition()
-					.duration(1000)
-					.attr('x', function(d) {
-						return d.x + scale * sys.NODE_SIZE / 2 - rect_size / 2;
-					})
-					.attr('y', function(d) {
-						return d.y + scale * sys.NODE_SIZE / 2 - rect_size / 2;
-					})
-					.attr('width', rect_size)
-					.attr('height', rect_size)
+					.duration(500)
+					.style('opacity', 0)
 					.each('end', function(d) {
 						if (doNext) {
 							doNext = false;
