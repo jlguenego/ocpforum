@@ -12,6 +12,7 @@
 
 		this.options = {
 			repaintDuration: 300,
+			sort: null
 		};
 
 		// Build header
@@ -22,6 +23,11 @@
 
 		this.addRecord = function(record) {
 			this.dataset.push(record);
+			this.sort();
+		};
+
+		this.insertRecord = function(record) {
+			this.dataset.unshift(record);
 		};
 
 		this.removeRecord = function(index) {
@@ -32,13 +38,15 @@
 			this.selected_row = null;
 		};
 
-		this.repaint = function() {
+		this.repaint = function(duration) {
+			duration = duration || this.options.repaintDuration;
+
 			var tr = this.body.selectAll('tr').data(this.dataset, function(d) {return d;});
 
 			var exit_tr = tr.exit();
 			exit_tr.selectAll('div.jlg_cell')
 				.transition()
-					.duration(this.options.repaintDuration)
+					.duration(duration)
 					.style('height', '0px')
 					.each('end', function(d, i) {
 						if (i == 0) {
@@ -62,8 +70,10 @@
 				.style('height', '0px')
 				.text(function(d) { return d; })
 				.transition()
-					.duration(this.options.repaintDuration)
+					.duration(duration)
 					.style('height', '20px');
+
+			tr.order();
 		};
 
 		this.copyRow = function(row, p) {
@@ -149,5 +159,13 @@
 			this.selected_row = null;
 			this.repaint();
 		}
+
+		this.sort = function() {
+			if (!this.options.sort) {
+				return;
+			}
+			this.dataset.sort(this.options.sort);
+			//this.repaint(0);
+		};
 	};
-})( jlg );
+})(jlg);

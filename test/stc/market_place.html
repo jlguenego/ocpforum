@@ -46,6 +46,7 @@ html, body {
 }
 
 svg {
+	margin-top: 10px;
 	border: 1px solid black;
 }
 
@@ -649,22 +650,31 @@ function s1() {
 	start();
 
 	var thread = new Thread('main');
-	var provider = new stc.Actor('Provider_' + context.providerIndex);
-	sys.addActor(thread, provider);
 
-	sys.addNode(thread, new stc.Node('Node_' + context.nodeIndex, provider));
-	context.nodeIndex++;
-	sys.addNode(thread, new stc.Node('Node_' + context.nodeIndex, provider));
-	context.nodeIndex++;
+	var providers = [];
+	var provider_qty = 3;
+	for(var i = 0; i < provider_qty; i++) {
+		var provider = new stc.Actor('Provider_' + context.providerIndex);
+		sys.addActor(thread, provider);
+		providers.push(provider);
+		context.providerIndex++;
+
+		sys.addNode(thread, new stc.Node('Node_' + context.nodeIndex, provider));
+		context.nodeIndex++;
+	}
 
 	sys.nextCycle(thread);
 
 	var consumer = new stc.Actor('Consumer_' + context.userIndex);
 	sys.addActor(thread, consumer);
 
-	sys.publishOffer(thread, provider, 80, 1.2);
-
+	for(var i = 0; i < provider_qty; i++) {
+		sys.publishOffer(thread, providers[i], 80, 1.2 + (i / 10));
+	}
+	sys.publishOffer(thread, providers[0], 80, 1.1);
 	sys.publishDemand(thread, consumer, 20, 1.5);
+
+	sys.processDeals(thread);
 
 	thread.finish();
 	thread.start();

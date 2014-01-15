@@ -401,15 +401,16 @@
 		};
 
 		this._publishOffer = function(thread, provider, percent, price_per_stc) {
-			var quantity = provider.amount * percent / 100;
+			var quantity = (provider.amount * percent / 100).toFixed(2);
 			this.offers_table.addRecord([
 				provider.name,
 				quantity,
 				price_per_stc,
 				this.gb_per_stc,
-				quantity * price_per_stc
+				(quantity * price_per_stc).toFixed(2)
 			]);
 			this.offers_table.repaint();
+			this.offers_table.dataset.sort(this.tableSortByRate);
 			setTimeout(function() {
 				thread.next();
 			}, this.offers_table.options.repaintDuration);
@@ -425,18 +426,39 @@
 		};
 
 		this._publishDemand = function(thread, consumer, gb_needed, max_price_per_stc) {
-			var quantity = gb_needed / this.gb_per_stc;
+			var quantity = (gb_needed / this.gb_per_stc).toFixed(2);
 			this.demands_table.addRecord([
 				consumer.name,
 				quantity,
 				max_price_per_stc,
 				this.gb_per_stc,
-				quantity * max_price_per_stc
+				(quantity * max_price_per_stc).toFixed(2)
 			]);
+
+			this.demands_table.dataset.sort(this.tableSortByRate);
+
 			this.demands_table.repaint();
 			setTimeout(function() {
 				thread.next();
 			}, this.demands_table.options.repaintDuration);
+		};
+
+		this.tableSortByRate = function(a, b) {
+			return a[2] - b[2];
+		};
+
+		this.processDeals = function(thread) {
+			thread.push({
+				function: this._processDeals,
+				args: arguments,
+				name: 'processDeals',
+				object: this
+			});
+		};
+
+		this._processDeals = function(thread) {
+			var deals;
+			thread.next();
 		};
 	};
 })(stc)

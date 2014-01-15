@@ -21,19 +21,30 @@
 
 	<body>
 		<button id="add">Add entry</button>
+		<button id="insert">Insert entry</button>
 		<button id="remove">Remove entry</button>
 		<button id="move">Move</button>
 		<button id="copy">Copy</button>
+		<button id="order">Order by rate</button>
 		<div id="table"></div>
 		<script>
 Math.seedrandom('Hello');
 var dataset = [];
 var columns = [ 'Date', 'Name', 'Offer', 'Rate', 'Volume' ];
 var table = new jlg.Table('#table', columns, dataset);
+
+table.options.sort = function(a, b) {
+	return a[3] - b[3];
+};
 var counter = 0;
 
 $('#add').click(function() {
 	addEntry();
+	table.repaint();
+});
+
+$('#insert').click(function() {
+	insertEntry();
 	table.repaint();
 });
 
@@ -50,12 +61,27 @@ $('#copy').click(function() {
 	table.copyRow(table.selected_row, { x: 600, y: 100 });
 });
 
+$('#order').click(function() {
+	table.sort();
+	table.repaint();
+});
+
 for (var i = 0; i < 3; i++) {
 	addEntry();
 }
 table.repaint();
 
 function addEntry() {
+	record = getEntry();
+	table.addRecord(record);
+}
+
+function insertEntry() {
+	record = getEntry();
+	table.insertRecord(record);
+}
+
+function getEntry() {
 	var y = Math.randomizeInt(2013, 2014);
 	var m = Math.randomizeInt(1, 12);
 	var d = Math.randomizeInt(1, 31);
@@ -70,7 +96,7 @@ function addEntry() {
 		(rate * offer).toFixed(2)
 	];
 	counter++;
-	table.addRecord(record);
+	return record;
 }
 		</script>
 	</body>
