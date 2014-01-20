@@ -32,8 +32,9 @@
 		<button id="remove">Remove entry</button>
 		<button id="move">Move</button>
 		<button id="copy">Copy</button>
-		<button id="order">Order by rate</button>
 		<button id="batch">Batch</button>
+		<button id="sort_rate">Sort by rate</button>
+		<button id="sort_offer">Sort by offer</button>
 		<div id="table"></div>
 		<script>
 Math.seedrandom('Hello');
@@ -43,9 +44,15 @@ var table = new jlg.Table('#table', columns, dataset);
 
 //table.options.repaintDuration = 1000;
 
-table.options.sort = function(a, b) {
+var sort_by_rate = function(a, b) {
 	return a[3] - b[3];
 };
+
+var sort_by_offer = function(a, b) {
+	return a[2] - b[2];
+};
+table.options.sort = sort_by_rate;
+
 var counter = 0;
 
 $('#add').click(function() {
@@ -67,7 +74,14 @@ $('#copy').click(function() {
 	table.copyRow(table.selected_row, { x: 600, y: 100 });
 });
 
-$('#order').click(function() {
+$('#sort_rate').click(function() {
+	table.options.sort = sort_by_rate;
+	table.sort();
+	table.repaint();
+});
+
+$('#sort_offer').click(function() {
+	table.options.sort = sort_by_offer;
 	table.sort();
 	table.repaint();
 });

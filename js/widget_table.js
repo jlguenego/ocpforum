@@ -1,4 +1,4 @@
-(function( jlg, undefined ) {
+(function(jlg, undefined) {
 	jlg.Table = function(selector, columns, dataset) {
 		var self = this;
 
