@@ -6,7 +6,7 @@
 		// Offers
 		d3.select(offers_table_selector).selectAll('.jlg_table').remove();
 		var offers_dataset = [];
-		var offers_columns = [ 'Name', 'STC Qty', '$/STC', 'Price $' ];
+		var offers_columns = [ 'Name', 'STC Qty', 'GB Qty', '$/STC', 'Price $' ];
 		this.offers_table = new jlg.Table(offers_table_selector, offers_columns, offers_dataset);
 		this.offers_table.options.sort = function(a, b) {
 			return a[2] - b[2];
@@ -421,9 +421,11 @@
 
 		this._publishOffer = function(thread, provider, percent, price_per_stc) {
 			var quantity = (provider.amount * percent / 100).toFixed(2);
+			var gb_qty = (quantity * this.gb_per_stc).toFixed(2);
 			this.offers_table.addRecord([
 				provider.name,
 				quantity,
+				gb_qty,
 				price_per_stc,
 				(quantity * price_per_stc).toFixed(2)
 			]);
@@ -433,7 +435,7 @@
 			}, this.offers_table.options.repaintDuration);
 		};
 
-		this.publishDemand = function(thread, consumer, gb_needed, max_price_per_gb) {
+		this.publishDemand = function(thread, consumer, gb_needed, price_per_gb) {
 			thread.push({
 				function: this._publishDemand,
 				args: arguments,
@@ -442,13 +444,14 @@
 			});
 		};
 
-		this._publishDemand = function(thread, consumer, gb_needed, max_price_per_gb) {
-			var quantity = (gb_needed / this.gb_per_stc).toFixed(2);
+		this._publishDemand = function(thread, consumer, gb_needed, price_per_gb) {
+			var price_per_stc = price_per_gb * this.gb_per_stc;
 			this.demands_table.addRecord([
 				consumer.name,
-				quantity,
-				max_price_per_gb,
-				(quantity * max_price_per_gb).toFixed(2)
+				gb_needed,
+				price_per_gb,
+				price_per_stc,
+				(gb_needed * price_per_gb).toFixed(2)
 			]);
 
 			this.demands_table.repaint();
