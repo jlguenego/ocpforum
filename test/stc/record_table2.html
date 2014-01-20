@@ -24,6 +24,10 @@
 .jlg_being_inserted {
 	background-color: #A8FFA8;
 }
+
+.volume {
+	color: #DDDDDD;
+}
 		</style>
 	</head>
 
@@ -40,7 +44,28 @@
 		<script>
 Math.seedrandom('Hello');
 var dataset = [];
-var columns = [ 'Date', 'Name', 'Offer', 'Rate', 'Volume' ];
+var columns = [
+	{
+		label: 'Date',
+		name: 'date',
+	},
+	{
+		label: 'Name',
+		name: 'name',
+	},
+	{
+		label: 'Offer',
+		name: 'offer',
+	},
+	{
+		label: 'Rate',
+		name: 'rate',
+	},
+	{
+		label: 'Volume',
+		name: 'volume',
+	}
+];
 var table = new jlg.Table('#table', columns, dataset);
 
 //table.options.repaintDuration = 1000;

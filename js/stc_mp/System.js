@@ -6,7 +6,13 @@
 		// Offers
 		d3.select(offers_table_selector).selectAll('.jlg_table').remove();
 		var offers_dataset = [];
-		var offers_columns = [ 'Name', 'STC Qty', 'GB Qty', '$/STC', 'Price $' ];
+		var offers_columns = [
+			{ label: 'Name', name: 'name' },
+			{ label: 'STC Qty', name: 'stc_qty' },
+			{ label: 'GB Qty', name: 'gb_qty' },
+			{ label: '$/STC', name: 'dollar_per_stc' },
+			{ label: 'Price $', name: 'price' },
+		];
 		this.offers_table = new jlg.Table(offers_table_selector, offers_columns, offers_dataset);
 		this.offers_table.options.sort = function(a, b) {
 			return a[2] - b[2];
@@ -15,7 +21,13 @@
 		// Demands
 		d3.select(demands_table_selector).selectAll('.jlg_table').remove();
 		var demands_dataset = [];
-		var demands_columns = [ 'Name', 'GB Qty', '$/GB', '$/STC', 'Price $' ];
+		var demands_columns = [
+			{ label: 'Name', name: 'name' },
+			{ label: 'GB Qty', name: 'gb_qty' },
+			{ label: '$/GB', name: 'dollar_per_gb' },
+			{ label: '$/STC', name: 'dollar_per_stc' },
+			{ label: 'Price $', name: 'price' }
+		];
 		this.demands_table = new jlg.Table(demands_table_selector, demands_columns, demands_dataset);
 		this.demands_table.options.sort = function(a, b) {
 			return a[2] - b[2];
@@ -271,6 +283,28 @@
 			ca.show(thread);
 			ca.split(thread);
 			this.addReward(thread);
+			this.updateMarketPlace(thread);
+		};
+
+		this.updateMarketPlace = function(thread) {
+			thread.push({
+				function: this._updateMarketPlace,
+				args: arguments,
+				name: 'updateMarketPlace',
+				object: this
+			});
+		};
+
+		this._updateMarketPlace = function(thread) {
+			for (var i = 0; i < this.offers_table.dataset.length; i++) {
+				this.offers_table.dataset[i][2] = (this.offers_table.dataset[i][1] * this.gb_per_stc).toFixed(2);
+			}
+			for (var i = 0; i < this.demands_table.dataset.length; i++) {
+				this.demands_table.dataset[i][3] = (this.demands_table.dataset[i][2] * this.gb_per_stc).toFixed(2);
+			}
+			this.offers_table.repaint();
+			this.demands_table.repaint();
+			thread.next();
 		};
 
 		this.addReward = function(thread) {

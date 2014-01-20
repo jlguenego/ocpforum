@@ -17,10 +17,9 @@
 		};
 
 		// Build header
-		for (var i = 0; i < this.columns.length; i++) {
-			this.header.append('th')
-				.html(this.columns[i]);
-		}
+		this.header.selectAll('th').data(this.columns).enter().append('th')
+			.html(jlg.accessor('label'))
+			.attr('class', jlg.accessor('name'));
 
 		this.addRecord = function(record) {
 			this.dataset.push(record);
@@ -81,7 +80,9 @@
 			var td = new_tr.selectAll('td').data(function(d) { return d; });
 			var new_td = td.enter().append('td');
 			new_td.append('div')
-				.classed('jlg_cell', true)
+				.attr('class', function(d, i) {
+					return 'jlg_cell ' + self.columns[i].name;
+				})
 				.attr('data-col-index', function(d, i) {
 					return i;
 				})
