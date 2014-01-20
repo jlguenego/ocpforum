@@ -1,9 +1,29 @@
 (function(sim, undefined) {
-	stc.System = function(svg, offers_table, demands_table, viewSelectors) {
+	stc.System = function(svg, offers_table_selector, demands_table_selector, viewSelectors) {
 		var self = this;
 
-		this.offers_table = offers_table;
-		this.demands_table = demands_table;
+		// MARKET PLACE STUFF
+		// Offers
+		d3.select(offers_table_selector).selectAll('.jlg_table').remove();
+		var offers_dataset = [];
+		var offers_columns = [ 'Name', 'STC Qty', '$/STC', 'Price $' ];
+		this.offers_table = new jlg.Table(offers_table_selector, offers_columns, offers_dataset);
+		this.offers_table.options.sort = function(a, b) {
+			return a[2] - b[2];
+		};
+
+		// Demands
+		d3.select(demands_table_selector).selectAll('.jlg_table').remove();
+		var demands_dataset = [];
+		var demands_columns = [ 'Name', 'GB Qty', '$/GB', '$/STC', 'Price $' ];
+		this.demands_table = new jlg.Table(demands_table_selector, demands_columns, demands_dataset);
+		this.demands_table.options.sort = function(a, b) {
+			return a[2] - b[2];
+		};
+
+		this.offers_table.clean();
+		this.demands_table.clean();
+		// END MARKET PLACE STUFF
 
 		this.svg = svg;
 		this.svg.on('click', function(d) {
@@ -81,7 +101,6 @@
 		this.NODE_SIZE = 50;
 		this.cycle_id = 0;
 		this.gb_per_stc = 0;
-
 
 		var tick = function(e) {
 			var k = .1 * e.alpha;
@@ -406,17 +425,15 @@
 				provider.name,
 				quantity,
 				price_per_stc,
-				this.gb_per_stc,
 				(quantity * price_per_stc).toFixed(2)
 			]);
 			this.offers_table.repaint();
-			this.offers_table.dataset.sort(this.tableSortByRate);
 			setTimeout(function() {
 				thread.next();
 			}, this.offers_table.options.repaintDuration);
 		};
 
-		this.publishDemand = function(thread, consumer, percent, max_price_per_stc) {
+		this.publishDemand = function(thread, consumer, gb_needed, max_price_per_gb) {
 			thread.push({
 				function: this._publishDemand,
 				args: arguments,
@@ -425,17 +442,14 @@
 			});
 		};
 
-		this._publishDemand = function(thread, consumer, gb_needed, max_price_per_stc) {
+		this._publishDemand = function(thread, consumer, gb_needed, max_price_per_gb) {
 			var quantity = (gb_needed / this.gb_per_stc).toFixed(2);
 			this.demands_table.addRecord([
 				consumer.name,
 				quantity,
-				max_price_per_stc,
-				this.gb_per_stc,
-				(quantity * max_price_per_stc).toFixed(2)
+				max_price_per_gb,
+				(quantity * max_price_per_gb).toFixed(2)
 			]);
-
-			this.demands_table.dataset.sort(this.tableSortByRate);
 
 			this.demands_table.repaint();
 			setTimeout(function() {

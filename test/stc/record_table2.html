@@ -35,6 +35,7 @@
 		<button id="batch">Batch</button>
 		<button id="sort_rate">Sort by rate</button>
 		<button id="sort_offer">Sort by offer</button>
+		<button id="decrement_rate">Decrement Rate</button>
 		<div id="table"></div>
 		<script>
 Math.seedrandom('Hello');
@@ -76,13 +77,19 @@ $('#copy').click(function() {
 
 $('#sort_rate').click(function() {
 	table.options.sort = sort_by_rate;
-	table.sort();
 	table.repaint();
 });
 
 $('#sort_offer').click(function() {
 	table.options.sort = sort_by_offer;
-	table.sort();
+	table.repaint();
+});
+
+$('#decrement_rate').click(function() {
+	if (table.selected_row == null) {
+		return;
+	}
+	table.selected_row[3] = (table.selected_row[3] - 1).toFixed(2);
 	table.repaint();
 });
 

@@ -25,7 +25,6 @@
 		this.addRecord = function(record) {
 			this.dataset.push(record);
 			this.view_dataset.push(record);
-			this.sort();
 		};
 
 		this.removeRecord = function(record) {
@@ -43,6 +42,8 @@
 		};
 
 		this.repaint = function(duration) {
+			this.sort();
+
 			duration = duration || this.options.repaintDuration;
 
 			var tr = this.body.selectAll('tr').data(this.view_dataset, function(d) {return d;});
@@ -81,6 +82,9 @@
 			var new_td = td.enter().append('td');
 			new_td.append('div')
 				.classed('jlg_cell', true)
+				.attr('data-col-index', function(d, i) {
+					return i;
+				})
 				.style('height', '0px')
 				.text(function(d) { return d; })
 				.transition()
@@ -89,6 +93,9 @@
 					.each('end', function(d, i) {
 						new_tr.classed('jlg_being_inserted', false);
 					});
+
+			var update_td = tr.selectAll('td').data(function(d) { return d; });
+			update_td.select('div').text(function(d) { return d; });
 
 			tr.order();
 		};

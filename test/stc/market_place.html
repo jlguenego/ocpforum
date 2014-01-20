@@ -390,18 +390,6 @@ var chart_group_selector = 'system';
 var current_chart_title = 'STC';
 // END CHART STUFF
 
-// MARKET PLACE STUFF
-// Offers
-var offers_dataset = [];
-var offers_columns = [ 'Name', 'Quantity', 'Price/STC', 'GB/STC', 'Price' ];
-var offers_table = new jlg.Table('#offers', offers_columns, offers_dataset);
-
-// Demands
-var demands_dataset = [];
-var demands_columns = [ 'Name', 'Quantity', 'Price/STC', 'GB/STC', 'Price' ];
-var demands_table = new jlg.Table('#demands', demands_columns, demands_dataset);
-// END MARKET PLACE STUFF
-
 var onObjectSelected = function(object) {
 	console.log(object);
 	if (object instanceof stc.Actor) {
@@ -472,6 +460,10 @@ function update_chart(selector) {
 
 var sys = null;
 
+$(document).ready(function() {
+	start();
+});
+
 function start() {
 	reset_stats();
 	reset_chart();
@@ -498,11 +490,7 @@ function start() {
 	var svg = d3.select('#frame').append('svg');
 
 	set_screen_size();
-
-	offers_table.clean();
-	demands_table.clean();
-
-	sys = new stc.System(svg, offers_table, demands_table, {
+	sys = new stc.System(svg, '#offers', '#demands', {
 		sideView: '#view',
 		actorsView: '.param_body.actor',
 		nodesView: '.param_body.node'
