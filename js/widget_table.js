@@ -72,7 +72,7 @@
 				.classed('jlg_being_inserted', true);
 
 			new_tr.on('click', function(d) {
-				tr.classed('jlg_selected', false);
+				self.body.selectAll('tr').classed('jlg_selected', false);
 				d3.select(this).classed('jlg_selected', true);
 				self.selected_row = d;
 			});
