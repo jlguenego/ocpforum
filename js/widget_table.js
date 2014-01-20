@@ -13,6 +13,7 @@
 
 		this.options = {
 			repaintDuration: 300,
+			moveDuration: 2000,
 			sort: null
 		};
 
@@ -36,7 +37,7 @@
 			}
 
 			this.dataset.splice(index, 1);
-			this.body.selectAll('tr').filter(function(d) { console.log(d);return d == record; })
+			this.body.selectAll('tr').filter(function(d) { return d == record; })
 				.classed('jlg_to_be_removed', true);
 		};
 
@@ -45,7 +46,7 @@
 
 			duration = duration || this.options.repaintDuration;
 
-			var tr = this.body.selectAll('tr').data(this.view_dataset, function(d) {return d;});
+			var tr = this.body.selectAll('tr').data(this.view_dataset, function(d) {return self.record2Array(d);});
 
 			var exit_tr = this.body.selectAll('tr.jlg_to_be_removed');
 			exit_tr.selectAll('div.jlg_cell')
@@ -77,14 +78,14 @@
 				self.selected_row = d;
 			});
 
-			var td = new_tr.selectAll('td').data(function(d) { return d; });
+			var td = new_tr.selectAll('td').data(function(d) { return self.record2Array(d); });
 			var new_td = td.enter().append('td');
 			new_td.append('div')
 				.attr('class', function(d, i) {
 					return 'jlg_cell ' + self.columns[i].name;
 				})
-				.attr('data-col-index', function(d, i) {
-					return i;
+				.attr('data-col-name', function(d, i) {
+					return self.columns[i].name;
 				})
 				.style('height', '0px')
 				.text(function(d) { return d; })
@@ -95,10 +96,19 @@
 						new_tr.classed('jlg_being_inserted', false);
 					});
 
-			var update_td = tr.selectAll('td').data(function(d) { return d; });
+			var update_td = tr.selectAll('td').data(function(d) { return self.record2Array(d); });
 			update_td.select('div').text(function(d) { return d; });
 
 			tr.order();
+		};
+
+		this.record2Array = function(record) {
+			var result = [];
+			for (var i = 0; i < this.columns.length; i++) {
+				var accessor = this.columns[i].name;
+				result.push(record[accessor]);
+			}
+			return result;
 		};
 
 		this.copyRow = function(row, p) {
@@ -110,25 +120,21 @@
 		};
 
 		this._animateRow = function(row, p, remove_flag) {
-			var all_tr = this.body.selectAll('tr.jlg_row');
-			var tr;
-
-			all_tr.each( function(d, i){
-				if (d == row){
-					tr = d3.select(this);
-				}
-			});
-
-			if (!tr) {
+			var tr = this.body.selectAll('tr').filter(function(d, i) { return d == row; });
+			if (tr.empty()) {
+				console.log('tr is empty');
 				return;
 			}
+
+			tr.classed('jlg_being_animated', true);
 
 			var data = [];
 			var row_div = tr.selectAll('div');
 
 			row_div.each(function(d, i) {
 				var bbox = this.getBoundingClientRect();
-				data[i] = { bbox: bbox, data: row[i] };
+				var accessor = d3.select(this).attr('data-col-name');
+				data[i] = { bbox: bbox, data: row[accessor] };
 			});
 
 			var bbox = tr.node().getBoundingClientRect();
@@ -163,7 +169,7 @@
 
 			div
 				.transition()
-					.duration(2000)
+					.duration(this.options.moveDuration - 500)
 					.style('top', p.y + 'px')
 					.style('left', p.x + 'px')
 					.each('end', function() {
@@ -175,6 +181,9 @@
 				.transition()
 					.duration(500)
 					.style('opacity', 0)
+					.each('end', function() {
+						tr.classed('jlg_being_animated', false);
+					})
 				.remove();
 		};
 
@@ -189,32 +198,6 @@
 				return;
 			}
 			this.view_dataset.sort(this.options.sort);
-		};
-
-		this.getRecord = function(index, colname) {
-			var record = this.dataset[index];
-			if (!colname) {
-				return record;
-			}
-
-			var cols = this.columns;
-			for (var i = 0; i < cols.length; i++) {
-				if (cols[i].name == colname) {
-					return record[i];
-				}
-			}
-		};
-
-		this.setRecord = function(index, colname, value) {
-			var record = this.dataset[index];
-			var cols = this.columns;
-			for (var i = 0; i < cols.length; i++) {
-				if (cols[i].name == colname) {
-					record[i] = value;
-					return;
-				}
-			}
-			throw new Error('Colname ' + colname + ' does not exists.');
 		};
 	};
 })(jlg);

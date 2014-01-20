@@ -223,7 +223,7 @@ input, select, table button {
 	float: right;
 }
 
-#offers .gb_qty, #demands .dollar_per_stc {
+#offers .gb_qty, #offers .price_per_gb, #demands .price_per_stc, #demands .stc_qty {
 	color: #AAAAAA;
 }
 
@@ -231,6 +231,11 @@ input, select, table button {
 	text-align: center;
 	font-size: 20px;
 	font-weight: bold;
+}
+
+#frame th {
+	width: 80px;
+	font-weight: 400;
 }
 		</style>
 	</head>
@@ -642,6 +647,7 @@ function s1() {
 	start();
 
 	var thread = new Thread('main');
+	//thread.setDebug('#debug');
 
 	var providers = [];
 	var provider_qty = 3;
@@ -657,14 +663,17 @@ function s1() {
 
 	sys.nextCycle(thread);
 
-	var consumer = new stc.Actor('Consumer_' + context.userIndex);
-	sys.addActor(thread, consumer);
+	var consumer_qty = 3;
+	for(var i = 0; i < consumer_qty; i++) {
+		var consumer = new stc.Actor('Consumer_' + context.userIndex);
+		sys.addActor(thread, consumer);
+		context.userIndex++;
+		sys.publishDemand(thread, consumer, 50, 0.7 + (i / 10));
+	}
 
 	for(var i = 0; i < provider_qty; i++) {
 		sys.publishOffer(thread, providers[i], 80, 1.2 + (i / 10));
 	}
-	sys.publishOffer(thread, providers[0], 80, 1.1);
-	sys.publishDemand(thread, consumer, 20, 1.5);
 
 	sys.processDeals(thread);
 

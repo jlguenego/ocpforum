@@ -3,34 +3,29 @@
 		var self = this;
 
 		// MARKET PLACE STUFF
-		// Offers
-		d3.select(offers_table_selector).selectAll('.jlg_table').remove();
-		var offers_dataset = [];
-		var offers_columns = [
+		var columns = [
 			{ label: 'Name', name: 'name' },
 			{ label: 'STC Qty', name: 'stc_qty' },
 			{ label: 'GB Qty', name: 'gb_qty' },
-			{ label: '$/STC', name: 'dollar_per_stc' },
+			{ label: '$/STC', name: 'price_per_stc' },
+			{ label: '$/GB', name: 'price_per_gb' },
 			{ label: 'Price $', name: 'price' },
 		];
-		this.offers_table = new jlg.Table(offers_table_selector, offers_columns, offers_dataset);
+
+		// Offers
+		d3.select(offers_table_selector).selectAll('.jlg_table').remove();
+		var offers_dataset = [];
+		this.offers_table = new jlg.Table(offers_table_selector, columns, offers_dataset);
 		this.offers_table.options.sort = function(a, b) {
-			return a[3] - b[3];
+			return a.price_per_stc - b.price_per_stc;
 		};
 
 		// Demands
 		d3.select(demands_table_selector).selectAll('.jlg_table').remove();
 		var demands_dataset = [];
-		var demands_columns = [
-			{ label: 'Name', name: 'name' },
-			{ label: 'GB Qty', name: 'gb_qty' },
-			{ label: '$/GB', name: 'dollar_per_gb' },
-			{ label: '$/STC', name: 'dollar_per_stc' },
-			{ label: 'Price $', name: 'price' }
-		];
-		this.demands_table = new jlg.Table(demands_table_selector, demands_columns, demands_dataset);
+		this.demands_table = new jlg.Table(demands_table_selector, columns, demands_dataset);
 		this.demands_table.options.sort = function(a, b) {
-			return a[3] - b[3];
+			return b.price_per_stc - a.price_per_stc;
 		};
 
 		this.offers_table.clean();
@@ -186,6 +181,7 @@
 		this._selectObject = function(thread, d) {
 			this.selectedObject = d;
 			this.options.callback.onObjectSelected(d);
+
 			this._repaintAll(thread);
 		};
 
@@ -220,7 +216,7 @@
 
 			this.report({ action: 'add_actor', actor: actor });
 
-			this._repaintActors(thread);
+			this._repaintAll(thread);
 		};
 
 		this.addNode = function(thread, node) {
@@ -336,10 +332,6 @@
 		};
 
 		this._repaintAll = function(thread) {
-			this._repaintActors(thread);
-		};
-
-		this._repaintActors = function(thread) {
 			this.repaintSideView();
 			thread.next();
 		};
@@ -377,7 +369,7 @@
 
 			tr.select('td.name').text(jlg.accessor('name'));
 			tr.select('td.stc').text(function(d) {
-				return d.amount.toFixed(5);
+				return parseFloat(d.amount).toFixed(5);
 			});
 			tr.select('td.nodes').text(function(d) {
 				return d.nodes.length;
@@ -448,15 +440,16 @@
 		};
 
 		this._publishOffer = function(thread, provider, percent, price_per_stc) {
-			var quantity = (provider.amount * percent / 100).toFixed(2);
-			var gb_qty = (quantity * this.gb_per_stc).toFixed(2);
-			this.offers_table.addRecord([
-				provider.name,
-				quantity,
-				gb_qty,
-				price_per_stc,
-				(quantity * price_per_stc).toFixed(2)
-			]);
+			var quantity = provider.amount * percent / 100;
+			var gb_qty = quantity * this.gb_per_stc;
+			this.offers_table.addRecord({
+				name: provider.name,
+				stc_qty: quantity.toFixed(5),
+				gb_qty: gb_qty.toFixed(2),
+				price_per_gb: (price_per_stc / this.gb_per_stc).toFixed(2),
+				price_per_stc: price_per_stc.toFixed(2),
+				price: (quantity * price_per_stc).toFixed(2)
+			});
 			this.offers_table.repaint();
 			setTimeout(function() {
 				thread.next();
@@ -474,13 +467,14 @@
 
 		this._publishDemand = function(thread, consumer, gb_needed, price_per_gb) {
 			var price_per_stc = price_per_gb * this.gb_per_stc;
-			this.demands_table.addRecord([
-				consumer.name,
-				gb_needed,
-				price_per_gb,
-				price_per_stc,
-				(gb_needed * price_per_gb).toFixed(2)
-			]);
+			this.demands_table.addRecord({
+				name: consumer.name,
+				gb_qty: gb_needed.toFixed(2),
+				stc_qty: (gb_needed / this.gb_per_stc).toFixed(5),
+				price_per_gb: price_per_gb.toFixed(2),
+				price_per_stc: price_per_stc.toFixed(2),
+				price: (gb_needed * price_per_gb).toFixed(2)
+			});
 
 			this.demands_table.repaint();
 			setTimeout(function() {
@@ -505,59 +499,76 @@
 			this.demands_table.dataset.sort(this.demands_table.options.sort);
 			this.offers_table.dataset.sort(this.offers_table.options.sort);
 
-			this.processDealRec(thread);
+			this._processDealRec(thread);
 		};
 
-		this.processDealRec = function(thread) {
-			var max_dollar_per_stc = this.demands_table.getRecord(0, 'dollar_per_stc');
+		this.do_processDealRec = function(thread) {
+			thread.unshift({
+				function: this._processDeals,
+				args: arguments,
+				name: 'processDeals',
+				object: this
+			});
+		};
 
-			var dollar_per_stc = this.offers_table.getRecord(0, 'dollar_per_stc');
-			if (dollar_per_stc > max_dollar_per_stc) {
+		this._processDealRec = function(thread) {
+			var demand = this.demands_table.dataset[0];
+			var offer = this.offers_table.dataset[0];
+
+			if (!offer || !demand) {
+				thread.next();
+				return;
+			}
+
+			if (offer.price_per_stc > demand.price_per_stc) {
 				console.log('no deal');
 				thread.next();
 				return;
 			}
 
+
 			// Deal
-			var demand_gb_qty = this.demands_table.getRecord(0, 'gb_qty');
-			var demand_stc_qty = demand_gb_qty / this.gb_per_stc;
-			var offer_stc_qty = this.offers_table.getRecord(0, 'stc_qty');
+			var bbox = this.svg.node().getBoundingClientRect();
+			var p = {
+				x: bbox.left + bbox.width / 4,
+				y: bbox.top + bbox.height / 4,
+			};
+			this.offers_table.copyRow(offer, p);
+			this.demands_table.copyRow(demand, p);
 
-			var transaction = demand_stc_qty;
-			if (demand_stc_qty > offer_stc_qty) {
-				transaction = offer_stc_qty;
-			}
-
-			var provider_name = this.offers_table.getRecord(0, 'name');
-			var consumer_name = this.demands_table.getRecord(0, 'name');
-			console.log(provider_name);
-			console.log(consumer_name);
-
-			var provider = this.getActor(provider_name);
-			var consumer = this.getActor(consumer_name);
-			console.log(provider);
-			console.log(consumer);
-
-			provider.amount -= transaction;
-			consumer.amount += transaction;
-
-			var demand = this.demands_table.getRecord(0);
-			var gb_needed = this.demands_table.getRecord(0, 'gb_qty') - (transaction * this.gb_per_stc);
-			this.demands_table.setRecord(0, 'gb_qty', (gb_needed).toFixed(2));
-			var demand_price = this.demands_table.getRecord(0, 'dollar_per_gb') * gb_needed;
-			this.demands_table.setRecord(0, 'price', (demand_price).toFixed(2));
-
-			var offer = this.offers_table.getRecord(0);
-			var stc_left = this.offers_table.getRecord(0, 'stc_qty') - transaction;
-			this.offers_table.setRecord(0, 'stc_qty', (stc_left).toFixed(5));
-			var offer_price = this.offers_table.getRecord(0, 'dollar_per_stc') * stc_left;
-			this.offers_table.setRecord(0, 'price', (offer_price).toFixed(2));
-
-			this.offers_table.repaint();
-			this.demands_table.repaint();
 			setTimeout(function() {
-				self._repaintAll(thread);
-			}, this.offers_table.options.repaintDuration);
+				var transaction = Math.min(demand.stc_qty, offer.stc_qty);
+
+				var provider = self.getActor(offer.name);
+				var consumer = self.getActor(demand.name);
+
+				provider.amount -= transaction;
+				consumer.amount += transaction;
+
+				var gb_needed = demand.gb_qty - (transaction * self.gb_per_stc);
+				demand.gb_qty = gb_needed.toFixed(2);
+				demand.stc_qty = (gb_needed / self.gb_per_stc).toFixed(2);
+				demand.price = (demand.price_per_gb * gb_needed).toFixed(2);
+
+				offer.stc_qty = (offer.stc_qty - transaction).toFixed(5);
+				offer.gb_qty = (offer.stc_qty * self.gb_per_stc).toFixed(2);
+				offer.price = (offer.price_per_stc * offer.stc_qty).toFixed(2);
+
+				if (offer.stc_qty <= 0) {
+					self.offers_table.removeRecord(offer);
+				}
+				if (demand.gb_qty <= 0) {
+					console.log('remove demand');
+					self.demands_table.removeRecord(demand);
+				}
+
+				self.offers_table.repaint();
+				self.demands_table.repaint();
+				setTimeout(function() {
+					self.do_processDealRec(thread);
+					self._repaintAll(thread);
+				}, self.offers_table.options.repaintDuration);
+			}, this.offers_table.options.moveDuration);
 		};
 
 		this.getActor = function(name) {

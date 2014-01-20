@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<base href="../../" />
+		<meta charset="utf-8" />
+
+		<script src="_ext/d3.v3.min.js"></script>
+		<script src="_ext/seedrandom-min.js"></script>
+		<script src="_ext/jquery-1.10.2.min.js"></script>
+
+
+		<script src="js/jlg_commons.js"></script>
+		<script src="js/widget_table.js"></script>
+		<link rel="stylesheet" href="js/theme/default/widget_table.css" />
+		<style>
+		</style>
+	</head>
+
+	<body>
+		<div id="table"></div>
+		<script>
+var dataset = [
+	{ name: 'toto', qty: 2},
+	{ name: 'titi', qty: 5}
+];
+
+var table = d3.select('#table').append('table').classed('jlg_table', true);
+var header = table.append('thead').append('tr');
+var body = this.table.append('tbody');
+
+var tr = body.selectAll('tr').data(dataset, function(d) { return [ d.name, d.qty ]; });
+
+var new_tr = tr.enter().append('tr');
+var td = new_tr.selectAll('td').data(function(d) { return [ d.name, d.qty ]; });
+td.enter().append('td').append('div').text(function(d) { return d; });
+
+tr.order();
+		</script>
+	</body>
+</html>

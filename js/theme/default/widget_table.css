@@ -34,3 +34,11 @@
 .jlg_table .jlg_cell {
 	overflow: hidden;
 }
+
+.jlg_table .jlg_being_animated {
+	background-color: #FFFFE1;
+}
+
+.jlg_moving_box {
+	background-color: #FFFF9F;
+}

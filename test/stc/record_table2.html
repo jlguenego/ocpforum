@@ -71,11 +71,11 @@ var table = new jlg.Table('#table', columns, dataset);
 //table.options.repaintDuration = 1000;
 
 var sort_by_rate = function(a, b) {
-	return a[3] - b[3];
+	return a.rate - b.rate;
 };
 
 var sort_by_offer = function(a, b) {
-	return a[2] - b[2];
+	return a.offer - b.offer;
 };
 table.options.sort = sort_by_rate;
 
@@ -114,10 +114,7 @@ $('#decrement_rate').click(function() {
 	if (table.selected_row == null) {
 		return;
 	}
-	//table.selected_row[3] = (table.selected_row[3] - 1).toFixed(2);
-	var index = table.dataset.indexOf(table.selected_row);
-	var rate = table.getRecord(index, 'rate');
-	table.setRecord(index, 'rate', (rate - 1).toFixed(2));
+	table.selected_row.rate = (table.selected_row.rate - 1).toFixed(2);
 
 	table.repaint();
 });
@@ -148,13 +145,13 @@ function getEntry() {
 	var offer = Math.randomize(1, 100).toFixed(5);
 	var rate = Math.randomize(1, 10).toFixed(2);
 
-	var record = [
-		new Date(y, m, d).toDateString(),
-		'Provider_' + counter,
-		offer,
-		rate,
-		(rate * offer).toFixed(2)
-	];
+	var record = {
+		date: new Date(y, m, d).toDateString(),
+		name: 'Provider_' + counter,
+		offer: offer,
+		rate: rate,
+		volume: (rate * offer).toFixed(2)
+	};
 	counter++;
 	return record;
 }
