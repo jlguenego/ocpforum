@@ -4,6 +4,7 @@
 
 		this.columns = columns;
 		this.dataset = dataset;
+		this.view_dataset = this.dataset.slice(0);
 		this.selected_row = null;
 
 		this.table = d3.select(selector).append('table').classed('jlg_table', true);
@@ -23,39 +24,52 @@
 
 		this.addRecord = function(record) {
 			this.dataset.push(record);
+			this.view_dataset.push(record);
 			this.sort();
 		};
 
-		this.insertRecord = function(record) {
-			this.dataset.unshift(record);
-		};
-
-		this.removeRecord = function(index) {
-			index = index || this.dataset.indexOf(this.selected_row);
-			if (index >= 0) {
-				this.dataset.splice(index, 1);
-			}
+		this.removeRecord = function(record) {
+			record = record || this.selected_row;
 			this.selected_row = null;
+
+			var index = this.dataset.indexOf(record);
+			if (index < 0) {
+				return;
+			}
+
+			this.dataset.splice(index, 1);
+			this.body.selectAll('tr').filter(function(d) { console.log(d);return d == record; })
+				.classed('jlg_to_be_removed', true);
 		};
 
 		this.repaint = function(duration) {
 			duration = duration || this.options.repaintDuration;
 
-			var tr = this.body.selectAll('tr').data(this.dataset, function(d) {return d;});
+			var tr = this.body.selectAll('tr').data(this.view_dataset, function(d) {return d;});
 
-			var exit_tr = tr.exit();
+			var exit_tr = this.body.selectAll('tr.jlg_to_be_removed');
 			exit_tr.selectAll('div.jlg_cell')
 				.transition()
 					.duration(duration)
 					.style('height', '0px')
 					.each('end', function(d, i) {
 						if (i == 0) {
-							exit_tr.remove()
+							exit_tr.remove();
+							var data = exit_tr.data();
+							console.log(data);
+							data.forEach(function(d) {
+								console.log(d);
+								var index = self.view_dataset.indexOf(d);
+								if (index >= 0) {
+									self.view_dataset.splice(index, 1);
+								}
+							});
 						}
 					});
 
 			var new_tr = tr.enter().append('tr')
-				.classed('jlg_row', true);
+				.classed('jlg_row', true)
+				.classed('jlg_being_inserted', true);
 
 			new_tr.on('click', function(d) {
 				tr.classed('jlg_selected', false);
@@ -71,7 +85,10 @@
 				.text(function(d) { return d; })
 				.transition()
 					.duration(duration)
-					.style('height', '20px');
+					.style('height', '20px')
+					.each('end', function(d, i) {
+						new_tr.classed('jlg_being_inserted', false);
+					});
 
 			tr.order();
 		};
@@ -143,8 +160,7 @@
 					.style('left', p.x + 'px')
 					.each('end', function() {
 						if (remove_flag) {
-							var index = self.dataset.indexOf(row);
-							self.removeRecord(index);
+							self.removeRecord(row);
 							self.repaint();
 						}
 					})
@@ -164,7 +180,7 @@
 			if (!this.options.sort) {
 				return;
 			}
-			this.dataset.sort(this.options.sort);
+			this.view_dataset.sort(this.options.sort);
 		};
 	};
 })(jlg);

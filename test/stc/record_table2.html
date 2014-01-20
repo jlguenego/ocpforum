@@ -16,6 +16,14 @@
 #table {
 	width: 500px;
 }
+
+.jlg_to_be_removed {
+	background-color: #D5D5FF;
+}
+
+.jlg_being_inserted {
+	background-color: #A8FFA8;
+}
 		</style>
 	</head>
 
@@ -25,12 +33,15 @@
 		<button id="move">Move</button>
 		<button id="copy">Copy</button>
 		<button id="order">Order by rate</button>
+		<button id="batch">Batch</button>
 		<div id="table"></div>
 		<script>
 Math.seedrandom('Hello');
 var dataset = [];
 var columns = [ 'Date', 'Name', 'Offer', 'Rate', 'Volume' ];
 var table = new jlg.Table('#table', columns, dataset);
+
+//table.options.repaintDuration = 1000;
 
 table.options.sort = function(a, b) {
 	return a[3] - b[3];
@@ -58,6 +69,19 @@ $('#copy').click(function() {
 
 $('#order').click(function() {
 	table.sort();
+	table.repaint();
+});
+
+
+$('#batch').click(function() {
+	table.removeRecord(table.view_dataset[1]);
+	table.removeRecord(table.view_dataset[3]);
+
+	for (var i = 0; i < 3; i++) {
+		var record = getEntry();
+		table.addRecord(record);
+	}
+
 	table.repaint();
 });
 
