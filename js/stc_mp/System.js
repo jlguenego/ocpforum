@@ -15,7 +15,7 @@
 		];
 		this.offers_table = new jlg.Table(offers_table_selector, offers_columns, offers_dataset);
 		this.offers_table.options.sort = function(a, b) {
-			return a[2] - b[2];
+			return a[3] - b[3];
 		};
 
 		// Demands
@@ -30,7 +30,7 @@
 		];
 		this.demands_table = new jlg.Table(demands_table_selector, demands_columns, demands_dataset);
 		this.demands_table.options.sort = function(a, b) {
-			return a[2] - b[2];
+			return a[3] - b[3];
 		};
 
 		this.offers_table.clean();
@@ -248,7 +248,7 @@
 				action: 'add_node'
 			});
 
-			this._repaintNodes(thread);
+			thread.next();
 		};
 
 		this.removeNode = function(thread, node) {
@@ -275,7 +275,7 @@
 				action: 'remove_node'
 			});
 
-			this._repaintNodes(thread);
+			thread.next();
 		};
 
 		this.nextCycle = function(thread) {
@@ -336,16 +336,10 @@
 		};
 
 		this._repaintAll = function(thread) {
-			this._repaintActors();
-			this._repaintNodes(thread);
+			this._repaintActors(thread);
 		};
 
 		this._repaintActors = function(thread) {
-			this.repaintSideView();
-			thread.next();
-		};
-
-		this._repaintNodes = function(thread) {
 			this.repaintSideView();
 			thread.next();
 		};
@@ -508,8 +502,66 @@
 		};
 
 		this._processDeals = function(thread) {
-			var deals;
-			thread.next();
+			this.demands_table.dataset.sort(this.demands_table.options.sort);
+			this.offers_table.dataset.sort(this.offers_table.options.sort);
+
+			this.processDealRec(thread);
+		};
+
+		this.processDealRec = function(thread) {
+			var max_dollar_per_stc = this.demands_table.getRecord(0, 'dollar_per_stc');
+
+			var dollar_per_stc = this.offers_table.getRecord(0, 'dollar_per_stc');
+			if (dollar_per_stc > max_dollar_per_stc) {
+				console.log('no deal');
+				thread.next();
+				return;
+			}
+
+			// Deal
+			var demand_gb_qty = this.demands_table.getRecord(0, 'gb_qty');
+			var demand_stc_qty = demand_gb_qty / this.gb_per_stc;
+			var offer_stc_qty = this.offers_table.getRecord(0, 'stc_qty');
+
+			var transaction = demand_stc_qty;
+			if (demand_stc_qty > offer_stc_qty) {
+				transaction = offer_stc_qty;
+			}
+
+			var provider_name = this.offers_table.getRecord(0, 'name');
+			var consumer_name = this.demands_table.getRecord(0, 'name');
+			console.log(provider_name);
+			console.log(consumer_name);
+
+			var provider = this.getActor(provider_name);
+			var consumer = this.getActor(consumer_name);
+			console.log(provider);
+			console.log(consumer);
+
+			provider.amount -= transaction;
+			consumer.amount += transaction;
+
+			var demand = this.demands_table.getRecord(0);
+			var gb_needed = this.demands_table.getRecord(0, 'gb_qty') - (transaction * this.gb_per_stc);
+			this.demands_table.setRecord(0, 'gb_qty', (gb_needed).toFixed(2));
+			var demand_price = this.demands_table.getRecord(0, 'dollar_per_gb') * gb_needed;
+			this.demands_table.setRecord(0, 'price', (demand_price).toFixed(2));
+
+			var offer = this.offers_table.getRecord(0);
+			var stc_left = this.offers_table.getRecord(0, 'stc_qty') - transaction;
+			this.offers_table.setRecord(0, 'stc_qty', (stc_left).toFixed(5));
+			var offer_price = this.offers_table.getRecord(0, 'dollar_per_stc') * stc_left;
+			this.offers_table.setRecord(0, 'price', (offer_price).toFixed(2));
+
+			this.offers_table.repaint();
+			this.demands_table.repaint();
+			setTimeout(function() {
+				self._repaintAll(thread);
+			}, this.offers_table.options.repaintDuration);
+		};
+
+		this.getActor = function(name) {
+			return jlg.find(this.actors, function(d) { return d.name == name; })
 		};
 	};
 })(stc)

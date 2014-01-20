@@ -190,5 +190,31 @@
 			}
 			this.view_dataset.sort(this.options.sort);
 		};
+
+		this.getRecord = function(index, colname) {
+			var record = this.dataset[index];
+			if (!colname) {
+				return record;
+			}
+
+			var cols = this.columns;
+			for (var i = 0; i < cols.length; i++) {
+				if (cols[i].name == colname) {
+					return record[i];
+				}
+			}
+		};
+
+		this.setRecord = function(index, colname, value) {
+			var record = this.dataset[index];
+			var cols = this.columns;
+			for (var i = 0; i < cols.length; i++) {
+				if (cols[i].name == colname) {
+					record[i] = value;
+					return;
+				}
+			}
+			throw new Error('Colname ' + colname + ' does not exists.');
+		};
 	};
 })(jlg);
