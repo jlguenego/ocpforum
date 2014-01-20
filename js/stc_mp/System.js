@@ -107,7 +107,11 @@
 		this.totalSTC = 0;
 		this.NODE_SIZE = 50;
 		this.cycle_id = 0;
-		this.gb_per_stc = 0;
+		this.gb_per_stc = 1;
+		this.price_per_stc = 1;
+		this.price_per_gb = 1;
+
+		this.performed_deal_nbr = 0;
 
 		var tick = function(e) {
 			var k = .1 * e.alpha;
@@ -430,7 +434,7 @@
 			thread.next();
 		};
 
-		this.publishOffer = function(thread, provider, percent, price_per_stc) {
+		this.publishOffer = function(thread, provider, amount_percent, rate_coef) {
 			thread.push({
 				function: this._publishOffer,
 				args: arguments,
@@ -439,9 +443,23 @@
 			});
 		};
 
-		this._publishOffer = function(thread, provider, percent, price_per_stc) {
-			var quantity = provider.amount * percent / 100;
+		this._publishOffer = function(thread, provider, amount_percent, rate_coef) {
+			var record = jlg.find(this.offers_table.dataset, function(d) {
+				return d.name == provider.name;
+			});
+			if (record) {
+				this.offers_table.removeRecord(record);
+			}
+
+			var quantity = provider.amount * amount_percent / 100;
 			var gb_qty = quantity * this.gb_per_stc;
+			var price_per_stc = this.price_per_stc * rate_coef;
+
+			if (gb_qty < 5) {
+				thread.next();
+				return;
+			}
+
 			this.offers_table.addRecord({
 				name: provider.name,
 				stc_qty: quantity.toFixed(5),
@@ -456,7 +474,7 @@
 			}, this.offers_table.options.repaintDuration);
 		};
 
-		this.publishDemand = function(thread, consumer, gb_needed, price_per_gb) {
+		this.publishDemand = function(thread, consumer, gb_needed, rate_coef) {
 			thread.push({
 				function: this._publishDemand,
 				args: arguments,
@@ -465,7 +483,15 @@
 			});
 		};
 
-		this._publishDemand = function(thread, consumer, gb_needed, price_per_gb) {
+		this._publishDemand = function(thread, consumer, gb_needed, rate_coef) {
+			var record = jlg.find(this.demands_table.dataset, function(d) {
+				return d.name == consumer.name;
+			});
+
+			if (record) {
+				this.demands_table.removeRecord(record);
+			}
+			var price_per_gb = rate_coef * this.price_per_gb;
 			var price_per_stc = price_per_gb * this.gb_per_stc;
 			this.demands_table.addRecord({
 				name: consumer.name,
@@ -499,12 +525,13 @@
 			this.demands_table.dataset.sort(this.demands_table.options.sort);
 			this.offers_table.dataset.sort(this.offers_table.options.sort);
 
+			this.performed_deal_nbr = 0;
 			this._processDealRec(thread);
 		};
 
 		this.do_processDealRec = function(thread) {
 			thread.unshift({
-				function: this._processDeals,
+				function: this._processDealRec,
 				args: arguments,
 				name: 'processDeals',
 				object: this
@@ -515,13 +542,11 @@
 			var demand = this.demands_table.dataset[0];
 			var offer = this.offers_table.dataset[0];
 
-			if (!offer || !demand) {
-				thread.next();
-				return;
-			}
-
-			if (offer.price_per_stc > demand.price_per_stc) {
+			if ((!offer || !demand) || offer.price_per_stc > demand.price_per_stc) {
 				console.log('no deal');
+				if (this.performed_deal_nbr == 0) {
+					this.price_per_stc = this.price_per_stc / 2;
+				}
 				thread.next();
 				return;
 			}
@@ -539,15 +564,18 @@
 			setTimeout(function() {
 				var transaction = Math.min(demand.stc_qty, offer.stc_qty);
 
+				self.price_per_stc = offer.price_per_stc;
+				self.price_per_gb = offer.price_per_gb;
+				self.performed_deal_nbr = self.performed_deal_nbr + 1;
+
 				var provider = self.getActor(offer.name);
 				var consumer = self.getActor(demand.name);
-
 				provider.amount -= transaction;
 				consumer.amount += transaction;
 
 				var gb_needed = demand.gb_qty - (transaction * self.gb_per_stc);
 				demand.gb_qty = gb_needed.toFixed(2);
-				demand.stc_qty = (gb_needed / self.gb_per_stc).toFixed(2);
+				demand.stc_qty = (gb_needed / self.gb_per_stc).toFixed(5);
 				demand.price = (demand.price_per_gb * gb_needed).toFixed(2);
 
 				offer.stc_qty = (offer.stc_qty - transaction).toFixed(5);

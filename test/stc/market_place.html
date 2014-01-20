@@ -237,6 +237,11 @@ input, select, table button {
 	width: 80px;
 	font-weight: 400;
 }
+
+#frame #mp {
+	height: 300px;
+	overflow: auto;
+}
 		</style>
 	</head>
 
@@ -345,15 +350,19 @@ input, select, table button {
 				</div>
 			</div>
 			<div id="frame">
-				<div id="offers"><div class="title">Offers</div></div>
-				<div id="demands"><div class="title">Demands</div></div>
+				<div id="mp">
+					<div id="offers"><div class="title">Offers</div></div>
+					<div id="demands"><div class="title">Demands</div></div>
+				</div>
 			</div>
 			<div id="chart_buttons">
 				<table>
 					<tr>
 						<th>System:</th>
 						<td class="system">
-							<button class="change_chart" data-value="stc">STC</button>
+							<button class="change_chart" data-value="gb_per_stc">GB/STC</button>
+							<button class="change_chart" data-value="price_per_stc">$/STC</button>
+							<button class="change_chart" data-value="price_per_gb">$/GB</button>
 							<button class="change_chart" data-value="total_stc">Total STC</button>
 							<button class="change_chart" data-value="actors">Actors</button>
 							<button class="change_chart" data-value="nodes">Nodes</button>
@@ -362,6 +371,7 @@ input, select, table button {
 						<th>Actor:</th>
 						<td class="actor">
 							<button class="change_chart_actor" data-value="stc" disabled="disabled">STC</button>
+							<button class="change_chart_actor" data-value="price_amount" disabled="disabled">$</button>
 							<button class="change_chart_actor" data-value="nodes" disabled="disabled">Nodes</button>
 							<button class="change_chart_actor" data-value="volume" disabled="disabled">Volume</button>
 						</td>
@@ -396,7 +406,7 @@ var dataset = [{
 }];
 var actor_dataset_aa = {};
 var chart_group_selector = 'system';
-var current_chart_title = 'STC';
+var current_chart_title = 'GB/STC';
 // END CHART STUFF
 
 var onObjectSelected = function(object) {
@@ -687,8 +697,9 @@ function s2() {
 	var scenario = new stc.Scenario(sys, context);
 
 	scenario.addProvider();
+	scenario.addConsumer();
 
-	var cycle_qty = 3;
+	var cycle_qty = 10;
 	for (var i = 0; i < cycle_qty; i++) {
 		scenario.doCycle();
 	}
@@ -772,7 +783,8 @@ $('#stat').get(0).addEventListener("system_stat", function(e) {
 					cycle: sys.cycle_id,
 					stc: 0,
 					nodes: 0,
-					volume: 0
+					volume: 0,
+					price_amount: 0
 				}
 			];
 			break;
@@ -795,7 +807,9 @@ function update_dataset() {
 
 	dataset.push({
 		cycle: sys.cycle_id,
-		stc: gb_per_stc,
+		gb_per_stc: gb_per_stc,
+		price_per_stc: sys.price_per_stc,
+		price_per_gb: sys.price_per_gb,
 		total_stc: sys.totalSTC,
 		nodes: sys.nodes.length,
 		actors: sys.actors.length,
@@ -808,7 +822,8 @@ function update_dataset() {
 			cycle: sys.cycle_id,
 			stc: actor.amount,
 			nodes: actor.nodes.length,
-			volume: (actor.amount * gb_per_stc).toFixed(2)
+			volume: (actor.amount * gb_per_stc).toFixed(2),
+			price_amount: actor.amount * sys.price_per_stc
 		});
 	}
 }
@@ -830,17 +845,19 @@ function refresh_chart() {
 function reset_chart() {
 	dataset = [{
 		cycle: 0,
-		stc: 0,
+		gb_per_stc: 1,
+		price_per_stc: 1,
+		price_per_gb: 1,
 		total_stc: 0,
 		nodes: 0,
 		actors: 0,
 		capacity: 0
 	}];
 	actor_dataset_aa = {};
-	current_chart_title = 'STC';
+	current_chart_title = 'GB/STC';
 	chart_group_selector == 'system'
 	if (sys) {
-		group = xDim.group().reduceSum(jlg.accessor('stc'));
+		group = xDim.group().reduceSum(jlg.accessor('gb_per_stc'));
 		refresh_chart();
 	}
 }
@@ -850,11 +867,11 @@ function reset_chart() {
 function init_graph() {
 	ndx = crossfilter();
 	xDim = ndx.dimension(function(d) {return d.cycle;});
-	group = xDim.group().reduceSum(function(d) {return d.stc;});
+	group = xDim.group().reduceSum(function(d) {return d.gb_per_stc;});
 	lineChart = dc.lineChart("#chart")
 		.width(950).height(190)
 		.dimension(xDim)
-		.group(group, 'STC')
+		.group(group, 'GB/STC')
 		.legend(dc.legend().x(40).y(20).itemHeight(10).gap(5))
 		.x(d3.scale.linear().domain([0,sys.cycle_id]))
 		.elasticY(true)

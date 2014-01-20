@@ -100,17 +100,42 @@
 				var p = Math.randomize(1, 100);
 				if (p < 15) {
 					this.addProvider();
+				} if (p < 30) {
+					this.addConsumer();
 				} else if (p < 60) {
 					var a = Math.randomizeInt(0, context.providers.length - 1);
 					this.addNode(a);
-				} else {
+				} if (p < 70) {
+					var index = Math.randomizeInt(0, context.providers.length - 1);
+					this.publishOffer(context.providers[index]);
+				} if (p < 80) {
+					var index = Math.randomizeInt(0, context.consumers.length - 1);
+					this.publishDemand(context.consumers[index]);
+				} else if (p <= 100) {
 					if (context.nodes.length > 0) {
 						var node_index = Math.randomizeInt(0, context.nodes.length - 1);
 						this.removeNode(node_index);
 					}
 				}
 			}
+			this.performDeals();
 			this.nextCycle();
+		};
+
+		this.publishOffer = function(provider) {
+			var amount_percent = Math.randomize(10, 100);
+			var rate_coef = Math.randomize(0.5, 1.5);
+			this.sys.publishOffer(this.thread, provider, amount_percent, rate_coef);
+		};
+
+		this.publishDemand = function(consumer) {
+			var gb_needed = Math.randomize(10, 100);
+			var rate_coef = Math.randomize(0.5, 1.5);
+			this.sys.publishDemand(this.thread, consumer, gb_needed, rate_coef);
+		};
+
+		this.performDeals = function() {
+			this.sys.processDeals(this.thread);
 		};
 
 		this.start = function() {
