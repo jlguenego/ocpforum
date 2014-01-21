@@ -567,7 +567,6 @@ function update_chart(selector) {
 		}
 		current_chart_title = 'STC';
 	}
-	clean_stack();
 }
 
 var sys = null;
@@ -1019,7 +1018,7 @@ $('.change_chart_actor').click(function() {
 });
 
 function set_chart(el) {
-	clean_stack();
+	clean_stack(1);
 
 	current_chart_title = el.html();
 	var val_to_show = el.attr('data-value');
@@ -1030,7 +1029,7 @@ function set_chart(el) {
 }
 
 function set_stack_chart(el) {
-	clean_stack();
+	clean_stack(2);
 
 	current_chart_title = el.html();
 	var values = el.attr('data-stack').split(' ');
@@ -1049,14 +1048,18 @@ function set_stack_chart(el) {
 	lineChart.yAxis().tickFormat(function(v) {return v + unit;})
 }
 
-function clean_stack() {
+function clean_stack(nbr) {
 	group_stack = [];
+	var my_dataset = [];
+	for (var i = 0; i < nbr; i++) {
+		my_dataset.push(i);
+	}
 	console.log(lineChart.data());
 	var svg = d3.select('#chart').select('svg');
 	var stack = svg.select('g.chart-body').selectAll('g.stack-list').selectAll('g.stack');
-	stack.data([1])
+	stack.data(my_dataset)
 		.exit().remove();
-	svg.select('g.chart-body').selectAll('g.dc-tooltip-list').selectAll('g.dc-tooltip').data([1])
+	svg.select('g.chart-body').selectAll('g.dc-tooltip-list').selectAll('g.dc-tooltip').data(my_dataset)
 		.exit().remove();
 }
 
