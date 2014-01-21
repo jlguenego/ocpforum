@@ -59,10 +59,10 @@ chart
 	.x(d3.time.scale().domain([minDate,maxDate]))
 	.brushOn(false)
 	.legend(dc.legend().x(40).y(20).itemHeight(13).gap(5))
-	.group(total, "Total")
-	.stack(http_404, "404")
+	.group(http_404, "404")
 	.stack(http_200, "200")
-	.stack(http_302, "302");
+	.stack(http_302, "302")
+	//.stack(total, "Total");
 dc.renderAll();
 
 

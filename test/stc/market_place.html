@@ -203,6 +203,7 @@ input, select, table button {
 }
 
 #chart_buttons th {
+	width: 50px;
 	font-weight: bold;
 	text-align: right;
 }
@@ -327,6 +328,8 @@ input, select, table button {
 						<tr>
 							<th>1 STC:</th>
 							<td class="stc_gb">0.00 GB</td>
+							<th>1 STC:</th>
+							<td class="stc_price">0.00 $</td>
 						</tr>
 					</table>
 				</div>
@@ -371,10 +374,14 @@ input, select, table button {
 						</td>
 						<th>Actor:</th>
 						<td class="actor">
-							<button class="change_chart_actor" data-value="stc" disabled="disabled">STC</button>
-							<button class="change_chart_actor" data-value="price_amount" disabled="disabled">$</button>
-							<button class="change_chart_actor" data-value="nodes" disabled="disabled">Nodes</button>
-							<button class="change_chart_actor" data-value="volume" disabled="disabled">Volume</button>
+							<button class="change_chart_actor" data-value="actor_stc" disabled="disabled">STC</button>
+							<button class="change_chart_actor" data-value="actor_nodes" disabled="disabled">Nodes</button>
+							<button class="change_chart_actor" data-value="actor_volume" disabled="disabled">Volume</button>
+							<button class="change_chart_actor" data-value="actor_cumulated_mined_stc" disabled="disabled">Mined</button>
+							<br/>
+							<button class="change_chart_actor" data-value="actor_price_amount" disabled="disabled">$</button>
+							<button class="change_chart_actor" data-value="actor_price_earned_amount" disabled="disabled">$ earned</button>
+							<button class="change_chart_actor" data-value="actor_price_capital" disabled="disabled">$ capital</button>
 						</td>
 					</tr>
 				</table>
@@ -409,7 +416,73 @@ var dataset = [{
 var actor_dataset_aa = {};
 var chart_group_selector = 'system';
 var current_chart_title = 'GB/STC';
+
+var button_tips = {
+	gb_per_stc: 'Value of 1 STC in GB.',
+	price_per_stc: 'Exchange rate of 1 STC in $.',
+	price_per_gb: 'Exchange rate of 1 GB in $.',
+	total_stc: 'Total amount of STC in the system.',
+	actors: 'Number of actors in the system.',
+	nodes: 'Number of nodes in the system.',
+	capacity: 'Total capacity, in GB, of the system.',
+	performed_deal_nbr: 'Number of deals done during a cycle.',
+
+	actor_stc: 'STC amount for the given actor.',
+	actor_price_amount: '$ amount of the STC amount for the given actor.',
+	actor_nodes: 'Number of nodes for the given actor.',
+	actor_volume: 'Number of GB for the given actor.',
+	actor_cumulated_mined_stc: 'Number of STC mined by the given actor.',
+	actor_price_earned_amount: '$ earned from transactions.',
+	actor_price_capital: 'Total $ (earned from transaction + current STC amount).'
+};
+
+function get_initial_actor_dataset() {
+	return [{
+		cycle: sys.cycle_id,
+		actor_stc: 0,
+		actor_nodes: 0,
+		actor_volume: 0,
+		actor_price_amount: 0,
+		actor_cumulated_mined_stc: 0,
+		actor_price_earned_amount: 0,
+		actor_price_capital: 0
+	}];
+}
+
+function actor_push_data(actor, gb_per_stc) {
+	var price_amount = actor.amount * sys.price_per_stc;
+
+	actor_dataset_aa[actor.name].push({
+		cycle: sys.cycle_id,
+		actor_stc: actor.amount,
+		actor_nodes: actor.nodes.length,
+		actor_volume: (actor.amount * gb_per_stc).toFixed(2),
+		actor_price_amount: price_amount,
+		actor_cumulated_mined_stc: actor.mined_amount,
+		actor_price_earned_amount: actor.price_earned_amount,
+		actor_price_capital: actor.price_earned_amount + price_amount
+	});
+}
+
+function set_button_title(el) {
+	el.attr('title', button_tips[el.attr('data-value')]);
+}
 // END CHART STUFF
+
+$(document).ready(function() {
+	$('.change_chart').each(function() {
+		set_button_title($(this));
+	});
+	$('.change_chart_actor').each(function() {
+		set_button_title($(this));
+	});
+
+	$('.param_body').hide();
+	$('.menu [data-body=settings]').click();
+	set_screen_size();
+
+	start();
+});
 
 var onObjectSelected = function(object) {
 	console.log(object);
@@ -474,16 +547,16 @@ var onObjectDeselected = function(object) {
 function update_chart(selector) {
 	if (chart_group_selector != selector) {
 		chart_group_selector = selector;
-		group = xDim.group().reduceSum(jlg.accessor('stc'));
+		if (selector == 'system') {
+			group = xDim.group().reduceSum(jlg.accessor('stc'));
+		} else if (selector == 'actor') {
+			group = xDim.group().reduceSum(jlg.accessor('actor_stc'));
+		}
 		current_chart_title = 'STC';
 	}
 }
 
 var sys = null;
-
-$(document).ready(function() {
-	start();
-});
 
 function start() {
 	reset_stats();
@@ -527,7 +600,7 @@ function set_screen_size() {
 	var size = $('#screen_size').val();
 	var svg = d3.select('#frame').select('svg');
 	svg.attr('width', 950)
-		.attr('height', 50);
+		.attr('height', 25);
 	$('#param').css('height', 600);
 }
 
@@ -713,6 +786,7 @@ function s1() {
 	}
 
 	sys.processDeals(thread);
+	sys.nextCycle(thread);
 
 	thread.finish();
 	thread.start();
@@ -765,12 +839,6 @@ function s4() {
 	scenario.start();
 }
 
-$(document).ready(function() {
-	$('.param_body').hide();
-	$('.menu [data-body=settings]').click();
-	set_screen_size();
-});
-
 $('.menu .button').click(function() {
 	if ($(this).hasClass('disabled')) {
 		return;
@@ -788,6 +856,7 @@ function reset_stats() {
 	$('#stat td').html(0);
 	$('#stat .capacity').html('0 GB');
 	$('#stat .stc_gb').html('0.00 GB');
+	$('#stat .stc_price').html('0.00 $');
 	$('#stat .stc_total').html('0 STC');
 };
 
@@ -801,20 +870,13 @@ $('#stat').get(0).addEventListener("system_stat", function(e) {
 	var capacity = sys.nodes.length * sys.options.nodeCapacity;
 	el.find('.capacity').html(capacity + ' GB');
 	el.find('.stc_total').html(sys.totalSTC + ' STC');
+	el.find('.stc_price').html(parseFloat(sys.price_per_stc).toFixed(2) + ' $')
 	el.find('.stc_gb').html(sys.gb_per_stc.toFixed(2) + ' GB')
 		.attr('data-value', sys.gb_per_stc.toFixed(2));
 
 	switch (stats.action) {
 		case 'add_actor':
-			actor_dataset_aa[stats.actor.name] = [
-				{
-					cycle: sys.cycle_id,
-					stc: 0,
-					nodes: 0,
-					volume: 0,
-					price_amount: 0
-				}
-			];
+			actor_dataset_aa[stats.actor.name] = get_initial_actor_dataset();
 			break;
 		case 'add_node':
 			break;
@@ -847,13 +909,7 @@ function update_dataset() {
 
 	for (var i = 0; i < sys.actors.length; i++) {
 		var actor = sys.actors[i];
-		actor_dataset_aa[actor.name].push({
-			cycle: sys.cycle_id,
-			stc: actor.amount,
-			nodes: actor.nodes.length,
-			volume: (actor.amount * gb_per_stc).toFixed(2),
-			price_amount: actor.amount * sys.price_per_stc
-		});
+		actor_push_data(actor, gb_per_stc);
 	}
 }
 

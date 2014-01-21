@@ -6,6 +6,8 @@
 		this.name = name;
 		this.color = stc.Utils.getColorFromString(this.name);
 		this.amount = 0;
+		this.mined_amount = 0;
+		this.price_earned_amount = 0;
 		this.nodes = [];
 		this.type = 'actor';
 		this.mouse = false;

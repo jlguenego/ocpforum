@@ -309,7 +309,10 @@
 			}
 			this.offers_table.repaint();
 			this.demands_table.repaint();
-			thread.next();
+			setTimeout(function() {
+				self.report({ action: 'next_cycle' });
+				thread.next();
+			}, this.demands_table.options.duration.repaint);
 		};
 
 		this.addReward = function(thread) {
@@ -327,6 +330,7 @@
 			for (var i = 0; i < this.nodes.length; i++) {
 				var node = this.nodes[i];
 				node.owner.amount += stc_qty;
+				node.owner.mined_amount += stc_qty;
 			}
 
 			if (this.totalSTC > 0) {
@@ -336,7 +340,6 @@
 			this.repaintSideView();
 			this.cycle_id++;
 
-			this.report({ action: 'next_cycle' });
 			thread.next();
 		};
 
@@ -576,6 +579,7 @@
 				var provider = self.getActor(offer.name);
 				var consumer = self.getActor(demand.name);
 				provider.amount -= transaction;
+				provider.price_earned_amount += transaction * offer.price_per_stc;
 				consumer.amount += transaction;
 
 				var gb_needed = demand.gb_qty - (transaction * self.gb_per_stc);
