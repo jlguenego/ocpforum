@@ -85,6 +85,8 @@
 		this.price_per_stc = 1;
 		this.price_per_gb = 1;
 
+		this.competition_price_per_gb = 0.1;
+
 		this.performed_deal_nbr = 0;
 
 		// MARKET PLACE STUFF
@@ -499,7 +501,7 @@
 			if (record) {
 				this.demands_table.removeRecord(record);
 			}
-			var price_per_gb = rate_coef * this.price_per_gb;
+			var price_per_gb = rate_coef * this.competition_price_per_gb;
 			var price_per_stc = price_per_gb * this.gb_per_stc;
 			this.demands_table.addRecord({
 				name: consumer.name,
@@ -551,7 +553,6 @@
 			var offer = this.offers_table.dataset[0];
 
 			if ((!offer || !demand) || offer.price_per_stc > demand.price_per_stc) {
-				console.log('no deal');
 				if (this.performed_deal_nbr == 0) {
 					this.price_per_stc = this.price_per_stc / 2;
 				}
@@ -595,7 +596,6 @@
 					self.offers_table.removeRecord(offer);
 				}
 				if (demand.gb_qty <= 0) {
-					console.log('remove demand');
 					self.demands_table.removeRecord(demand);
 				}
 

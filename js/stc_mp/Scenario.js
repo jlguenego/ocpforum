@@ -88,12 +88,19 @@
 
 		this.nextCycle = function() {
 			this.sys.nextCycle(this.thread);
+			this.context.cycle_id++;
 		};
 
 		this.doCycle = function() {
 			if (context.providers.length < 1) {
 				this.addProvider();
 			}
+			if (context.consumers.length < 1) {
+				this.addConsumer();
+			}
+
+			this.performExternalEvents();
+
 			var n = Math.floor(Math.randomize(1, 2) * (context.providers.length + context.consumers.length));
 			n = Math.max(n, 10);
 			for (var i = 0; i < n; i++) {
@@ -120,6 +127,14 @@
 			}
 			this.performDeals();
 			this.nextCycle();
+		};
+
+		this.performExternalEvents = function() {
+			switch(this.context.cycle_id) {
+				case 10:
+					this.sys.competition_price_per_gb = this.sys.competition_price_per_gb / 2;
+					break;
+			}
 		};
 
 		this.publishOffer = function(provider) {
