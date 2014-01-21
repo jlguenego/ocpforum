@@ -1044,6 +1044,9 @@ function set_stack_chart(el) {
 		var label = legends[values[i]];
 		group_stack.push({ label: label, group: g });
 	}
+
+	var unit = el.attr('data-unit') || '';
+	lineChart.yAxis().tickFormat(function(v) {return v + unit;})
 }
 
 function clean_stack() {

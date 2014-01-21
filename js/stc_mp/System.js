@@ -621,8 +621,8 @@
 
 			var providers_to_add = Math.floor(Math.max(0, 5 * f_x));
 
-			x = 10 * (this.dataset[this.cycle_id].price_per_gb - this.competition_price_per_gb);
-			f_x = 1.8 - (2 / (x + 1));
+			x = this.competition_price_per_gb / this.dataset[this.cycle_id].price_per_gb;
+			f_x = 2 - (2 / (x + 1));
 			var consumers_to_add = Math.floor(Math.max(0, 2 * f_x));
 
 			this.attractivity = {
