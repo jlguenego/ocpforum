@@ -167,7 +167,7 @@ input, select, table button {
 
 #view {
 	overflow: auto;
-	max-height: 252px;
+	height: 230px;
 }
 
 #view table {
@@ -320,8 +320,14 @@ input, select, table button {
 							<td class="nodes">0</td>
 						</tr>
 						<tr>
+							<th>Providers:</th>
+							<td class="providers">0</td>
 							<th>Capacity:</th>
 							<td class="capacity">0 GB</td>
+						</tr>
+						<tr>
+							<th>Consumers:</th>
+							<td class="consumers">0</td>
 							<th>TOTAL STC:</th>
 							<td class="stc_total" data-value="0">0 STC</td>
 						</tr>
@@ -368,10 +374,11 @@ input, select, table button {
 							<button class="change_chart" data-value="price_per_gb">$/GB</button>
 							<button class="change_chart" data-value="total_stc">Total STC</button>
 							<br/>
-							<button class="change_chart" data-value="actors">Actors</button>
+							<button class="change_chart" data-value="actors" data-stack="providers consumers">Actors</button>
 							<button class="change_chart" data-value="nodes">Nodes</button>
 							<button class="change_chart" data-value="capacity">Capacity</button>
 							<button class="change_chart" data-value="performed_deal_nbr">Deal amount</button>
+							<button class="change_chart" data-value="usage" data-unit="%">Usage</button>
 						</td>
 						<th>Actor:</th>
 						<td class="actor">
@@ -407,15 +414,7 @@ var ndx;
 var xDim;
 var group;
 var lineChart;
-var dataset = [{
-	cycle: 0,
-	stc: 0,
-	total_stc: 0,
-	nodes: 0,
-	actors: 0,
-	capacity: 0,
-	performed_deal_nbr: 0
-}];
+var dataset = [];
 var actor_dataset_aa = {};
 var chart_group_selector = 'system';
 var current_chart_title = 'GB/STC';
@@ -431,6 +430,7 @@ var button_tips = {
 	nodes: 'Number of nodes in the system.',
 	capacity: 'Total capacity, in GB, of the system.',
 	performed_deal_nbr: 'Number of deals done during a cycle.',
+	usage: '',
 
 	actor_stc: 'STC amount for the given actor.',
 	actor_price_amount: '$ amount of the STC amount for the given actor.',
@@ -440,6 +440,13 @@ var button_tips = {
 	actor_price_earned_amount: '$ earned from transactions.',
 	actor_price_capital: 'Total $ (earned from transaction + current STC amount).',
 	actor_effectiveness: ''
+};
+
+var legends = {
+	providers: 'Providers',
+	consumers: 'Consumers',
+	actor_price_earned_amount: '$ earned',
+	actor_price_amount: '$'
 };
 
 function get_initial_actor_dataset() {
@@ -560,6 +567,7 @@ function update_chart(selector) {
 		}
 		current_chart_title = 'STC';
 	}
+	clean_stack();
 }
 
 var sys = null;
@@ -591,7 +599,7 @@ function start() {
 	var svg = d3.select('#frame').append('svg');
 
 	set_screen_size();
-	sys = new stc.System(svg, '#offers', '#demands', {
+	sys = new stc.System(svg, actor_dataset_aa, dataset, '#offers', '#demands', {
 		sideView: '#view',
 		actorsView: '.param_body.actor',
 		nodesView: '.param_body.node'
@@ -803,7 +811,7 @@ function s2() {
 	$('#animation').val('off');
 	start();
 
-	context.cycle_nbr = 5;
+	context.cycle_nbr = 15;
 
 	var scenario = new stc.Scenario(sys, context);
 	for (var i = 0; i < context.cycle_nbr; i++) {
@@ -814,18 +822,14 @@ function s2() {
 }
 
 function s3() {
+	$('#animation').val('off');
 	start();
 
-	var scenario = new stc.Scenario(sys, context);
+	var thread = new Thread('main');
+	sys.runCycle(thread, 300);
 
-	scenario.addProvider();
-
-	var cycle_qty = 20;
-	for (var i = 0; i < cycle_qty; i++) {
-		scenario.doCycle();
-	}
-
-	scenario.start();
+	thread.finish();
+	thread.start();
 }
 
 function s4() {
@@ -870,6 +874,9 @@ $('#stat').get(0).addEventListener("system_stat", function(e) {
 
 
 	el.find('.actors').html(sys.actors.length);
+	el.find('.providers').html(sys.providers.length);
+	el.find('.consumers').html(sys.consumers.length);
+	el.find('.actors').html(sys.actors.length);
 	el.find('.nodes').html(sys.nodes.length);
 	var capacity = sys.nodes.length * sys.options.nodeCapacity;
 	el.find('.capacity').html(capacity + ' GB');
@@ -899,6 +906,11 @@ function update_dataset() {
 		gb_per_stc = (sys.nodes.length * sys.options.nodeCapacity) / sys.totalSTC;
 	}
 
+	var used = 0;
+	for (var i = 0; i < sys.consumers.length; i++) {
+		used += sys.consumers[i].amount;
+	}
+
 	dataset.push({
 		cycle: sys.cycle_id,
 		gb_per_stc: gb_per_stc,
@@ -907,8 +919,11 @@ function update_dataset() {
 		total_stc: sys.totalSTC,
 		nodes: sys.nodes.length,
 		actors: sys.actors.length,
+		consumers: sys.consumers.length,
+		providers: sys.providers.length,
 		capacity: sys.nodes.length * sys.options.nodeCapacity,
-		performed_deal_nbr: sys.performed_deal_nbr
+		performed_deal_nbr: sys.performed_deal_nbr,
+		usage: used * 100 / sys.totalSTC
 	});
 
 	for (var i = 0; i < sys.actors.length; i++) {
@@ -940,7 +955,8 @@ function refresh_chart() {
 }
 
 function reset_chart() {
-	dataset = [{
+	dataset.length = 0;
+	dataset.push({
 		cycle: 0,
 		gb_per_stc: 1,
 		price_per_stc: 1,
@@ -948,9 +964,12 @@ function reset_chart() {
 		total_stc: 0,
 		nodes: 0,
 		actors: 0,
+		providers: 0,
+		consumers: 0,
 		capacity: 0,
-		performed_deal_nbr: 0
-	}];
+		performed_deal_nbr: 0,
+		usage: 0
+	});
 	actor_dataset_aa = {};
 	current_chart_title = 'GB/STC';
 	chart_group_selector == 'system'
@@ -976,6 +995,7 @@ function init_graph() {
 		.elasticY(true)
 		.brushOn(false);
 	dc.renderAll();
+	reset_chart();
 }
 
 $('.change_chart').click(function() {
@@ -1004,6 +1024,9 @@ function set_chart(el) {
 	current_chart_title = el.html();
 	var val_to_show = el.attr('data-value');
 	group = xDim.group().reduceSum(jlg.accessor(val_to_show));
+
+	var unit = el.attr('data-unit') || '';
+	lineChart.yAxis().tickFormat(function(v) {return v + unit;})
 }
 
 function set_stack_chart(el) {
@@ -1013,11 +1036,12 @@ function set_stack_chart(el) {
 	var values = el.attr('data-stack').split(' ');
 	var val_to_show = values[0];
 	group = xDim.group().reduceSum(jlg.accessor(val_to_show));
+	current_chart_title = legends[values[0]];
 
 	var parent = el.parent();
 	for (var i = 1; i < values.length; i++) {
 		var g = xDim.group().reduceSum(jlg.accessor(values[i]));
-		var label = parent.find('[data-value=' + values[i] + ']').html();
+		var label = legends[values[i]];
 		group_stack.push({ label: label, group: g });
 	}
 }
@@ -1026,7 +1050,8 @@ function clean_stack() {
 	group_stack = [];
 	console.log(lineChart.data());
 	var svg = d3.select('#chart').select('svg');
-	svg.select('g.chart-body').selectAll('g.stack-list').selectAll('g.stack').data([1])
+	var stack = svg.select('g.chart-body').selectAll('g.stack-list').selectAll('g.stack');
+	stack.data([1])
 		.exit().remove();
 	svg.select('g.chart-body').selectAll('g.dc-tooltip-list').selectAll('g.dc-tooltip').data([1])
 		.exit().remove();

@@ -8,7 +8,7 @@
 		this.thread = new Thread('main');
 
 		this.addProvider = function() {
-			var actor = new stc.Actor('Provider_' + this.context.providerIndex);
+			var actor = new stc.Actor('Provider_' + this.context.providerIndex, 'provider');
 			this.context.providerIndex++;
 
 			this.sys.addActor(this.thread, actor);
@@ -25,7 +25,7 @@
 		};
 
 		this.addConsumer = function() {
-			var actor = new stc.Actor('Consumer_' + this.context.userIndex);
+			var actor = new stc.Actor('Consumer_' + this.context.userIndex, 'consumer');
 			this.context.userIndex++;
 
 			this.sys.addActor(this.thread, actor);
@@ -52,7 +52,7 @@
 		};
 
 		this.addNode = function(index) {
-			var node = new stc.Node('Node_' + this.context.nodeIndex, context.providers[index]);
+			var node = new stc.Node(context.providers[index]);
 			this.context.nodeIndex++;
 
 			this.sys.addNode(this.thread, node);

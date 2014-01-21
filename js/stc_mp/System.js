@@ -1,5 +1,5 @@
 (function(sim, undefined) {
-	stc.System = function(svg, offers_table_selector, demands_table_selector, viewSelectors) {
+	stc.System = function(svg, actor_dataset_aa, dataset, offers_table_selector, demands_table_selector, viewSelectors) {
 		var self = this;
 
 		this.svg = svg;
@@ -71,9 +71,12 @@
 			actor: {x: this.svgbox.x / 3, y: this.svgbox.y / 2},
 			node: {x: 2 * this.svgbox.x / 3, y: this.svgbox.y / 2}
 		};
+		this.consumers = [];
+		this.providers = [];
 		this.actors = [];
 		this.selectedObject = null;
 		this.nodes = [];
+		this.node_index = 0;
 
 		this.forceNodes = [];
 		this.forceLinks = [];
@@ -86,8 +89,12 @@
 		this.price_per_gb = 1;
 
 		this.competition_price_per_gb = 0.1;
+		this.attractivity = null;
 
 		this.performed_deal_nbr = 0;
+
+		this.actors_dataset_aa = actor_dataset_aa;
+		this.dataset = dataset;
 
 		// MARKET PLACE STUFF
 		var columns = [
@@ -118,62 +125,6 @@
 		this.offers_table.clean();
 		this.demands_table.clean();
 		// END MARKET PLACE STUFF
-
-		var tick = function(e) {
-			var k = .1 * e.alpha;
-
-			// Push nodes toward their designated focus.
-			self.forceNodes.forEach(function(d, i) {
-				d.y += (self.foci[d.type].y - d.y) * k;
-				d.x += (self.foci[d.type].x - d.x) * k;
-			});
-
-			var actor_scale = stc.Utils.getActorScale(self);
-			var node_scale = stc.Utils.getNodeScale(self);
-
-			var force_node = self.group.selectAll('g.force_node');
-			force_node.attr('transform', function(d) {
-				var scale = 1.0;
-				if (d.type == 'actor') {
-					scale = actor_scale;
-				} else {
-					scale = node_scale;
-				}
-				return 'translate(' + d.x + ', ' + d.y + ') scale(' + scale + ')';
-			});
-
-			var force_links = self.group.selectAll('path.link');
-			force_links.attr('d', function(d) {
-				var start = {
-					x: d.source.x + actor_scale * 12,
-					y: d.source.y + actor_scale * 25
-				};
-				var end = {
-					x: d.target.x + node_scale * 25,
-					y: d.target.y + node_scale * 25
-				};
-				//var mid = stc.Utils.getMiddleLinkPoint(sys, d);
-				return 'M' + start.x + ',' + start.y + ' ' + end.x + ',' + end.y;
-			})
-		};
-
-		var force = d3.layout.force()
-			.nodes(this.forceNodes)
-			.links(this.forceLinks)
-			.linkStrength(0)
-			.charge(function(d) {
-				var scale = 1.0;
-				if (d.type == 'actor') {
-					scale = stc.Utils.getActorScale(self);
-				} else {
-					scale = stc.Utils.getNodeScale(self);
-				}
-				return -100 * scale;
-			})
-			.gravity(0)
-			.size([this.svgbox.x, this.svgbox.y])
-			.on("tick", tick)
-			.start();
 
 		this.isSelectedObject = function(d) {
 			return this.selectedObject == d;
@@ -239,6 +190,8 @@
 		};
 
 		this._addNode = function(thread, node) {
+			node.name = 'Node_' + this.node_index;
+			this.node_index++;
 			var already_exists = jlg.find(this.nodes, function(d) {
 				return d.name == node.name;
 			});
@@ -610,6 +563,92 @@
 
 		this.getActor = function(name) {
 			return jlg.find(this.actors, function(d) { return d.name == name; })
+		};
+
+		this.runCycle = function(thread, cycle_nbr) {
+			thread.push({
+				function: this._runCycle,
+				args: arguments,
+				name: 'runCycle',
+				object: this
+			});
+		};
+
+		this._runCycle = function(thread, cycle_nbr) {
+			var t = new Thread('runCycle_' + this.cycle_id);
+
+			if (this.providers.length < 1) {
+				this.addProvider(t);
+			}
+
+			if (this.consumers.length < 1) {
+				this.addConsumer(t);
+			}
+
+			this.computeAttractivity();
+
+			for (var i = 0; i < this.attractivity.consumers_to_add; i++) {
+				this.addConsumer(t);
+			}
+			for (var i = 0; i < this.attractivity.providers_to_add; i++) {
+				this.addProvider(t);
+			}
+
+			for (var i = 0; i < this.actors.length; i++) {
+				var actor = this.actors[i];
+				actor.behave(t);
+			}
+
+			this.processDeals(t);
+
+			this.nextCycle(t);
+			if (this.cycle_id < cycle_nbr) {
+				this.runCycle(t, cycle_nbr);
+			}
+
+			thread.do_wait(t);
+			t.start();
+		};
+
+		this.computeAttractivity = function() {
+			var p_att = (this.options.stcPerCycle / this.nodes.length) * this.price_per_stc;
+
+			var x = 10000;
+			if (this.cycle_id > 0) {
+				var x = this.dataset[this.cycle_id].price_per_stc / this.dataset[this.cycle_id - 1].price_per_stc;
+			}
+			var f_x = 1.5 - (2 / (x + 1));
+
+			var providers_to_add = Math.floor(Math.max(0, 5 * f_x));
+
+			x = 10 * (this.dataset[this.cycle_id].price_per_gb - this.competition_price_per_gb);
+			f_x = 1.8 - (2 / (x + 1));
+			var consumers_to_add = Math.floor(Math.max(0, 2 * f_x));
+
+			this.attractivity = {
+				consumers_to_add: consumers_to_add,
+				providers_to_add: providers_to_add
+			};
+
+			if (this.actors.length > 200) {
+				this.attractivity.consumers_to_add = 0;
+				this.attractivity.providers_to_add = 0;
+			}
+		};
+
+		this.addProvider = function(thread) {
+			var actor = new stc.Actor('Provider_' + this.providers.length, 'provider');
+			this.addActor(thread, actor);
+			this.providers.push(actor);
+
+			var node = new stc.Node(actor);
+			this.addNode(thread, node);
+		};
+
+		this.addConsumer = function(thread) {
+			var actor = new stc.Actor('Consumer_' + this.consumers.length, 'consumer');
+			this.addActor(thread, actor);
+			this.consumers.push(actor);
 		};
 	};
 })(stc)
