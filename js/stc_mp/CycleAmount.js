@@ -67,22 +67,34 @@
 				.attr('height', 10)
 				.attr('width', reward_width);
 
+			var duration1 = this.options.duration.split - 520;
+			duration1 = (duration1 > 0)? duration1 : 0;
+			var duration2 = 500;
+			var duration3 = 20;
+			if (this.options.duration.split == 0) {
+				duration1 = 0;
+				duration2 = 0;
+				duration3 = 0;
+			}
+
 			this.group.select('rect.total_reward')
 				.transition()
-					.duration(20)
+					.duration(duration3)
 					.style('opacity', 0)
 					.remove();
 
 			var doNext = true;
+
+
 			rects.transition()
-				.duration(this.options.duration.split)
+				.duration(duration1)
 				.attr('x', function(d, i) {
 					var offset_x = self.options.h * i * reward_width;
 					var x = ((self.sys.svgbox.x / 2) - (self.options.h * 300) / 2) + offset_x;
 					return x;
 				})
 				.transition()
-					.duration(500)
+					.duration(duration2)
 					.style('opacity', 0)
 					.each('end', function(d) {
 						if (doNext) {

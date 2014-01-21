@@ -284,11 +284,11 @@ input, select, table button {
 					<div class="param_body settings">
 						<table>
 							<tr>
-								<th>Screen size</th>
+								<th>Animation</th>
 								<td>
-									<select id="screen_size">
-										<option value="debug">Debug</option>
-										<option value="fullscreen" selected>Full Screen</option>
+									<select id="animation">
+										<option value="on" selected>On</option>
+										<option value="off">Off</option>
 									</select>
 								</td>
 							</tr>
@@ -367,6 +367,7 @@ input, select, table button {
 							<button class="change_chart" data-value="actors">Actors</button>
 							<button class="change_chart" data-value="nodes">Nodes</button>
 							<button class="change_chart" data-value="capacity">Capacity</button>
+							<button class="change_chart" data-value="performed_deal_nbr">Deal amount</button>
 						</td>
 						<th>Actor:</th>
 						<td class="actor">
@@ -402,7 +403,8 @@ var dataset = [{
 	total_stc: 0,
 	nodes: 0,
 	actors: 0,
-	capacity: 0
+	capacity: 0,
+	performed_deal_nbr: 0
 }];
 var actor_dataset_aa = {};
 var chart_group_selector = 'system';
@@ -524,26 +526,9 @@ function start() {
 function set_screen_size() {
 	var size = $('#screen_size').val();
 	var svg = d3.select('#frame').select('svg');
-
-	switch(size) {
-		case 'fullscreen':
-			svg.attr('width', 950)
-				.attr('height', 50);
-			$('#param').css('height', 600);
-			break;
-
-		case 'debug':
-			svg.attr('width', 950)
-				.attr('height', 50);
-			$('#param').css('height', 300);
-			break;
-	}
-	if (sys) {
-		sys.svgbox = {
-			x: svg.attr('width'),
-			y: svg.attr('height')
-		};
-	}
+	svg.attr('width', 950)
+		.attr('height', 50);
+	$('#param').css('height', 600);
 }
 
 function refresh_options() {
@@ -552,13 +537,54 @@ function refresh_options() {
 	sys.options.callback.onObjectDeselected = onObjectDeselected;
 	sys.options.nodeCapacity = 50;
 
-	sys.options.duration = {
-		addActor: 20,
-		addNode: 20
-	};
+	set_animation_durations();
 }
 
-$('#screen_size').change(set_screen_size);
+$('#animation').change(set_animation_durations);
+
+function set_animation_durations() {
+	if (!sys) {
+		return;
+	}
+	switch($('#animation').val()) {
+		case 'on':
+			sys.options.duration = {
+				addActor: 1000,
+				addNode: 1000,
+				ca: {
+					show: 500,
+					split: 1000
+				}
+			};
+			sys.offers_table.options.duration = {
+				repaint: 300,
+				move: 2000
+			};
+			sys.demands_table.options.duration = {
+				repaint: 300,
+				move: 2000
+			};
+			break;
+		case 'off':
+			sys.options.duration = {
+				addActor: 0,
+				addNode: 0,
+				ca: {
+					show: 0,
+					split: 0
+				}
+			};
+			sys.offers_table.options.duration = {
+				repaint: 0,
+				move: 0
+			};
+			sys.demands_table.options.duration = {
+				repaint: 0,
+				move: 0
+			};
+			break;
+	}
+}
 
 
 $('#start').click(function() {
@@ -654,6 +680,7 @@ $('#scenario3').click(s3);
 $('#scenario4').click(s4);
 
 function s1() {
+	$('#animation').val('on');
 	start();
 
 	var thread = new Thread('main');
@@ -692,6 +719,7 @@ function s1() {
 }
 
 function s2() {
+	$('#animation').val('off');
 	start();
 
 	var scenario = new stc.Scenario(sys, context);
@@ -813,7 +841,8 @@ function update_dataset() {
 		total_stc: sys.totalSTC,
 		nodes: sys.nodes.length,
 		actors: sys.actors.length,
-		capacity: sys.nodes.length * sys.options.nodeCapacity
+		capacity: sys.nodes.length * sys.options.nodeCapacity,
+		performed_deal_nbr: sys.performed_deal_nbr
 	});
 
 	for (var i = 0; i < sys.actors.length; i++) {
@@ -851,7 +880,8 @@ function reset_chart() {
 		total_stc: 0,
 		nodes: 0,
 		actors: 0,
-		capacity: 0
+		capacity: 0,
+		performed_deal_nbr: 0
 	}];
 	actor_dataset_aa = {};
 	current_chart_title = 'GB/STC';

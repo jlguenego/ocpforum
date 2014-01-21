@@ -2,36 +2,6 @@
 	stc.System = function(svg, offers_table_selector, demands_table_selector, viewSelectors) {
 		var self = this;
 
-		// MARKET PLACE STUFF
-		var columns = [
-			{ label: 'Name', name: 'name' },
-			{ label: 'STC Qty', name: 'stc_qty' },
-			{ label: 'GB Qty', name: 'gb_qty' },
-			{ label: '$/STC', name: 'price_per_stc' },
-			{ label: '$/GB', name: 'price_per_gb' },
-			{ label: 'Price $', name: 'price' },
-		];
-
-		// Offers
-		d3.select(offers_table_selector).selectAll('.jlg_table').remove();
-		var offers_dataset = [];
-		this.offers_table = new jlg.Table(offers_table_selector, columns, offers_dataset);
-		this.offers_table.options.sort = function(a, b) {
-			return a.price_per_stc - b.price_per_stc;
-		};
-
-		// Demands
-		d3.select(demands_table_selector).selectAll('.jlg_table').remove();
-		var demands_dataset = [];
-		this.demands_table = new jlg.Table(demands_table_selector, columns, demands_dataset);
-		this.demands_table.options.sort = function(a, b) {
-			return b.price_per_stc - a.price_per_stc;
-		};
-
-		this.offers_table.clean();
-		this.demands_table.clean();
-		// END MARKET PLACE STUFF
-
 		this.svg = svg;
 		this.svg.on('click', function(d) {
 			var thread = new Thread('select');
@@ -81,7 +51,11 @@
 		this.options = {
 			duration: {
 				addActor: 1000,
-				addNode: 1000
+				addNode: 1000,
+				ca: {
+					show: 500,
+					split: 1000
+				}
 			},
 			callback: {
 				onActorSelected: function() {},
@@ -112,6 +86,36 @@
 		this.price_per_gb = 1;
 
 		this.performed_deal_nbr = 0;
+
+		// MARKET PLACE STUFF
+		var columns = [
+			{ label: 'Name', name: 'name' },
+			{ label: 'STC Qty', name: 'stc_qty' },
+			{ label: 'GB Qty', name: 'gb_qty' },
+			{ label: '$/STC', name: 'price_per_stc' },
+			{ label: '$/GB', name: 'price_per_gb' },
+			{ label: 'Price $', name: 'price' },
+		];
+
+		// Offers
+		d3.select(offers_table_selector).selectAll('.jlg_table').remove();
+		var offers_dataset = [];
+		this.offers_table = new jlg.Table(offers_table_selector, columns, offers_dataset);
+		this.offers_table.options.sort = function(a, b) {
+			return a.price_per_stc - b.price_per_stc;
+		};
+
+		// Demands
+		d3.select(demands_table_selector).selectAll('.jlg_table').remove();
+		var demands_dataset = [];
+		this.demands_table = new jlg.Table(demands_table_selector, columns, demands_dataset);
+		this.demands_table.options.sort = function(a, b) {
+			return b.price_per_stc - a.price_per_stc;
+		};
+
+		this.offers_table.clean();
+		this.demands_table.clean();
+		// END MARKET PLACE STUFF
 
 		var tick = function(e) {
 			var k = .1 * e.alpha;
@@ -280,6 +284,7 @@
 
 		this.nextCycle = function(thread) {
 			var ca = new stc.CycleAmount(this);
+			ca.options.duration = this.options.duration.ca;
 			ca.show(thread);
 			ca.split(thread);
 			this.addReward(thread);

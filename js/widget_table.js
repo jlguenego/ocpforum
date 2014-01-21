@@ -12,8 +12,10 @@
 		this.body = this.table.append('tbody');
 
 		this.options = {
-			repaintDuration: 300,
-			moveDuration: 2000,
+			duration: {
+				repaint: 300,
+				move: 2000,
+			},
 			sort: null
 		};
 
@@ -44,11 +46,17 @@
 		this.repaint = function(duration) {
 			this.sort();
 
-			duration = duration || this.options.repaintDuration;
+			duration = duration || this.options.duration.repaint;
+
+			if (duration == 0) {
+				this.repaint0();
+				return;
+			}
 
 			var tr = this.body.selectAll('tr').data(this.view_dataset, function(d) {return self.record2Array(d);});
 
 			var exit_tr = this.body.selectAll('tr.jlg_to_be_removed');
+
 			exit_tr.selectAll('div.jlg_cell')
 				.transition()
 					.duration(duration)
@@ -57,9 +65,7 @@
 						if (i == 0) {
 							exit_tr.remove();
 							var data = exit_tr.data();
-							console.log(data);
 							data.forEach(function(d) {
-								console.log(d);
 								var index = self.view_dataset.indexOf(d);
 								if (index >= 0) {
 									self.view_dataset.splice(index, 1);
@@ -102,6 +108,46 @@
 			tr.order();
 		};
 
+		this.repaint0 = function() {
+			this.sort();
+
+			var tr = this.body.selectAll('tr').data(this.view_dataset, function(d) {return self.record2Array(d);});
+			tr.order();
+
+			var exit_tr = this.body.selectAll('tr.jlg_to_be_removed');
+			exit_tr.remove();
+			var data = exit_tr.data();
+			data.forEach(function(d) {
+				var index = self.view_dataset.indexOf(d);
+				if (index >= 0) {
+					self.view_dataset.splice(index, 1);
+				}
+			});
+			var new_tr = tr.enter().append('tr')
+				.classed('jlg_row', true);
+
+			new_tr.on('click', function(d) {
+				self.body.selectAll('tr').classed('jlg_selected', false);
+				d3.select(this).classed('jlg_selected', true);
+				self.selected_row = d;
+			});
+
+			var td = new_tr.selectAll('td').data(function(d) { return self.record2Array(d); });
+			var new_td = td.enter().append('td');
+			new_td.append('div')
+				.attr('class', function(d, i) {
+					return 'jlg_cell ' + self.columns[i].name;
+				})
+				.attr('data-col-name', function(d, i) {
+					return self.columns[i].name;
+				})
+				.style('height', '20px')
+				.text(function(d) { return d; });
+
+			var update_td = tr.selectAll('td').data(function(d) { return self.record2Array(d); });
+			update_td.select('div').text(function(d) { return d; });
+		};
+
 		this.record2Array = function(record) {
 			var result = [];
 			for (var i = 0; i < this.columns.length; i++) {
@@ -122,7 +168,11 @@
 		this._animateRow = function(row, p, remove_flag) {
 			var tr = this.body.selectAll('tr').filter(function(d, i) { return d == row; });
 			if (tr.empty()) {
-				console.log('tr is empty');
+				return;
+			}
+
+			if (this.options.duration.move == 0) {
+				this._animateRow0();
 				return;
 			}
 
@@ -169,7 +219,7 @@
 
 			div
 				.transition()
-					.duration(this.options.moveDuration - 500)
+					.duration(this.options.duration.move - 500)
 					.style('top', p.y + 'px')
 					.style('left', p.x + 'px')
 					.each('end', function() {
@@ -185,6 +235,16 @@
 						tr.classed('jlg_being_animated', false);
 					})
 				.remove();
+		};
+
+		this._animateRow0 = function(row, p, remove_flag) {
+			var tr = this.body.selectAll('tr').filter(function(d, i) { return d == row; });
+
+			if (remove_flag) {
+				tr.style('opacity', 0);
+				self.removeRecord(row);
+				self.repaint();
+			}
 		};
 
 		this.clean = function() {
