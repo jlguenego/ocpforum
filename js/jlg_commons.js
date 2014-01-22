@@ -86,7 +86,9 @@ var jlg = {
 	};
 
 	jlg.round = function(nbr, decimal_nbr) {
-		decimal_nbr = decimal_nbr || 2;
+		if (decimal_nbr == undefined) {
+			decimal_nbr = 2;
+		}
 		return parseFloat(parseFloat(nbr).toFixed(decimal_nbr));
 	};
 })(jlg);

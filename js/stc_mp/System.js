@@ -89,7 +89,7 @@
 		this.price_per_gb = 0.1;
 
 		this.competition_price_per_gb = 0.1;
-		this.min_cycle_revenue = 0.1 / 365;
+		this.min_cycle_revenue = 0.1 / 365 * this.options.nodeCapacity;
 		this.attractivity = null;
 
 		this.performed_deal_nbr = 0;
@@ -392,13 +392,10 @@
 			}
 			consumer.amount += stc_amount;
 			provider.amount -= stc_amount;
-			console.log(consumer);
-			console.log(provider);
-			console.log(stc_amount);
 			thread.next();
 		};
 
-		this.publishOffer = function(thread, provider, amount_percent, rate_coef) {
+		this.publishOffer = function(thread, provider, stc_qty, price_per_stc) {
 			thread.push({
 				function: this._publishOffer,
 				args: arguments,
@@ -407,7 +404,7 @@
 			});
 		};
 
-		this._publishOffer = function(thread, provider, amount_percent, rate_coef) {
+		this._publishOffer = function(thread, provider, stc_qty, price_per_stc) {
 			var record = jlg.find(this.offers_table.dataset, function(d) {
 				return d.name == provider.name;
 			});
@@ -415,9 +412,7 @@
 				this.offers_table.removeRecord(record);
 			}
 
-			var quantity = provider.amount * amount_percent / 100;
-			var gb_qty = quantity * this.gb_per_stc;
-			var price_per_stc = this.price_per_stc * rate_coef;
+			var gb_qty = stc_qty * this.gb_per_stc;
 
 			if (gb_qty < 5) {
 				thread.next();
@@ -426,12 +421,13 @@
 
 			this.offers_table.addRecord({
 				name: provider.name,
-				stc_qty: jlg.round(quantity, 5),
-				gb_qty: jlg.round(gb_qty),
+				stc_qty: jlg.round(stc_qty, 5),
+				gb_qty: jlg.round(gb_qty, 0),
 				price_per_gb: jlg.round(price_per_stc / this.gb_per_stc),
 				price_per_stc: jlg.round(price_per_stc),
-				price: jlg.round(quantity * price_per_stc)
+				price: jlg.round(stc_qty * price_per_stc)
 			});
+			this.offers_table.dataset.sort(this.offers_table.options.sort);
 			this.offers_table.repaint();
 			setTimeout(function() {
 				thread.next();
@@ -447,7 +443,7 @@
 			});
 		};
 
-		this._publishDemand = function(thread, consumer, gb_needed, rate_coef) {
+		this._publishDemand = function(thread, consumer, gb_needed, price_per_gb) {
 			var record = jlg.find(this.demands_table.dataset, function(d) {
 				return d.name == consumer.name;
 			});
@@ -455,16 +451,17 @@
 			if (record) {
 				this.demands_table.removeRecord(record);
 			}
-			var price_per_gb = rate_coef * this.competition_price_per_gb;
+
 			var price_per_stc = price_per_gb * this.gb_per_stc;
 			this.demands_table.addRecord({
 				name: consumer.name,
-				gb_qty: jlg.round(gb_needed),
+				gb_qty: jlg.round(gb_needed, 0),
 				stc_qty: jlg.round(gb_needed / this.gb_per_stc, 5),
 				price_per_gb: jlg.round(price_per_gb),
 				price_per_stc: jlg.round(price_per_stc),
 				price: jlg.round(gb_needed * price_per_gb)
 			});
+			this.demands_table.dataset.sort(this.demands_table.options.sort);
 
 			this.demands_table.repaint();
 			setTimeout(function() {
@@ -508,7 +505,7 @@
 
 			if ((!offer || !demand) || offer.price_per_stc > demand.price_per_stc) {
 				if (this.performed_deal_nbr == 0) {
-					this.price_per_stc = this.price_per_stc / 2;
+					this.price_per_stc = Math.max(this.price_per_stc / 2, this.competition_price_per_gb * this.gb_per_stc / 2);
 				}
 				thread.next();
 				return;
@@ -527,8 +524,8 @@
 			setTimeout(function() {
 				var transaction = Math.min(demand.stc_qty, offer.stc_qty);
 
-				self.price_per_stc = offer.price_per_stc;
-				self.price_per_gb = offer.price_per_gb;
+				self.price_per_stc = demand.price_per_stc;
+				self.price_per_gb = self.price_per_stc / self.gb_per_stc;
 				self.performed_deal_nbr = self.performed_deal_nbr + 1;
 
 				var provider = self.getActor(offer.name);
@@ -538,12 +535,12 @@
 				consumer.amount += transaction;
 
 				var gb_needed = demand.gb_qty - (transaction * self.gb_per_stc);
-				demand.gb_qty = jlg.round(gb_needed);
+				demand.gb_qty = jlg.round(gb_needed, 0);
 				demand.stc_qty = jlg.round(gb_needed / self.gb_per_stc, 5);
 				demand.price = jlg.round(demand.price_per_gb * gb_needed);
 
 				offer.stc_qty = jlg.round(offer.stc_qty - transaction, 5);
-				offer.gb_qty = jlg.round(offer.stc_qty * self.gb_per_stc);
+				offer.gb_qty = jlg.round(offer.stc_qty * self.gb_per_stc, 0);
 				offer.price = jlg.round(offer.price_per_stc * offer.stc_qty);
 
 				if (offer.stc_qty <= 0) {
@@ -619,12 +616,12 @@
 			var c2 = this.cycle_id;
 			var c1 = Math.max(0, this.cycle_id - 3);
 			var mining_revenue = (this.options.stcPerCycle / (this.nodes.length + 1)) * this.price_per_stc;
-			var provider_rate = 0.5 + (1/Math.PI)*Math.atan(mining_revenue - this.min_cycle_revenue);
+			var provider_rate = 0.5 + (1/Math.PI)*Math.atan(1000 * (mining_revenue - this.min_cycle_revenue));
 
-			var providers_to_add = Math.floor(3 * provider_rate);
+			var providers_to_add = Math.floor(3 * Math.max(0, provider_rate - 0.5));
 
 			var diff = (this.competition_price_per_gb - ((this.dataset[c2].price_per_gb + this.dataset[c1].price_per_gb) / 2));
-			var consumer_rate = 0.5 + (1/Math.PI)*Math.atan(diff);
+			var consumer_rate = 0.5 + (1/Math.PI)*Math.atan(1000 * diff);
 
 			var consumers_to_add = Math.floor(2 * consumer_rate);
 
@@ -634,8 +631,6 @@
 				providers_to_add: providers_to_add,
 				consumers_to_add: consumers_to_add,
 			};
-
-			console.log(this.attractivity);
 
 			if (this.actors.length > 200) {
 				this.attractivity.consumers_to_add = 0;

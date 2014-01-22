@@ -22,7 +22,6 @@
 		<script src="js/stc_mp/Actor.js"></script>
 		<script src="js/stc_mp/Node.js"></script>
 		<script src="js/stc_mp/CycleAmount.js"></script>
-		<script src="js/stc_mp/Scenario.js"></script>
 
 
 		<script src="js/widget_table.js"></script>
@@ -310,9 +309,7 @@ input, select, table button {
 				<button id="debug">Debug</button><br/>
 				<hr/>
 				<button id="scenario1">Scenario 1</button>
-				<button id="scenario2">Scenario 2</button>
-				<button id="scenario3">Scenario 3</button>
-				<button id="scenario4">Scenario 4</button><br/>
+				<button id="scenario2">Scenario 2</button><br/>
 				<hr/>
 
 				<div id="stat">
@@ -776,8 +773,6 @@ $('#stop').click(function() {
 
 $('#scenario1').click(s1);
 $('#scenario2').click(s2);
-$('#scenario3').click(s3);
-$('#scenario4').click(s4);
 
 function s1() {
 	$('#animation').val('on');
@@ -824,42 +819,12 @@ function s1() {
 function s2() {
 	$('#animation').val('off');
 	start();
-	sys.computeAttractivity();
-
-	context.cycle_nbr = 15;
-
-	var scenario = new stc.Scenario(sys, context);
-	for (var i = 0; i < context.cycle_nbr; i++) {
-		scenario.doCycle();
-	}
-
-	scenario.start();
-}
-
-function s3() {
-	$('#animation').val('off');
-	start();
 
 	var thread = new Thread('main');
-	sys.runCycle(thread, 300);
+	sys.runCycle(thread, 50);
 
 	thread.finish();
 	thread.start();
-}
-
-function s4() {
-	start();
-
-	var scenario = new stc.Scenario(sys, context);
-
-	scenario.addProvider();
-	scenario.addConsumer();
-	scenario.nextCycle();
-	scenario.publishOffers();
-	scenario.publishDemand();
-	scenario.matchOfferDemand();
-
-	scenario.start();
 }
 
 $('.menu .button').click(function() {
