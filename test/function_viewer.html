@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<base href="../" />
+		<script type="text/javascript" src="_ext/seedrandom-min.js"></script>
+		<script type="text/javascript" src="_ext/d3.v3.min.js"></script>
+		<style>
+		</style>
+	</head>
+	<body>
+		<script>
+
+function show(func, min, max, sampling_nbr) {
+
+	var w = 400;
+	var h = 300;
+	var padding = 20;
+	var svg = d3.select('body').append('svg').attr('width', w).attr('height', h);
+
+	var x_array = [];
+	for (var i = 0; i < sampling_nbr; i++) {
+		x_array.push(min + i*(max-min)/sampling_nbr);
+	}
+
+	var dataset = x_array.map(function(x) { return { x: x, y: func(x) }; });
+
+	var f_min = d3.min(dataset, function(d) { return d.y; });
+	var f_max = d3.max(dataset, function(d) { return d.y; });
+
+
+	var x_scale = d3.scale.linear().domain([min , max]).range([padding, w - 2*padding]);
+	var y_scale = d3.scale.linear().domain([f_min , f_max]).range([ h - 2*padding, padding ]);
+
+		var lineFunction = d3.svg.line()
+			.x(function(d) { return x_scale(d.x); })
+			.y(function(d) { return y_scale(d.y); })
+			.interpolate("linear");
+
+
+		var lineGraph = svg.append("path")
+			.attr("d", lineFunction(dataset))
+			.attr("stroke", "blue")
+			.attr("stroke-width", 2)
+			.attr("fill", "none");
+
+}
+
+function f(x) {
+	return Math.sin(x);
+}
+
+
+show(f, 0, 8 * Math.PI, 500);
+		</script>
+	</body>
+</html>

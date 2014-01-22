@@ -240,7 +240,7 @@ input, select, table button {
 }
 
 #frame #mp {
-	height: 300px;
+	height: 270px;
 	overflow: auto;
 }
 		</style>
@@ -384,6 +384,9 @@ input, select, table button {
 							<button class="change_chart" data-value="capacity">Capacity</button>
 							<button class="change_chart" data-value="performed_deal_nbr">Deal amount</button>
 							<button class="change_chart" data-value="usage" data-unit="%">Usage</button>
+							<br/>
+							<button class="change_chart" data-value="attractivity_provider_rate">PAR</button>
+							<button class="change_chart" data-value="attractivity_consumer_rate">CAR</button>
 						</td>
 						<th>Actor:</th>
 						<td class="actor">
@@ -438,6 +441,9 @@ var button_tips = {
 	usage: '',
 	competition: '',
 
+	attractivity_provider_rate: 'Provider Attractivity Rate',
+	attractivity_consumer_rate: 'Consumer Attractivity Rate',
+
 	actor_stc: 'STC amount for the given actor.',
 	actor_price_amount: '$ amount of the STC amount for the given actor.',
 	actor_nodes: 'Number of nodes for the given actor.',
@@ -475,7 +481,7 @@ function actor_push_data(actor, gb_per_stc) {
 		cycle: sys.cycle_id,
 		actor_stc: actor.amount,
 		actor_nodes: actor.nodes.length,
-		actor_volume: (actor.amount * gb_per_stc).toFixed(2),
+		actor_volume: jlg.round(actor.amount * gb_per_stc),
 		actor_price_amount: price_amount,
 		actor_cumulated_mined_stc: actor.mined_amount,
 		actor_price_earned_amount: actor.price_earned_amount,
@@ -516,7 +522,7 @@ var onObjectSelected = function(object) {
 		var actorMenu = $('.param_body.actor');
 		actorMenu.find('.name').html(object.name);
 		actorMenu.find('.amount').html(object.amount);
-		actorMenu.find('.mental').html(object.profile.mental_level.toFixed(2));
+		actorMenu.find('.mental').html(jlg.round(object.profile.mental_rate));
 		$('.menu [data-body=actor]').click();
 
 		update_chart('actor');
@@ -775,7 +781,9 @@ $('#scenario4').click(s4);
 
 function s1() {
 	$('#animation').val('on');
+
 	start();
+	sys.computeAttractivity();
 
 	var thread = new Thread('main');
 	//thread.setDebug('#debug');
@@ -788,7 +796,7 @@ function s1() {
 		providers.push(provider);
 		context.providerIndex++;
 
-		sys.addNode(thread, new stc.Node('Node_' + context.nodeIndex, provider));
+		sys.addNode(thread, new stc.Node(provider));
 		context.nodeIndex++;
 	}
 
@@ -816,6 +824,7 @@ function s1() {
 function s2() {
 	$('#animation').val('off');
 	start();
+	sys.computeAttractivity();
 
 	context.cycle_nbr = 15;
 
@@ -887,9 +896,9 @@ $('#stat').get(0).addEventListener("system_stat", function(e) {
 	var capacity = sys.nodes.length * sys.options.nodeCapacity;
 	el.find('.capacity').html(capacity + ' GB');
 	el.find('.stc_total').html(sys.totalSTC + ' STC');
-	el.find('.stc_price').html(parseFloat(sys.price_per_stc).toFixed(2) + ' $')
-	el.find('.stc_gb').html(sys.gb_per_stc.toFixed(2) + ' GB')
-		.attr('data-value', sys.gb_per_stc.toFixed(2));
+	el.find('.stc_price').html(jlg.round(sys.price_per_stc) + ' $')
+	el.find('.stc_gb').html(jlg.round(sys.gb_per_stc) + ' GB')
+		.attr('data-value', jlg.round(sys.gb_per_stc));
 
 	switch (stats.action) {
 		case 'add_actor':
@@ -930,7 +939,9 @@ function update_dataset() {
 		capacity: sys.nodes.length * sys.options.nodeCapacity,
 		performed_deal_nbr: sys.performed_deal_nbr,
 		usage: used * 100 / sys.totalSTC,
-		competition: sys.competition_price_per_gb
+		competition: sys.competition_price_per_gb,
+		attractivity_provider_rate: sys.attractivity.provider_rate,
+		attractivity_consumer_rate: sys.attractivity.consumer_rate
 	});
 
 	for (var i = 0; i < sys.actors.length; i++) {
@@ -966,8 +977,8 @@ function reset_chart() {
 	dataset.push({
 		cycle: 0,
 		gb_per_stc: 1,
-		price_per_stc: 1,
-		price_per_gb: 1,
+		price_per_stc: 0.01,
+		price_per_gb: 0.1,
 		total_stc: 0,
 		nodes: 0,
 		actors: 0,
@@ -976,7 +987,9 @@ function reset_chart() {
 		capacity: 0,
 		performed_deal_nbr: 0,
 		usage: 0,
-		competition: 0.1
+		competition: 0.1,
+		attractivity_provider_rate: 1,
+		attractivity_consumer_rate: 1
 	});
 	actor_dataset_aa = {};
 	current_chart_title = 'GB/STC';

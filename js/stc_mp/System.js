@@ -85,10 +85,11 @@
 		this.NODE_SIZE = 50;
 		this.cycle_id = 0;
 		this.gb_per_stc = 1;
-		this.price_per_stc = 1;
-		this.price_per_gb = 1;
+		this.price_per_stc = 0.01;
+		this.price_per_gb = 0.1;
 
 		this.competition_price_per_gb = 0.1;
+		this.min_cycle_revenue = 0.1 / 365;
 		this.attractivity = null;
 
 		this.performed_deal_nbr = 0;
@@ -257,10 +258,10 @@
 
 		this._updateMarketPlace = function(thread) {
 			for (var i = 0; i < this.offers_table.dataset.length; i++) {
-				this.offers_table.dataset[i][2] = (this.offers_table.dataset[i][1] * this.gb_per_stc).toFixed(2);
+				this.offers_table.dataset[i][2] = jlg.round(this.offers_table.dataset[i][1] * this.gb_per_stc);
 			}
 			for (var i = 0; i < this.demands_table.dataset.length; i++) {
-				this.demands_table.dataset[i][3] = (this.demands_table.dataset[i][2] * this.gb_per_stc).toFixed(2);
+				this.demands_table.dataset[i][3] = jlg.round(this.demands_table.dataset[i][2] * this.gb_per_stc);
 			}
 			this.offers_table.repaint();
 			this.demands_table.repaint();
@@ -336,7 +337,7 @@
 
 			tr.select('td.name').text(jlg.accessor('name'));
 			tr.select('td.stc').text(function(d) {
-				return parseFloat(d.amount).toFixed(5);
+				return jlg.round(d.amount, 5);
 			});
 			tr.select('td.nodes').text(function(d) {
 				return d.nodes.length;
@@ -345,7 +346,7 @@
 				if (gb_per_stc == 0) {
 					return '0.00 GB';
 				}
-				return (d.amount / gb_per_stc).toFixed(2) + ' GB';
+				return jlg.round(d.amount / gb_per_stc) + ' GB';
 			});
 
 			tr.classed('selected', function(d) {
@@ -353,13 +354,13 @@
 			});
 
 			if (this.selectedObject instanceof stc.Actor) {
-				this.actorsView.select('table').select('.amount').text(this.selectedObject.amount.toFixed(5));
+				this.actorsView.select('table').select('.amount').text(jlg.round(this.selectedObject.amount, 5));
 			}
 
 			this.sideView.select('table.actors').select('tr.total').remove();
 			var total = this.sideView.select('table.actors').append('tr').classed('total', true);
 			total.append('th').classed('name', true).text('Total');
-			total.append('th').classed('stc', true).text(this.totalSTC.toFixed(5));
+			total.append('th').classed('stc', true).text(jlg.round(this.totalSTC, 5));
 			total.append('th').classed('volume', true).text(this.nodes.length * this.options.nodeCapacity + ' GB');
 			total.append('th').classed('nodes', true).text(this.nodes.length);
 		};
@@ -425,16 +426,16 @@
 
 			this.offers_table.addRecord({
 				name: provider.name,
-				stc_qty: quantity.toFixed(5),
-				gb_qty: gb_qty.toFixed(2),
-				price_per_gb: (price_per_stc / this.gb_per_stc).toFixed(2),
-				price_per_stc: price_per_stc.toFixed(2),
-				price: (quantity * price_per_stc).toFixed(2)
+				stc_qty: jlg.round(quantity, 5),
+				gb_qty: jlg.round(gb_qty),
+				price_per_gb: jlg.round(price_per_stc / this.gb_per_stc),
+				price_per_stc: jlg.round(price_per_stc),
+				price: jlg.round(quantity * price_per_stc)
 			});
 			this.offers_table.repaint();
 			setTimeout(function() {
 				thread.next();
-			}, this.offers_table.options.repaintDuration);
+			}, this.offers_table.options.duration.repaint);
 		};
 
 		this.publishDemand = function(thread, consumer, gb_needed, rate_coef) {
@@ -458,17 +459,17 @@
 			var price_per_stc = price_per_gb * this.gb_per_stc;
 			this.demands_table.addRecord({
 				name: consumer.name,
-				gb_qty: gb_needed.toFixed(2),
-				stc_qty: (gb_needed / this.gb_per_stc).toFixed(5),
-				price_per_gb: price_per_gb.toFixed(2),
-				price_per_stc: price_per_stc.toFixed(2),
-				price: (gb_needed * price_per_gb).toFixed(2)
+				gb_qty: jlg.round(gb_needed),
+				stc_qty: jlg.round(gb_needed / this.gb_per_stc, 5),
+				price_per_gb: jlg.round(price_per_gb),
+				price_per_stc: jlg.round(price_per_stc),
+				price: jlg.round(gb_needed * price_per_gb)
 			});
 
 			this.demands_table.repaint();
 			setTimeout(function() {
 				thread.next();
-			}, this.demands_table.options.repaintDuration);
+			}, this.demands_table.options.duration.repaint);
 		};
 
 		this.tableSortByRate = function(a, b) {
@@ -518,7 +519,7 @@
 			var bbox = this.svg.node().getBoundingClientRect();
 			var p = {
 				x: bbox.left + bbox.width / 4,
-				y: bbox.top + bbox.height / 4,
+				y: bbox.top,
 			};
 			this.offers_table.copyRow(offer, p);
 			this.demands_table.copyRow(demand, p);
@@ -537,13 +538,13 @@
 				consumer.amount += transaction;
 
 				var gb_needed = demand.gb_qty - (transaction * self.gb_per_stc);
-				demand.gb_qty = gb_needed.toFixed(2);
-				demand.stc_qty = (gb_needed / self.gb_per_stc).toFixed(5);
-				demand.price = (demand.price_per_gb * gb_needed).toFixed(2);
+				demand.gb_qty = jlg.round(gb_needed);
+				demand.stc_qty = jlg.round(gb_needed / self.gb_per_stc, 5);
+				demand.price = jlg.round(demand.price_per_gb * gb_needed);
 
-				offer.stc_qty = (offer.stc_qty - transaction).toFixed(5);
-				offer.gb_qty = (offer.stc_qty * self.gb_per_stc).toFixed(2);
-				offer.price = (offer.price_per_stc * offer.stc_qty).toFixed(2);
+				offer.stc_qty = jlg.round(offer.stc_qty - transaction, 5);
+				offer.gb_qty = jlg.round(offer.stc_qty * self.gb_per_stc);
+				offer.price = jlg.round(offer.price_per_stc * offer.stc_qty);
 
 				if (offer.stc_qty <= 0) {
 					self.offers_table.removeRecord(offer);
@@ -557,8 +558,8 @@
 				setTimeout(function() {
 					self.do_processDealRec(thread);
 					self._repaintAll(thread);
-				}, self.offers_table.options.repaintDuration);
-			}, this.offers_table.options.moveDuration);
+				}, self.offers_table.options.duration.repaint);
+			}, this.offers_table.options.duration.move);
 		};
 
 		this.getActor = function(name) {
@@ -614,19 +615,18 @@
 			if (this.cycle_id % 10 == 0) {
 				this.competition_price_per_gb = Math.randomize(0.05, 0.1);
 			}
-			var p_att = (this.options.stcPerCycle / this.nodes.length) * this.price_per_stc;
 
-			var provider_rate = 10000;
-			if (this.cycle_id > 0) {
-				provider_rate = p_att * this.dataset[this.cycle_id].price_per_stc / this.dataset[this.cycle_id - 1].price_per_stc;
-			}
-			var f_provider_rate = 1.5 - (2 / (provider_rate + 1));
+			var c2 = this.cycle_id;
+			var c1 = Math.max(0, this.cycle_id - 3);
+			var mining_revenue = (this.options.stcPerCycle / (this.nodes.length + 1)) * this.price_per_stc;
+			var provider_rate = 0.5 + (1/Math.PI)*Math.atan(mining_revenue - this.min_cycle_revenue);
 
-			var providers_to_add = Math.floor(Math.max(0, 5 * f_provider_rate));
+			var providers_to_add = Math.floor(3 * provider_rate);
 
-			var consumer_rate = this.competition_price_per_gb / this.dataset[this.cycle_id].price_per_gb;
-			var f_consumer_rate = 2 - (2 / (consumer_rate + 1));
-			var consumers_to_add = Math.floor(Math.max(0, 2 * f_consumer_rate));
+			var diff = (this.competition_price_per_gb - ((this.dataset[c2].price_per_gb + this.dataset[c1].price_per_gb) / 2));
+			var consumer_rate = 0.5 + (1/Math.PI)*Math.atan(diff);
+
+			var consumers_to_add = Math.floor(2 * consumer_rate);
 
 			this.attractivity = {
 				provider_rate: provider_rate,
@@ -634,6 +634,8 @@
 				providers_to_add: providers_to_add,
 				consumers_to_add: consumers_to_add,
 			};
+
+			console.log(this.attractivity);
 
 			if (this.actors.length > 200) {
 				this.attractivity.consumers_to_add = 0;
