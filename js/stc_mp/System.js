@@ -611,23 +611,28 @@
 		};
 
 		this.computeAttractivity = function() {
+			if (this.cycle_id % 10 == 0) {
+				this.competition_price_per_gb = Math.randomize(0.05, 0.1);
+			}
 			var p_att = (this.options.stcPerCycle / this.nodes.length) * this.price_per_stc;
 
-			var x = 10000;
+			var provider_rate = 10000;
 			if (this.cycle_id > 0) {
-				var x = this.dataset[this.cycle_id].price_per_stc / this.dataset[this.cycle_id - 1].price_per_stc;
+				provider_rate = p_att * this.dataset[this.cycle_id].price_per_stc / this.dataset[this.cycle_id - 1].price_per_stc;
 			}
-			var f_x = 1.5 - (2 / (x + 1));
+			var f_provider_rate = 1.5 - (2 / (provider_rate + 1));
 
-			var providers_to_add = Math.floor(Math.max(0, 5 * f_x));
+			var providers_to_add = Math.floor(Math.max(0, 5 * f_provider_rate));
 
-			x = this.competition_price_per_gb / this.dataset[this.cycle_id].price_per_gb;
-			f_x = 2 - (2 / (x + 1));
-			var consumers_to_add = Math.floor(Math.max(0, 2 * f_x));
+			var consumer_rate = this.competition_price_per_gb / this.dataset[this.cycle_id].price_per_gb;
+			var f_consumer_rate = 2 - (2 / (consumer_rate + 1));
+			var consumers_to_add = Math.floor(Math.max(0, 2 * f_consumer_rate));
 
 			this.attractivity = {
+				provider_rate: provider_rate,
+				consumer_rate: consumer_rate,
+				providers_to_add: providers_to_add,
 				consumers_to_add: consumers_to_add,
-				providers_to_add: providers_to_add
 			};
 
 			if (this.actors.length > 200) {

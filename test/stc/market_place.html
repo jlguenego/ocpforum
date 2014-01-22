@@ -265,6 +265,10 @@ input, select, table button {
 								<th>STC</th>
 								<td class="amount"></td>
 							</tr>
+							<tr>
+								<th>Mental</th>
+								<td class="mental"></td>
+							</tr>
 						</table>
 					</div>
 
@@ -373,6 +377,7 @@ input, select, table button {
 							<button class="change_chart" data-value="price_per_stc">$/STC</button>
 							<button class="change_chart" data-value="price_per_gb">$/GB</button>
 							<button class="change_chart" data-value="total_stc">Total STC</button>
+							<button class="change_chart" data-value="competition">Competition</button>
 							<br/>
 							<button class="change_chart" data-value="actors" data-stack="providers consumers">Actors</button>
 							<button class="change_chart" data-value="nodes">Nodes</button>
@@ -431,6 +436,7 @@ var button_tips = {
 	capacity: 'Total capacity, in GB, of the system.',
 	performed_deal_nbr: 'Number of deals done during a cycle.',
 	usage: '',
+	competition: '',
 
 	actor_stc: 'STC amount for the given actor.',
 	actor_price_amount: '$ amount of the STC amount for the given actor.',
@@ -510,6 +516,7 @@ var onObjectSelected = function(object) {
 		var actorMenu = $('.param_body.actor');
 		actorMenu.find('.name').html(object.name);
 		actorMenu.find('.amount').html(object.amount);
+		actorMenu.find('.mental').html(object.profile.mental_level.toFixed(2));
 		$('.menu [data-body=actor]').click();
 
 		update_chart('actor');
@@ -922,7 +929,8 @@ function update_dataset() {
 		providers: sys.providers.length,
 		capacity: sys.nodes.length * sys.options.nodeCapacity,
 		performed_deal_nbr: sys.performed_deal_nbr,
-		usage: used * 100 / sys.totalSTC
+		usage: used * 100 / sys.totalSTC,
+		competition: sys.competition_price_per_gb
 	});
 
 	for (var i = 0; i < sys.actors.length; i++) {
@@ -967,7 +975,8 @@ function reset_chart() {
 		consumers: 0,
 		capacity: 0,
 		performed_deal_nbr: 0,
-		usage: 0
+		usage: 0,
+		competition: 0.1
 	});
 	actor_dataset_aa = {};
 	current_chart_title = 'GB/STC';
@@ -1029,10 +1038,11 @@ function set_chart(el) {
 }
 
 function set_stack_chart(el) {
-	clean_stack(2);
-
 	current_chart_title = el.html();
 	var values = el.attr('data-stack').split(' ');
+
+	clean_stack(values.length);
+
 	var val_to_show = values[0];
 	group = xDim.group().reduceSum(jlg.accessor(val_to_show));
 	current_chart_title = legends[values[0]];

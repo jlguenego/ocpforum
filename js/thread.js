@@ -75,6 +75,18 @@ function Thread(name) {
 
 	};
 
+	this.do_pause = function() {
+		console.log(this.name + ': do_pause');
+		this.unshift({
+			function: function(thread) {
+				console.log(thread.name + ': pause');
+			},
+			args: [ this ],
+			name: 'pause',
+			object: this
+		});
+	};
+
 	this.startThread = function(t) {
 		this.push({
 			function: function(t) {
