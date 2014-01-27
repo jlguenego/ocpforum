@@ -846,7 +846,7 @@ function s2() {
 	start();
 
 	var thread = new Thread('main');
-	sys.runCycle(thread, 100);
+	sys.runCycle(thread, 5);
 
 	thread.finish();
 	thread.start();
@@ -977,7 +977,7 @@ function reset_chart() {
 		capacity: 0,
 		performed_deal_nbr: 0,
 		usage: 0,
-		competition: 0.1,
+		competition: sys.competition_price_per_gb,
 		attractivity_provider_rate: 1,
 		attractivity_consumer_rate: 1
 	});

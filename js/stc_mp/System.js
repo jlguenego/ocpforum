@@ -63,7 +63,7 @@
 			},
 			stcPerCycle: 100,
 			report_elem: null,
-			nodeCapacity: 50
+			nodeCapacity: 500
 		};
 		this.scale = 1;
 
@@ -87,15 +87,14 @@
 		this.forceNodes = [];
 		this.forceLinks = [];
 
-		this.totalSTC = 20000;
-		this.NODE_SIZE = 50;
+		this.totalSTC = 0;
 		this.cycle_id = 0;
-		this.gb_per_stc = 0.01;
-		this.price_per_stc = 0.001;
-		this.price_per_gb = 0.1;
+		this.gb_per_stc = 0.001;
+		this.price_per_stc = 0.005;
+		this.price_per_gb = 5;
 
-		this.competition_price_per_gb = 0.1;
-		this.min_cycle_revenue = 200 / (1000 * 1500); // Per GB/Day
+		this.competition_price_per_gb = 500; // 100 / (1000 * 365); // $/(gb.day)
+		this.min_cycle_revenue_price_per_gb = 1; //100 / (1000 * 365 * 5); // Per GB/Day
 		this.attractivity = null;
 
 		this.performed_deal_nbr = 0;
@@ -415,6 +414,7 @@
 			if (record) {
 				this.offers_table.removeRecord(record);
 			}
+			console.log('price_per_stc=' + price_per_stc);
 
 			var gb_qty = stc_qty * this.gb_per_stc;
 
@@ -608,8 +608,8 @@
 				this.makeActivity(t, actor);
 			}
 
-			this.processDeals(t);
 			this.checkPause(t);
+			this.processDeals(t);
 
 			this.nextCycle(t);
 			if (this.cycle_id < cycle_nbr) {
@@ -663,16 +663,16 @@
 
 		this.computeAttractivity = function() {
 			if (this.cycle_id % 10 == 0) {
-				this.competition_price_per_gb = Math.randomize(0.05, 0.1);
+				this.competition_price_per_gb = this.competition_price_per_gb * Math.randomize(0.75, 1.25);
 			}
 
 			var c2 = this.cycle_id;
 			var c1 = Math.max(0, this.cycle_id - 3);
-			var mining_revenue_price = (this.options.stcPerCycle / (Math.max(1, this.nodes.length) * this.options.nodeCapacity)) * this.price_per_stc;
+			var mining_revenue_price_per_gb = (this.options.stcPerCycle / (Math.max(1, this.nodes.length) * this.options.nodeCapacity)) * this.price_per_stc;
 			console.log('this.nodes.length=' + this.nodes.length);
-			console.log('mining_revenue_price=' + mining_revenue_price);
-			console.log('min_cycle_revenue=' + this.min_cycle_revenue);
-			var provider_rate = this.normalize(2 * (mining_revenue_price - this.min_cycle_revenue) / this.min_cycle_revenue);
+			console.log('mining_revenue_price_per_gb=' + mining_revenue_price_per_gb);
+			console.log('min_cycle_revenue_price_per_gb=' + this.min_cycle_revenue_price_per_gb);
+			var provider_rate = this.normalize(2 * (mining_revenue_price_per_gb - this.min_cycle_revenue_price_per_gb) / this.min_cycle_revenue_price_per_gb);
 
 			console.log('provider_rate=' + provider_rate);
 
