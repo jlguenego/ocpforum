@@ -594,7 +594,7 @@
 
 			for (var i = 0; i < this.actors.length; i++) {
 				var actor = this.actors[i];
-				actor.behave(t);
+				this.makeActivity(t, actor);
 			}
 
 			this.processDeals(t);
@@ -606,6 +606,27 @@
 
 			thread.do_wait(t);
 			t.start();
+			thread.next();
+		};
+
+		this.makeActivity = function(thread, actor) {
+			thread.push({
+				function: this._makeActivity,
+				args: arguments,
+				name: 'makeActivity',
+				object: this
+			});
+		};
+
+		this._makeActivity = function(thread, actor) {
+			console.log('_makeActivity start');
+			var t = new Thread('makeActivity_' + this.cycle_id);
+			actor.behave(t);
+			thread.do_wait(t);
+			console.log(t.orders.slice(0));
+			console.log(thread.orders.slice(0));
+			t.start();
+			thread.next();
 		};
 
 		this.computeAttractivity = function() {
@@ -620,6 +641,7 @@
 
 			var providers_to_add = Math.floor(3 * Math.max(0, provider_rate - 0.5));
 
+			console.log(this.dataset);
 			var diff = (this.competition_price_per_gb - ((this.dataset[c2].price_per_gb + this.dataset[c1].price_per_gb) / 2));
 			var consumer_rate = 0.5 + (1/Math.PI)*Math.atan(1000 * diff);
 
