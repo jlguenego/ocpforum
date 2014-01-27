@@ -64,7 +64,7 @@ function Thread(name) {
 		});
 		this.push({
 			function: function(thread) {
-				console.log(thread.name + ': You do too much thread.next(); Check your code...');
+				//console.log(thread.name + ': You do too much thread.next(); Check your code...');
 				throw new Error('Too much thread.next()... Check the code.');
 				// no thread.next();
 			},
@@ -79,7 +79,7 @@ function Thread(name) {
 		this.push({
 			function: function(t) {
 				t.start();
-				console.log(this.name + ': ' + t.name + ' started: go next.');
+				//console.log(this.name + ': ' + t.name + ' started: go next.');
 				self.next();
 			},
 			args: arguments,
@@ -93,7 +93,7 @@ function Thread(name) {
 		this.unshift({
 			function: function(t) {
 				t.start();
-				console.log(this.name + ': ' + t.name + ' started: go next.');
+				//console.log(this.name + ': ' + t.name + ' started: go next.');
 				self.next();
 			},
 			args: arguments,
@@ -106,7 +106,7 @@ function Thread(name) {
 		this.push({
 			function: function() {
 				var waiting_list = this.waiting_list.map(jlg.accessor('name')).join(' ');
-				console.log(this.name + ': waiting_list = ' + waiting_list);
+				//console.log(this.name + ': waiting_list = ' + waiting_list);
 				this._wait.apply(this, this.waiting_list);
 			},
 			args: [ ],
@@ -119,7 +119,7 @@ function Thread(name) {
 		this.unshift({
 			function: function() {
 				var waiting_list = this.waiting_list.map(jlg.accessor('name')).join(' ');
-				console.log(this.name + ': waiting_list = ' + waiting_list);
+				//console.log(this.name + ': waiting_list = ' + waiting_list);
 				this._wait.apply(this, this.waiting_list);
 			},
 			args: [ ],
@@ -133,7 +133,7 @@ function Thread(name) {
 		this.push({
 			function: function() {
 				var str = waiting_list.map(jlg.accessor('name')).join(' ');
-				console.log(this.name + ': start to wait for : ' + str);
+				//console.log(this.name + ': start to wait for : ' + str);
 				this._wait.apply(this, waiting_list);
 			},
 			args: [],
@@ -147,7 +147,7 @@ function Thread(name) {
 		this.unshift({
 			function: function() {
 				var str = waiting_list.map(jlg.accessor('name')).join(' ');
-				console.log(this.name + ': start to wait for : ' + str);
+				//console.log(this.name + ': start to wait for : ' + str);
 				this._wait.apply(this, waiting_list);
 			},
 			args: [],
@@ -163,14 +163,14 @@ function Thread(name) {
 		for (var i = 0; i < thread_children_list.length; i++) {
 			var child_thread = thread_children_list[i];
 			if (child_thread.isFinished) {
-				console.log(main_thread.name + ': Child thread ' + child_thread.name + ' is already finished.');
+				//console.log(main_thread.name + ': Child thread ' + child_thread.name + ' is already finished.');
 				continue;
 			}
-			console.log(main_thread.name + ': Child thread ' + child_thread.name + ' will wait me.');
+			//console.log(main_thread.name + ': Child thread ' + child_thread.name + ' will wait me.');
 			counter++;
 			child_thread.push({
 				function: function(main_thread) {
-					console.log(thread_children_list);
+					//console.log(thread_children_list);
 					var child_thread = this;
 					child_thread.isFinished = true;
 					var allFinished = true;
@@ -183,7 +183,7 @@ function Thread(name) {
 					}
 
 					if (allFinished) {
-						console.log(main_thread.name + ': Wait released.');
+						//console.log(main_thread.name + ': Wait released.');
 						main_thread.next();
 					}
 				},
@@ -191,7 +191,7 @@ function Thread(name) {
 				name: 'checkwait',
 				object: child_thread
 			});
-			console.log(child_thread.name + ': order_list: ' + child_thread.orders.map(function(d) { return d.name}).join(', '));
+			//console.log(child_thread.name + ': order_list: ' + child_thread.orders.map(function(d) { return d.name}).join(', '));
 		}
 		if (counter == 0) {
 			// there is no thread to wait for.
@@ -203,9 +203,9 @@ function Thread(name) {
 		var thread = this;
 		this.push({
 			function: function(duration) {
-				console.log(thread.name + ': Start sleeping for ' + duration + 'ms');
+				//console.log(thread.name + ': Start sleeping for ' + duration + 'ms');
 				setTimeout(function() {
-					console.log(thread.name + ': Wake up after ' + duration + 'ms');
+					//console.log(thread.name + ': Wake up after ' + duration + 'ms');
 					thread.next();
 				}, duration);
 			},

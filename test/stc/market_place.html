@@ -301,7 +301,8 @@ input, select, table button {
 				</div>
 				<hr/>
 				<button id="start">Start</button>
-				<button id="stop">Stop</button><br/>
+				<button id="stop">Stop</button>
+				<button id="pause_resume">Pause</button><br/>
 				<button id="next_cycle" disabled="disabled">Next cycle</button>
 				<button id="do_cycle" disabled="disabled">Do cycle</button><br/>
 				<button id="add_actor" disabled="disabled">Add actor</button><input type="number" id="actor_qty" min="1" max="99" value="1" disabled="disabled" />
@@ -583,7 +584,7 @@ var sys = null;
 
 function start() {
 	reset_stats();
-	reset_chart();
+	//reset_chart();
 	Math.seedrandom('Hello');
 
 	context = {
@@ -603,6 +604,8 @@ function start() {
 	$('#next_cycle').attr('disabled', null);
 	$('#do_cycle').attr('disabled', null);
 	$('#chart_buttons').css('display', 'block');
+	$('#pause_resume').attr('data-paused', 'false');
+	$('#pause_resume').attr('disabled', null);
 
 	d3.select('#frame').select('svg').remove();
 	var svg = d3.select('#frame').append('svg');
@@ -686,6 +689,19 @@ function set_animation_durations() {
 
 $('#start').click(function() {
 	start();
+});
+
+$('#pause_resume').click(function() {
+	if ($(this).attr('data-paused') == 'false') {
+		sys.pause.isRequested = true;
+		$(this).html('Resume');
+		$(this).attr('data-paused', 'true');
+	}else {
+		sys.pause.isRequested = false;
+		$(this).html('Pause');
+		$(this).attr('data-paused', 'false');
+		sys.pause.thread.next();
+	}
 });
 
 $('#add_actor').click(function() {
@@ -821,7 +837,7 @@ function s2() {
 	start();
 
 	var thread = new Thread('main');
-	sys.runCycle(thread, 50);
+	sys.runCycle(thread, 100);
 
 	thread.finish();
 	thread.start();
@@ -941,10 +957,10 @@ function reset_chart() {
 	dataset.length = 0;
 	dataset.push({
 		cycle: 0,
-		gb_per_stc: 1,
-		price_per_stc: 0.01,
-		price_per_gb: 0.1,
-		total_stc: 0,
+		gb_per_stc: sys.gb_per_stc,
+		price_per_stc: sys.price_per_stc,
+		price_per_gb: sys.price_per_gb,
+		total_stc: sys.totalSTC,
 		nodes: 0,
 		actors: 0,
 		providers: 0,
@@ -1042,7 +1058,7 @@ function clean_stack(nbr) {
 	for (var i = 0; i < nbr; i++) {
 		my_dataset.push(i);
 	}
-	console.log(lineChart.data());
+	//console.log(lineChart.data());
 	var svg = d3.select('#chart').select('svg');
 	var stack = svg.select('g.chart-body').selectAll('g.stack-list').selectAll('g.stack');
 	stack.data(my_dataset)

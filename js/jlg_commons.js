@@ -91,4 +91,16 @@ var jlg = {
 		}
 		return parseFloat(parseFloat(nbr).toFixed(decimal_nbr));
 	};
+
+	jlg.avg = function(nbrs, coefs) {
+		coefs = coefs || [];
+		var sum = 0;
+		var coef_sum = 0;
+		for (var i = 0; i < nbrs.length; i++) {
+			var coef = coefs[i] || 1;
+			coef_sum += coef;
+			sum += (coef * nbrs[i]);
+		}
+		return sum / coef_sum;
+	};
 })(jlg);

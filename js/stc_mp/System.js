@@ -71,6 +71,12 @@
 			actor: {x: this.svgbox.x / 3, y: this.svgbox.y / 2},
 			node: {x: 2 * this.svgbox.x / 3, y: this.svgbox.y / 2}
 		};
+
+		this.pause = {
+			isRequested: false,
+			thread: null,
+		};
+
 		this.consumers = [];
 		this.providers = [];
 		this.actors = [];
@@ -81,15 +87,15 @@
 		this.forceNodes = [];
 		this.forceLinks = [];
 
-		this.totalSTC = 0;
+		this.totalSTC = 10000;
 		this.NODE_SIZE = 50;
 		this.cycle_id = 0;
-		this.gb_per_stc = 1;
-		this.price_per_stc = 0.01;
+		this.gb_per_stc = 0.01;
+		this.price_per_stc = 0.001;
 		this.price_per_gb = 0.1;
 
 		this.competition_price_per_gb = 0.1;
-		this.min_cycle_revenue = 0.1 / 365 * this.options.nodeCapacity;
+		this.min_cycle_revenue = 400 / (1000 * 1500); // Per GB/Day
 		this.attractivity = null;
 
 		this.performed_deal_nbr = 0;
@@ -258,10 +264,10 @@
 
 		this._updateMarketPlace = function(thread) {
 			for (var i = 0; i < this.offers_table.dataset.length; i++) {
-				this.offers_table.dataset[i][2] = jlg.round(this.offers_table.dataset[i][1] * this.gb_per_stc);
+				this.offers_table.dataset[i].gb_qty = jlg.round(this.offers_table.dataset[i].stc_qty * this.gb_per_stc);
 			}
 			for (var i = 0; i < this.demands_table.dataset.length; i++) {
-				this.demands_table.dataset[i][3] = jlg.round(this.demands_table.dataset[i][2] * this.gb_per_stc);
+				this.demands_table.dataset[i].price_per_stc = jlg.round(this.demands_table.dataset[i].gb_qty * this.gb_per_stc);
 			}
 			this.offers_table.repaint();
 			this.demands_table.repaint();
@@ -330,11 +336,6 @@
 				thread.start();
 			});
 
-			var gb_per_stc = this.totalSTC / (this.nodes.length * this.options.nodeCapacity);
-			if (this.nodes.length < 1) {
-				gb_per_stc = 0;
-			}
-
 			tr.select('td.name').text(jlg.accessor('name'));
 			tr.select('td.stc').text(function(d) {
 				return jlg.round(d.amount, 5);
@@ -343,10 +344,10 @@
 				return d.nodes.length;
 			});
 			tr.select('td.volume').text(function(d) {
-				if (gb_per_stc == 0) {
+				if (this.gb_per_stc == 0) {
 					return '0.00 GB';
 				}
-				return jlg.round(d.amount / gb_per_stc) + ' GB';
+				return jlg.round(d.amount * self.gb_per_stc) + ' GB';
 			});
 
 			tr.classed('selected', function(d) {
@@ -505,7 +506,12 @@
 
 			if ((!offer || !demand) || offer.price_per_stc > demand.price_per_stc) {
 				if (this.performed_deal_nbr == 0) {
+					console.log('no deal during cycle ' + this.cycle_id);
+					console.log('this.competition_price_per_gb=' + this.competition_price_per_gb);
+					console.log('this.gb_per_stc=' + this.gb_per_stc);
 					this.price_per_stc = Math.max(this.price_per_stc / 2, this.competition_price_per_gb * this.gb_per_stc / 2);
+					console.log('this.price_per_stc=' + this.price_per_stc);
+					this.price_per_gb = this.price_per_stc / this.gb_per_stc;
 				}
 				thread.next();
 				return;
@@ -585,11 +591,12 @@
 
 			this.computeAttractivity();
 
-			for (var i = 0; i < this.attractivity.consumers_to_add; i++) {
-				this.addConsumer(t);
-			}
 			for (var i = 0; i < this.attractivity.providers_to_add; i++) {
 				this.addProvider(t);
+			}
+
+			for (var i = 0; i < this.attractivity.consumers_to_add; i++) {
+				this.addConsumer(t);
 			}
 
 			for (var i = 0; i < this.actors.length; i++) {
@@ -598,6 +605,7 @@
 			}
 
 			this.processDeals(t);
+			this.checkPause(t);
 
 			this.nextCycle(t);
 			if (this.cycle_id < cycle_nbr) {
@@ -607,6 +615,22 @@
 			thread.do_wait(t);
 			t.start();
 			thread.next();
+		};
+
+		this.checkPause = function(thread) {
+			this.pause.thread = thread;
+			thread.push({
+				function: this._checkPause,
+				args: arguments,
+				name: 'checkPause',
+				object: this
+			});
+		};
+
+		this._checkPause = function(thread) {
+			if (!this.pause.isRequested) {
+				thread.next();
+			}
 		};
 
 		this.makeActivity = function(thread, actor) {
@@ -619,14 +643,18 @@
 		};
 
 		this._makeActivity = function(thread, actor) {
-			console.log('_makeActivity start');
+			//console.log('_makeActivity start');
 			var t = new Thread('makeActivity_' + this.cycle_id);
 			actor.behave(t);
 			thread.do_wait(t);
-			console.log(t.orders.slice(0));
-			console.log(thread.orders.slice(0));
+			//console.log(t.orders.slice(0));
+			//console.log(thread.orders.slice(0));
 			t.start();
 			thread.next();
+		};
+
+		this.normalize = function(x) {
+			return (2 / Math.PI) * Math.atan(x);
 		};
 
 		this.computeAttractivity = function() {
@@ -636,12 +664,17 @@
 
 			var c2 = this.cycle_id;
 			var c1 = Math.max(0, this.cycle_id - 3);
-			var mining_revenue = (this.options.stcPerCycle / (this.nodes.length + 1)) * this.price_per_stc;
-			var provider_rate = 0.5 + (1/Math.PI)*Math.atan(1000 * (mining_revenue - this.min_cycle_revenue));
+			var mining_revenue_price = (this.options.stcPerCycle / (Math.max(1, this.nodes.length) * this.options.nodeCapacity)) * this.price_per_stc;
+			console.log('this.nodes.length=' + this.nodes.length);
+			console.log('mining_revenue_price=' + mining_revenue_price);
+			console.log('min_cycle_revenue=' + this.min_cycle_revenue);
+			var provider_rate = this.normalize(0.5 * (mining_revenue_price - this.min_cycle_revenue) / this.min_cycle_revenue);
 
-			var providers_to_add = Math.floor(3 * Math.max(0, provider_rate - 0.5));
+			console.log('provider_rate=' + provider_rate);
 
-			console.log(this.dataset);
+			var providers_to_add = Math.floor(3 * Math.max(0, provider_rate));
+
+			//console.log(this.dataset);
 			var diff = (this.competition_price_per_gb - ((this.dataset[c2].price_per_gb + this.dataset[c1].price_per_gb) / 2));
 			var consumer_rate = 0.5 + (1/Math.PI)*Math.atan(1000 * diff);
 
@@ -654,10 +687,10 @@
 				consumers_to_add: consumers_to_add,
 			};
 
-			if (this.actors.length > 200) {
+			//if (this.actors.length > 40) {
 				this.attractivity.consumers_to_add = 0;
 				this.attractivity.providers_to_add = 0;
-			}
+			//}
 		};
 
 		this.addProvider = function(thread) {
