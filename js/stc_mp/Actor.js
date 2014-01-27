@@ -16,7 +16,9 @@
 
 		this.profile = {
 			mental_rate: Math.randomize(-1, 1),
-			marge: Math.randomize(1, 2)
+			marge: Math.randomize(1, 2),
+			wealth: Math.randomize(1, 5),
+			strategy: Math.randomizeInt(1, 2) // 1: normal, 2: speculator
 		};
 
 		this.behave = function(thread) {
@@ -32,17 +34,16 @@
 			this.attractivity = jlg.avg([ this.parent.attractivity.provider_rate, this.profile.mental_rate ], [ 1, 0.2 ]);
 
 			this.manageNode_p(thread);
-			//this.manageOffer_p(thread);
+			this.manageOffer_p(thread);
 			//this.manageDemand_p(thread);
 		};
 
 		this.manageNode_p = function(thread) {
-			var node_to_manage = Math.floor(this.attractivity * (this.nodes.length * 0.5 + 1));
+			var node_to_manage = Math.floor(1 * this.profile.wealth * this.attractivity + 1);
 
 			console.log('node_to_manage=' + node_to_manage);
 			var node_to_add = Math.max(0, node_to_manage);
-			var node_to_remove = Math.min(Math.abs(Math.min(0, node_to_manage)), Math.max(0, this.nodes.length - 20));
-			node_to_remove = 0;
+			var node_to_remove = Math.min(Math.abs(Math.min(0, node_to_manage)), Math.max(0, this.nodes.length - 5));
 
 			for (var i = 0; i < node_to_add; i++) {
 				this.parent.addNode(thread, new stc.Node(this));
@@ -54,25 +55,22 @@
 		};
 
 		this.manageOffer_p = function(thread) {
-			var price_wanted = this.profile.marge * this.parent.min_cycle_revenue * this.nodes.length * this.parent.options.nodeCapacity;
-			console.log('price_wanted=' + price_wanted);
-			var stc_qty = price_wanted / this.parent.price_per_stc;
+			var price_per_stc = Math.randomize(0.9, 1.1) * this.parent.price_per_stc;
+			console.log('my price_per_stc=' + price_per_stc);
 
-			var price_per_stc = price_wanted * this.parent.gb_per_stc;
-			price_per_stc = Math.max(this.parent.price_per_stc, price_per_stc);
 			if (this.parent.demands_table.dataset.length > 0) {
 				price_per_stc = Math.max(this.parent.demands_table.dataset[0].price_per_stc, price_per_stc);
 			}
-			price_per_stc = (0.2 * this.attractivity + 0.9) * price_per_stc;
-			stc_qty = Math.min(stc_qty, this.amount);
-			this.parent.publishOffer(thread, this, stc_qty, price_per_stc);
+			console.log('my corrected price_per_stc=' + price_per_stc);
+
+			this.parent.publishOffer(thread, this, this.amount, price_per_stc);
 		};
 
 		this.manageDemand_p = function(thread) {
 		};
 
 		this.behave_c = function(thread) {
-			var opportunity = Math.randomize(0, 100) > 50;
+			var opportunity = Math.randomize(0, 100) > 10;
 			if (!opportunity) {
 				return;
 			}

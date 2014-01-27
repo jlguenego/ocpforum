@@ -268,6 +268,10 @@ input, select, table button {
 								<th>Mental</th>
 								<td class="mental"></td>
 							</tr>
+							<tr>
+								<th>Wealth</th>
+								<td class="wealth"></td>
+							</tr>
 						</table>
 					</div>
 
@@ -521,6 +525,7 @@ var onObjectSelected = function(object) {
 		actorMenu.find('.name').html(object.name);
 		actorMenu.find('.amount').html(object.amount);
 		actorMenu.find('.mental').html(jlg.round(object.profile.mental_rate));
+		actorMenu.find('.wealth').html(jlg.round(object.profile.wealth));
 		$('.menu [data-body=actor]').click();
 
 		update_chart('actor');
@@ -537,6 +542,8 @@ var onObjectSelected = function(object) {
 		var actorMenu = $('.param_body.actor');
 		actorMenu.find('.name').html(object.owner.name);
 		actorMenu.find('.amount').html(object.owner.amount);
+		actorMenu.find('.mental').html(jlg.round(object.owner.profile.mental_rate));
+		actorMenu.find('.wealth').html(jlg.round(object.owner.profile.wealth));
 
 		$('.menu [data-body=node]').click();
 
@@ -559,6 +566,7 @@ var onObjectDeselected = function(object) {
 	var actorMenu = $('.param_body.actor');
 	actorMenu.find('.name').html('');
 	actorMenu.find('.amount').html('');
+	actorMenu.find('.wealth').html('');
 
 	var nodeMenu = $('.param_body.node');
 	nodeMenu.find('.name').html('');
@@ -794,6 +802,7 @@ function s1() {
 	$('#animation').val('on');
 
 	start();
+	sys.totalSTC = 0;
 	sys.computeAttractivity();
 
 	var thread = new Thread('main');
@@ -822,7 +831,7 @@ function s1() {
 	}
 
 	for(var i = 0; i < provider_qty; i++) {
-		sys.publishOffer(thread, providers[i], 80, 1.2 + (i / 10));
+		sys.publishOffer(thread, providers[i], 20, 1.2 + (i / 10));
 	}
 
 	sys.processDeals(thread);

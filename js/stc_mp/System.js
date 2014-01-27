@@ -87,7 +87,7 @@
 		this.forceNodes = [];
 		this.forceLinks = [];
 
-		this.totalSTC = 10000;
+		this.totalSTC = 20000;
 		this.NODE_SIZE = 50;
 		this.cycle_id = 0;
 		this.gb_per_stc = 0.01;
@@ -95,7 +95,7 @@
 		this.price_per_gb = 0.1;
 
 		this.competition_price_per_gb = 0.1;
-		this.min_cycle_revenue = 400 / (1000 * 1500); // Per GB/Day
+		this.min_cycle_revenue = 200 / (1000 * 1500); // Per GB/Day
 		this.attractivity = null;
 
 		this.performed_deal_nbr = 0;
@@ -265,9 +265,11 @@
 		this._updateMarketPlace = function(thread) {
 			for (var i = 0; i < this.offers_table.dataset.length; i++) {
 				this.offers_table.dataset[i].gb_qty = jlg.round(this.offers_table.dataset[i].stc_qty * this.gb_per_stc);
+				this.offers_table.dataset[i].price_per_gb = jlg.round(this.offers_table.dataset[i].price_per_stc / this.gb_per_stc);
 			}
 			for (var i = 0; i < this.demands_table.dataset.length; i++) {
 				this.demands_table.dataset[i].price_per_stc = jlg.round(this.demands_table.dataset[i].gb_qty * this.gb_per_stc);
+				this.demands_table.dataset[i].stc_qty = jlg.round(this.demands_table.dataset[i].gb_qty / this.gb_per_stc);
 			}
 			this.offers_table.repaint();
 			this.demands_table.repaint();
@@ -406,6 +408,7 @@
 		};
 
 		this._publishOffer = function(thread, provider, stc_qty, price_per_stc) {
+			console.log('_publishOffer start');
 			var record = jlg.find(this.offers_table.dataset, function(d) {
 				return d.name == provider.name;
 			});
@@ -416,6 +419,7 @@
 			var gb_qty = stc_qty * this.gb_per_stc;
 
 			if (gb_qty < 5) {
+				console.log('gb_qty < 5');
 				thread.next();
 				return;
 			}
@@ -668,7 +672,7 @@
 			console.log('this.nodes.length=' + this.nodes.length);
 			console.log('mining_revenue_price=' + mining_revenue_price);
 			console.log('min_cycle_revenue=' + this.min_cycle_revenue);
-			var provider_rate = this.normalize(0.5 * (mining_revenue_price - this.min_cycle_revenue) / this.min_cycle_revenue);
+			var provider_rate = this.normalize(2 * (mining_revenue_price - this.min_cycle_revenue) / this.min_cycle_revenue);
 
 			console.log('provider_rate=' + provider_rate);
 
@@ -688,9 +692,10 @@
 			};
 
 			//if (this.actors.length > 40) {
-				this.attractivity.consumers_to_add = 0;
+
 				this.attractivity.providers_to_add = 0;
 			//}
+			this.attractivity.consumers_to_add = 0;
 		};
 
 		this.addProvider = function(thread) {
