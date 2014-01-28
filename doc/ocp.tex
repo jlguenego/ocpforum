@@ -69,6 +69,15 @@ In the example a consumer buys at cycle $n$ a volume $A$ of storage. $A$ is mesu
 For the competition, if we consider that there is no minimal commitment period, that the customer can cancel when desired, and the cost per cycle is $d$, then the cost $D$ will be easy to compute: $D=M.A.d$
 
 \paragraph*{}
-For the StorageCoin system, the computation is made differently. In order to buy storage resources, 
+For the StorageCoin system, the computation is made differently. In order to buy storage resources, the consumer must buy enough STC from the providers.
+To get $A$ the amount $S_{A}$ of STC to buy is given buy 
+\[S_{A}=\frac{T(n)}{V(n)}.A\]
+At the next cycle, $R$ STC will be injected into the system. Maybe the number of node in the system will be different (bigger or smaller). 
+Therefore the amount $S_{A}$ will not reflect anymore the volume $A$ of storage resources 
+\[S_{A}\neq \frac{T(n+1)}{V(n+1)}.A\]
+The amount of space $A(k)$, where $k$ is the number of cycles spent after $n$, corresponding to $S_{A}$ will be: 
+\[A(k)=\frac{V(n+k)}{T(n+k)}.S_{A}\]
+$A(k)$ can be smaller or bigger than $S_{A}$. If the number of node $N$ in the system is constant across the cycles, then we have $V(n+k)=V(n)$, and because $T(n+k)=T(n)+kR$, we have
+\[A(k)=\frac{V(n)}{T(n)+kR}.S_{A}\le A(0)=A\]
 
 \end{document}
