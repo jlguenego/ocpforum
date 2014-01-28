@@ -1,4 +1,74 @@
 \documentclass[a4paper,12pt]{article}
+
+\title{StorageCoin: A cryptocurrency designed for a storage system}
+
+\author{Jean-Louis Gu\'{e}n\'{e}go, Yannis Thomias}
+\date{}
+
 \begin{document}
-sdfcsdf
+\maketitle \clearpage
+\tableofcontents \clearpage
+
+\section{Introduction}
+\section{Model description}
+\subsection{Provider}
+
+\paragraph*{}
+The system is a distributed network with $N$ nodes that belong to a set $P$ of \emph{providers} $P_{i}$.
+Each node has the same storage capacity $v$.
+$N$ can evolve during time because providers can add or remove nodes  when desired. Each provider $P_{i}$ has $N_{i}$ nodes.
+$N$ and $N_{i}$ are function of time. We have 
+\[N=\sum\limits_{i\in{P}}N_{i}\]
+
+\paragraph*{}
+The variables $N$, $N_{i}$ depend of time, but we just need representing them according the cycle. We note the cycle $n$.
+So we have $N=N(n)$, $N_{i}=N_{i}(n)$. 
+
+\paragraph*{}
+The StorageCoin (STC) has a notion of \emph{cycle}.
+Every cycle the system injects $G$ STC shared between the providers.
+Each participant $P_{i}$ receives a \emph{gain} $G_{i}$ STC such as
+\[G_{i}(n)=\frac{N_{i}(n)}{N(n)}.G\]
+
+\paragraph*{}
+We note $T(n)$ the number of STC injected into the system. We have $T(n)=nG$.
+
+\paragraph*{}
+For each provider, we note $T_{i}$ the current amount of STC received from the beginning. We have
+\[T_{i}(n)=\sum\limits_{t=1}^n G_{i}(t)\]
+
+\paragraph*{}
+The provider have internal cost price to maintain his nodes operational on the system. We assume that this cost is proportional to the storage memory exposed. We note $c_{i}$ the cost price per memory unit for the provider $P_{i}$. The provider cost price is
+\[C_{i}=N_{i}.v.c_{i}\]
+
+\paragraph*{}
+The StorageCoin can be exchange on a free market, through dedicated STC marketplaces. We note $p$ the exchange rate for 1 STC in a fiat money. We use the dollar unit (\$) in this document.
+In this model we assume that $p$ varies only over cycles. We note $p(n)$.
+$p(n)$ increases or decreases according to the quantity of offer and demand as all free market process.
+
+\paragraph*{}
+The provider revenue $R_{i}$ is the conversion of its gain $G_{i}$ in the fiat money. Therefore we have 
+\[R_{i}(n)=G_{i}(n).p(n)\]
+
+\paragraph*{}
+A provider will be interested to expose nodes only if $R_{i}(n)\ge{C_{i}}$.
+
+\paragraph*{}
+\emph{Consumers} are users of the system that buy with a fiat money some STC to use the storage resources of the system for storing objects (files, etc.). Buying a percentage $F$ of all the STC of the system $T$ means being allowed to use the percentage $F$ of all the current storage resources $V(n)=N(n).v$.
+
+\subsection{Consumer}
+\paragraph*{}
+Consumers will be interested to use the system if it presents advantages regards to the competition.
+At this time competition pricing model is similar to a rental business model which is different of the StorageCoin model. 
+In order to compare both models regarding prices, we consider an example.
+
+\paragraph*{}
+In the example a consumer buys at cycle $n$ a volume $A$ of storage. $A$ is mesured in a storage unit like the Gigabyte. After $M$ cycles, the consumer decide to retaliate it storage resources by selling them.
+
+\paragraph*{}
+For the competition, if we consider that there is no minimal commitment period, that the customer can cancel when desired, and the cost per cycle is $d$, then the cost $D$ will be easy to compute: $D=M.A.d$
+
+\paragraph*{}
+For the StorageCoin system, the computation is made differently. In order to buy storage resources, 
+
 \end{document}
