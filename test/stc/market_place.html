@@ -242,6 +242,65 @@ input, select, table button {
 	height: 270px;
 	overflow: auto;
 }
+
+#chart_buttons table {
+	border-collapse: collapse;
+}
+
+#chart_buttons ul {
+	display: inline-block;
+	vertical-align: middle;
+
+	padding: 0px;
+	margin: 0px;
+	font-size: 0px;
+
+	border: 1px solid black;
+}
+
+#chart_buttons li {
+	display: inline-block;
+	vertical-align: middle;
+	padding: 1px 5px;
+
+	font-size: 14px;
+	cursor: pointer;
+	background-color: #DDEEFF;
+
+	border-right: 1px solid black;
+}
+
+#chart_buttons ul li:last-child {
+	border-right: none;
+}
+
+#chart_buttons ul + ul {
+	position: relative;
+	top: -1px;
+}
+
+#chart_buttons li.disabled {
+	color: #AEAEAE;
+	cursor: default;
+	background-color: #DEDEDE;
+}
+
+#chart_buttons li:hover {
+	background-color: #A6D2FF;
+}
+
+#chart_buttons li:hover.disabled {
+	background-color: #DEDEDE;
+}
+
+#chart_buttons li.selected {
+	background-color: #B9DCFF;
+}
+
+#chart_buttons button {
+	margin: 0px;
+	box-sizing: border-box;
+}
 		</style>
 	</head>
 
@@ -375,32 +434,37 @@ input, select, table button {
 					<tr>
 						<th>System:</th>
 						<td class="system">
-							<button class="change_chart" data-value="gb_per_stc">GB/STC</button>
-							<button class="change_chart" data-value="price_per_stc">$/STC</button>
-							<button class="change_chart" data-value="price_per_gb">$/GB</button>
-							<button class="change_chart" data-value="total_stc">Total STC</button>
-							<button class="change_chart" data-value="competition">Competition</button>
-							<br/>
-							<button class="change_chart" data-value="actors" data-stack="providers consumers">Actors</button>
-							<button class="change_chart" data-value="nodes">Nodes</button>
-							<button class="change_chart" data-value="capacity">Capacity</button>
-							<button class="change_chart" data-value="performed_deal_nbr">Deal amount</button>
-							<button class="change_chart" data-value="usage" data-unit="%">Usage</button>
-							<br/>
-							<button class="change_chart" data-value="attractivity_provider_rate">PAR</button>
-							<button class="change_chart" data-value="attractivity_consumer_rate">CAR</button>
+							<ul>
+								<li class="change_chart" data-value="total_stc">Total STC</li>
+								<li class="change_chart" data-value="gb_per_stc">GB/STC</li>
+								<li class="change_chart" data-value="price_per_stc">$/STC</li>
+								<li class="change_chart" data-value="price_per_gb">$/GB</li>
+								<li class="change_chart" data-value="competition">Competition</li>
+							</ul>
+							<ul>
+								<li class="change_chart" data-value="actors" data-stack="providers consumers">Actors</li>
+								<li class="change_chart" data-value="nodes">Nodes</li>
+								<li class="change_chart" data-value="capacity">Capacity</li>
+								<li class="change_chart" data-value="performed_deal_nbr">Deal amount</li>
+								<li class="change_chart" data-value="usage" data-unit="%">Usage</li>
+								<li class="change_chart" data-value="attractivity_provider_rate">PAR</li>
+								<li class="change_chart" data-value="attractivity_consumer_rate">CAR</li>
+							</ul>
 						</td>
 						<th>Actor:</th>
 						<td class="actor">
-							<button class="change_chart_actor" data-value="actor_stc" disabled="disabled">STC</button>
-							<button class="change_chart_actor" data-value="actor_nodes" disabled="disabled">Nodes</button>
-							<button class="change_chart_actor" data-value="actor_volume" disabled="disabled">Volume</button>
-							<button class="change_chart_actor" data-value="actor_cumulated_mined_stc" disabled="disabled">Mined</button>
-							<br/>
-							<button class="change_chart_actor" data-value="actor_price_amount" disabled="disabled">$</button>
-							<button class="change_chart_actor" data-value="actor_price_earned_amount" disabled="disabled">$ earned</button>
-							<button class="change_chart_actor" data-value="actor_price_capital" data-stack="actor_price_earned_amount actor_price_amount" disabled="disabled">$ capital</button>
-							<button class="change_chart_actor" data-value="actor_effectiveness" disabled="disabled">Evectiveness</button>
+							<ul>
+								<li class="change_chart_actor disabled" data-value="actor_stc">STC</li>
+								<li class="change_chart_actor disabled" data-value="actor_nodes">Nodes</li>
+								<li class="change_chart_actor disabled" data-value="actor_volume">Volume</li>
+								<li class="change_chart_actor disabled" data-value="actor_cumulated_mined_stc">Mined</li>
+							</ul>
+							<ul>
+								<li class="change_chart_actor disabled" data-value="actor_price_amount">$</li>
+								<li class="change_chart_actor disabled" data-value="actor_price_earned_amount">$ earned</li>
+								<li class="change_chart_actor disabled" data-value="actor_price_capital" data-stack="actor_price_earned_amount actor_price_amount">$ capital</li>
+								<li class="change_chart_actor disabled" data-value="actor_effectiveness">Evectiveness</li>
+							</ul>
 						</td>
 					</tr>
 				</table>
@@ -516,7 +580,7 @@ var onObjectSelected = function(object) {
 	if (object instanceof stc.Actor) {
 		$('#add_node').attr('disabled', false);
 		$('#node_qty').attr('disabled', false);
-		$('#chart_buttons .actor button').attr('disabled', false);
+		$('#chart_buttons .actor li').removeClass('disabled');
 
 		// Disable nodes buttons
 		$('#rm_node').attr('disabled', false);
@@ -560,7 +624,7 @@ var onObjectSelected = function(object) {
 var onObjectDeselected = function(object) {
 	$('#add_node').attr('disabled', true);
 	$('#node_qty').attr('disabled', true);
-	$('#chart_buttons .actor button').attr('disabled', true);
+	$('#chart_buttons .actor li').addClass('disabled');
 	$('#rm_node').attr('disabled', true);
 
 	var actorMenu = $('.param_body.actor');
@@ -580,11 +644,13 @@ function update_chart(selector) {
 	if (chart_group_selector != selector) {
 		chart_group_selector = selector;
 		if (selector == 'system') {
-			group = xDim.group().reduceSum(jlg.accessor('stc'));
+			$('#chart_buttons .system ul:first-child li:first-child').click();
+			//group = xDim.group().reduceSum(jlg.accessor('stc'));
 		} else if (selector == 'actor') {
-			group = xDim.group().reduceSum(jlg.accessor('actor_stc'));
+			$('#chart_buttons .actor ul:first-child li:first-child').click();
+			//group = xDim.group().reduceSum(jlg.accessor('actor_stc'));
 		}
-		current_chart_title = 'STC';
+		//current_chart_title = 'STC';
 	}
 }
 
@@ -592,7 +658,6 @@ var sys = null;
 
 function start() {
 	reset_stats();
-	//reset_chart();
 	Math.seedrandom('Hello');
 
 	context = {
@@ -612,6 +677,7 @@ function start() {
 	$('#next_cycle').attr('disabled', null);
 	$('#do_cycle').attr('disabled', null);
 	$('#chart_buttons').css('display', 'block');
+	$('#chart_buttons .actor li').addClass('disabled');
 	$('#pause_resume').attr('data-paused', 'false');
 	$('#pause_resume').attr('disabled', null);
 
@@ -846,7 +912,7 @@ function s2() {
 	start();
 
 	var thread = new Thread('main');
-	sys.runCycle(thread, 5);
+	sys.runCycle(thread, 300);
 
 	thread.finish();
 	thread.start();
@@ -982,12 +1048,8 @@ function reset_chart() {
 		attractivity_consumer_rate: 1
 	});
 	actor_dataset_aa = {};
-	current_chart_title = 'GB/STC';
-	chart_group_selector == 'system'
-	if (sys) {
-		group = xDim.group().reduceSum(jlg.accessor('gb_per_stc'));
-		refresh_chart();
-	}
+
+	$('#chart_buttons ul:first-child li:first-child').click();
 }
 
 
@@ -1009,6 +1071,14 @@ function init_graph() {
 	reset_chart();
 }
 
+$('#chart_buttons li').click(function() {
+	if ($(this).hasClass('disabled')) {
+		return;
+	}
+	$('#chart_buttons li').removeClass('selected');
+	$(this).addClass('selected');
+});
+
 $('.change_chart').click(function() {
 	if ($(this).attr('data-stack')) {
 		set_stack_chart($(this));
@@ -1020,6 +1090,9 @@ $('.change_chart').click(function() {
 });
 
 $('.change_chart_actor').click(function() {
+	if ($(this).hasClass('disabled')) {
+		return;
+	}
 	if ($(this).attr('data-stack')) {
 		set_stack_chart($(this));
 	} else {

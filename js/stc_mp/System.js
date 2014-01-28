@@ -87,15 +87,15 @@
 		this.forceNodes = [];
 		this.forceLinks = [];
 
-		this.totalSTC = 0;
-		this.cycle_id = 0;
-		this.gb_per_stc = 0.001;
-		this.price_per_stc = 0.005;
-		this.price_per_gb = 5;
-
 		this.competition_price_per_gb = 500; // 100 / (1000 * 365); // $/(gb.day)
 		this.min_cycle_revenue_price_per_gb = 1; //100 / (1000 * 365 * 5); // Per GB/Day
 		this.attractivity = null;
+
+		this.totalSTC = 0;
+		this.cycle_id = 0;
+		this.gb_per_stc = 0.5;
+		this.price_per_stc = this.competition_price_per_gb * (this.options.nodeCapacity / (2 * this.options.stcPerCycle));
+		this.price_per_gb = 5;
 
 		this.performed_deal_nbr = 0;
 
@@ -672,7 +672,7 @@
 			console.log('this.nodes.length=' + this.nodes.length);
 			console.log('mining_revenue_price_per_gb=' + mining_revenue_price_per_gb);
 			console.log('min_cycle_revenue_price_per_gb=' + this.min_cycle_revenue_price_per_gb);
-			var provider_rate = this.normalize(2 * (mining_revenue_price_per_gb - this.min_cycle_revenue_price_per_gb) / this.min_cycle_revenue_price_per_gb);
+			var provider_rate = this.normalize(4 * (mining_revenue_price_per_gb - this.min_cycle_revenue_price_per_gb) / this.min_cycle_revenue_price_per_gb);
 
 			console.log('provider_rate=' + provider_rate);
 
