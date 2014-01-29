@@ -87,15 +87,19 @@
 		this.forceNodes = [];
 		this.forceLinks = [];
 
-		this.competition_price_per_gb = 500; // 100 / (1000 * 365); // $/(gb.day)
-		this.min_cycle_revenue_price_per_gb = 1; //100 / (1000 * 365 * 5); // Per GB/Day
+		this.competition_price_per_gb = 5;// 100 / (1000 * 365); // $/(gb.day)
+		this.min_cycle_revenue_price_per_gb = 1; // 100 / (1000 * 365 * 5); // Per GB/Day
+
+		//console.log('ratio	=' + this.competition_price_per_gb / this.min_cycle_revenue_price_per_gb);
+
 		this.attractivity = null;
 
 		this.totalSTC = 0;
 		this.cycle_id = 0;
 		this.gb_per_stc = 0.5;
-		this.price_per_stc = this.competition_price_per_gb * (this.options.nodeCapacity / (2 * this.options.stcPerCycle));
+		this.price_per_stc = this.options.nodeCapacity * this.competition_price_per_gb / this.options.stcPerCycle;
 		this.price_per_gb = 5;
+		this.cas = 0;
 
 		this.performed_deal_nbr = 0;
 
@@ -510,11 +514,12 @@
 
 			if ((!offer || !demand) || offer.price_per_stc > demand.price_per_stc) {
 				if (this.performed_deal_nbr == 0) {
-					console.log('no deal during cycle ' + this.cycle_id);
-					console.log('this.competition_price_per_gb=' + this.competition_price_per_gb);
-					console.log('this.gb_per_stc=' + this.gb_per_stc);
+					//console.log('no deal during cycle ' + this.cycle_id);
+					//console.log('this.competition_price_per_gb=' + this.competition_price_per_gb);
+					//console.log('this.gb_per_stc=' + this.gb_per_stc);
 					this.price_per_stc = Math.max(this.price_per_stc / 2, this.competition_price_per_gb * this.gb_per_stc / 2);
-					console.log('this.price_per_stc=' + this.price_per_stc);
+					//this.price_per_stc = this.price_per_stc / 1.001;
+					//console.log('this.price_per_stc=' + this.price_per_stc);
 					this.price_per_gb = this.price_per_stc / this.gb_per_stc;
 				}
 				thread.next();
@@ -662,25 +667,67 @@
 		};
 
 		this.computeAttractivity = function() {
+			console.log('Start computeAttractivity at cycle ' + this.cycle_id);
 			if (this.cycle_id % 10 == 0) {
 				this.competition_price_per_gb = this.competition_price_per_gb * Math.randomize(0.75, 1.25);
 			}
 
-			var c2 = this.cycle_id;
-			var c1 = Math.max(0, this.cycle_id - 3);
-			var mining_revenue_price_per_gb = (this.options.stcPerCycle / (Math.max(1, this.nodes.length) * this.options.nodeCapacity)) * this.price_per_stc;
-			console.log('this.nodes.length=' + this.nodes.length);
-			console.log('mining_revenue_price_per_gb=' + mining_revenue_price_per_gb);
-			console.log('min_cycle_revenue_price_per_gb=' + this.min_cycle_revenue_price_per_gb);
-			var provider_rate = this.normalize(4 * (mining_revenue_price_per_gb - this.min_cycle_revenue_price_per_gb) / this.min_cycle_revenue_price_per_gb);
 
+			// Provider: \[\frac{Gp(n)}{N(n)vc_{i}}\ge 1\]
+			var G = this.options.stcPerCycle;
+			var p = this.price_per_stc;
+			var N = Math.max(1, this.nodes.length);
+			var v = this.options.nodeCapacity;
+			var c = this.min_cycle_revenue_price_per_gb;
+
+			var q = (G * p) / (N * v * c);
+			var provider_rate = this.normalize(4 * (q - 1));
 			console.log('provider_rate=' + provider_rate);
-
 			var providers_to_add = Math.floor(3 * Math.max(0, provider_rate));
 
+			// Consumer: \[\frac{1}{M}\sum\limits_{k=1}^M \frac{kdV(n-k)}{T(n-k)(p(n-k)-p(n))}\ge 1\]
 			//console.log(this.dataset);
-			var diff = (this.competition_price_per_gb - ((this.dataset[c2].price_per_gb + this.dataset[c1].price_per_gb) / 2));
-			var consumer_rate = 0.5 + (1/Math.PI)*Math.atan(1000 * diff);
+			var sum = function(n) {
+				var result = 0;
+				if (n < 2) {
+					return 0;
+				}
+				for (var b = 1; b < n; b++) {
+					if (n - b < 0) {
+						break;
+					}
+
+					var d = self.competition_price_per_gb;
+					var V = v * self.dataset[b].nodes;
+					var T = G * b;
+					var p_buy = self.dataset[b].price_per_stc;
+					var p_sell = self.dataset[n].price_per_stc;
+					var frac_up = T * (p_buy - p_sell);
+					var frac_down = V * d * (n - b);
+					console.log('d=' + d);
+					console.log('V=' + V);
+					console.log('n=' + n);
+					console.log('b=' + b);
+					console.log('T=' + T);
+					console.log('p_buy=' + p_buy);
+					console.log('p_sell=' + p_sell);
+					console.log('frac_up=' + frac_up);
+					console.log('frac_down=' + frac_down);
+
+					result += frac_up / frac_down;
+					console.log('result=' + result);
+				}
+				return result;
+			}
+
+			var n = this.cycle_id;
+			this.cas += sum(n);
+			console.log('cas=' + this.cas);
+			var cai = this.cas * (2 / (n * (n - 1)));
+			var consumer_rate = this.normalize(4 * (1 - cai));
+			if (n < 2) {
+				consumer_rate = 0;
+			}
 
 			var consumers_to_add = Math.floor(2 * consumer_rate);
 

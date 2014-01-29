@@ -435,10 +435,10 @@ input, select, table button {
 						<th>System:</th>
 						<td class="system">
 							<ul>
-								<li class="change_chart" data-value="total_stc">Total STC</li>
-								<li class="change_chart" data-value="gb_per_stc">GB/STC</li>
 								<li class="change_chart" data-value="price_per_stc">$/STC</li>
+								<li class="change_chart" data-value="gb_per_stc">GB/STC</li>
 								<li class="change_chart" data-value="price_per_gb">$/GB</li>
+								<li class="change_chart" data-value="total_stc">Total STC</li>
 								<li class="change_chart" data-value="competition">Competition</li>
 							</ul>
 							<ul>
@@ -449,6 +449,7 @@ input, select, table button {
 								<li class="change_chart" data-value="usage" data-unit="%">Usage</li>
 								<li class="change_chart" data-value="attractivity_provider_rate">PAR</li>
 								<li class="change_chart" data-value="attractivity_consumer_rate">CAR</li>
+								<li class="change_chart" data-value="cas">CAS</li>
 							</ul>
 						</td>
 						<th>Actor:</th>
@@ -912,7 +913,7 @@ function s2() {
 	start();
 
 	var thread = new Thread('main');
-	sys.runCycle(thread, 300);
+	sys.runCycle(thread, 50);
 
 	thread.finish();
 	thread.start();
@@ -997,7 +998,8 @@ function update_dataset() {
 		usage: used * 100 / sys.totalSTC,
 		competition: sys.competition_price_per_gb,
 		attractivity_provider_rate: sys.attractivity.provider_rate,
-		attractivity_consumer_rate: sys.attractivity.consumer_rate
+		attractivity_consumer_rate: sys.attractivity.consumer_rate,
+		cas: sys.cas
 	});
 
 	for (var i = 0; i < sys.actors.length; i++) {
@@ -1045,7 +1047,8 @@ function reset_chart() {
 		usage: 0,
 		competition: sys.competition_price_per_gb,
 		attractivity_provider_rate: 1,
-		attractivity_consumer_rate: 1
+		attractivity_consumer_rate: 1,
+		cas: sys.cas
 	});
 	actor_dataset_aa = {};
 
@@ -1110,7 +1113,7 @@ function set_chart(el) {
 	group = xDim.group().reduceSum(jlg.accessor(val_to_show));
 
 	var unit = el.attr('data-unit') || '';
-	lineChart.yAxis().tickFormat(function(v) {return v + unit;})
+	lineChart.yAxis().tickFormat(function(v) {return v + unit;});
 }
 
 function set_stack_chart(el) {
@@ -1131,7 +1134,7 @@ function set_stack_chart(el) {
 	}
 
 	var unit = el.attr('data-unit') || '';
-	lineChart.yAxis().tickFormat(function(v) {return v + unit;})
+	lineChart.yAxis().tickFormat(function(v) {return v + unit;});
 }
 
 function clean_stack(nbr) {

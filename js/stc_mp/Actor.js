@@ -34,7 +34,7 @@
 			this.attractivity = jlg.avg([ this.parent.attractivity.provider_rate, this.profile.mental_rate ], [ 1, 0.2 ]);
 
 			this.manageNode_p(thread);
-			//this.manageOffer_p(thread);
+			this.manageOffer_p(thread);
 			//this.manageDemand_p(thread);
 		};
 
@@ -77,13 +77,14 @@
 			}
 
 			var price_per_gb = this.parent.price_per_gb;
-			//console.log('debug default price_per_gb=' + price_per_gb);
+			console.log('debug default price_per_gb=' + price_per_gb);
 			if (this.parent.offers_table.dataset.length > 0) {
 				price_per_gb = this.parent.offers_table.dataset[0].price_per_gb;
-				//console.log('debug offers_table price_per_gb=' + price_per_gb);
+				console.log('debug offers_table price_per_gb=' + price_per_gb);
 			}
 
 			if (this.parent.competition_price_per_gb < price_per_gb) {
+				console.log('Not competitive on cycle ' + this.parent.cycle_id + ': ' + (this.parent.competition_price_per_gb / this.parent.min_cycle_revenue_price_per_gb));
 				return;
 			}
 

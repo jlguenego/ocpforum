@@ -34,7 +34,7 @@ So we have $N=N(n)$, $N_{i}=N_{i}(n)$.
 The StorageCoin (STC) has a notion of \emph{cycle}.
 Every cycle the system injects $G$ STC shared between the providers.
 Each participant $P_{i}$ receives a \emph{gain} $G_{i}$ STC such as
-\[G_{i}(n)=\frac{N_{i}(n)}{N(n)}.G\]
+\[G_{i}(n)=\frac{N_{i}(n)}{N(n)}G\]
 
 \paragraph*{}
 We note $T(n)$ the number of STC injected into the system. We have $T(n)=nG$.
@@ -44,8 +44,8 @@ For each provider, we note $T_{i}$ the current amount of STC received from the b
 \[T_{i}(n)=\sum\limits_{t=1}^n G_{i}(t)\]
 
 \paragraph*{}
-The provider have internal cost price to maintain his nodes operational on the system. We assume that this cost is proportional to the storage memory exposed. We note $c_{i}$ the cost price per memory unit for the provider $P_{i}$. The provider cost price is
-\[C_{i}=N_{i}.v.c_{i}\]
+The provider has internal cost price to maintain his nodes operational on the system. We assume that this cost is proportional to the storage memory exposed. We note $c_{i}$ the cost price per memory unit for the provider $P_{i}$. The provider cost price is
+\[C_{i}=N_{i}vc_{i}\]
 
 \paragraph*{}
 The StorageCoin can be exchange on a free market, through dedicated STC marketplaces. We note $p$ the exchange rate for 1 STC in a fiat money. We use the dollar unit (\$) in this document.
@@ -54,15 +54,18 @@ $p(n)$ increases or decreases according to the quantity of offer and demand as a
 
 \paragraph*{}
 The provider revenue $R_{i}$ is the conversion of its gain $G_{i}$ in the fiat money. Therefore we have 
-\[R_{i}(n)=G_{i}(n).p(n)\]
+\[R_{i}(n)=G_{i}(n)p(n)\]
 
 \paragraph*{}
-A provider will be interested to expose nodes only if $R_{i}(n)\ge{C_{i}}$.
-
-\paragraph*{}
-\emph{Consumers} are users of the system that buy with a fiat money some STC to use the storage resources of the system for storing objects (files, etc.). Buying a percentage $F$ of all the STC of the system $T$ means being allowed to use the percentage $F$ of all the current storage resources $V(n)=N(n).v$.
+A provider will be interested to expose nodes only if 
+$R_{i}(n)\ge{C_{i}}$, in other words: 
+\[\frac{Gp(n)}{N(n)vc_{i}}\ge 1\] 
 
 \subsection{Consumer}
+\paragraph*{}
+\emph{Consumers} are users of the system that buy with a fiat money some STC to use the storage resources of the system for storing objects (files, etc.). 
+Buying a percentage $F$ of all the STC of the system $T$ means being allowed to use the percentage $F$ of all the current storage resources $V(n)=N(n).v$.
+
 \paragraph*{}
 Consumers will be interested to use the system if it presents advantages regards to the competition.
 At this time competition pricing model is similar to a rental business model which is different of the StorageCoin model. 
@@ -77,14 +80,14 @@ For the competition, if we consider that there is no minimal commitment period, 
 \paragraph*{}
 For the StorageCoin system, the computation is made differently. In order to buy storage resources, the consumer must buy enough STC from the providers at the price $p(n)$ of the market of cycle $n$.
 To get $A$ the amount $S_{A}$ of STC to buy is given buy 
-\[S_{A}=\frac{T(n)}{V(n)}.A\]
+\[S_{A}=\frac{T(n)}{V(n)}A\]
 At the next cycle, $R$ STC will be injected into the system. Maybe the number of node in the system will be different (bigger or smaller). 
 Therefore the amount $S_{A}$ will not reflect anymore the volume $A$ of storage resources 
-\[S_{A}\neq \frac{T(n+1)}{V(n+1)}.A\]
+\[S_{A}\neq \frac{T(n+1)}{V(n+1)}A\]
 The amount of space $A(k)$, where $k$ is the number of cycles spent after $n$, corresponding to $S_{A}$ will be: 
-\[A(k)=\frac{V(n+k)}{T(n+k)}.S_{A}\]
+\[A(k)=\frac{V(n+k)}{T(n+k)}S_{A}\]
 $A(k)$ can be smaller or bigger than $S_{A}$. If the number of nodes $N$ in the system is constant across the cycles, then we have $V(n+k)=V(n)$, and because $T(n+k)=T(n)+kR$, we have
-\[A(k)=\frac{V(n)}{T(n)+kR}.S_{A}\le A(0)=A\]
+\[A(k)=\frac{V(n)}{T(n)+kR}S_{A}\le A(0)=A\]
 In this case the consumer would have to buy more STC in order to dispose of volume $A$ in the system.
 However if $n$ is big enough, the amount of STC to buy would be small.
 Instead of buying a small amount at every cycle to maintain the volume $A$ of storage, the consumer should better buy a little bit more of what he needs at the cycle $n$.
@@ -92,10 +95,17 @@ For more simplicity, we assume that the consumer does not need to buy extra spac
 After $M$ cycles, he can resell his STC. The STC will be sold at the current price of the market $p(n + M)$.
 The real cost of renting the volume $A$ on the StorageCoin system is therfore
 \[D_{s}=S_{A}(p(n)-p(n+M))\]
-The consumer will be interested to use the StorageCoin system if it is cheaper than the competition, in other word if we have in most cases $D_{s}<D_{c}$.
+
+\paragraph*{}
+The consumer will be interested to use the StorageCoin system if it is cheaper than the competition, in other word if we have in most cases $D_{s}\le D_{c}$.
 If the STC exchange rate increases, the consumer will even make profit. 
 This business model is similar to buy a house, rent or use it, then sell it.
-If the STC exchange rate decreases, the consumer will check that the decreasing is not too much important in order to still have $D_{s}<D_{c}$. 
+If the STC exchange rate decreases, the consumer will check that the decreasing is not too much important in order to still have 
+$D_{s}\le D_{c}$. In other words, with $b$ the cycle when the storage is bought, and $s$ the cycle when the storage is sold:
+\[\frac{T(b)(p(b)-p(s))}{V(b)d(s-b)}\le 1\]
+Before to buy storage resources on the StorageCoin system, the consumer will look at the past evolution of the exchange rate of STC.
+In average on the duration of renting memory $s-b$, the condition becomes for the cycle $n$:
+\[\frac{2}{n(n-1)}\sum\limits_{b=1}^{n-1} \sum\limits_{s=b+1}^{n}\frac{T(b)(p(b)-p(s))}{V(b)d(s-b)}\le 1\]
 
 \bibliography{ocpbiblio}
 \end{document}
