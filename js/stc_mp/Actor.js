@@ -55,14 +55,17 @@
 		};
 
 		this.manageOffer_p = function(thread) {
+			console.log('manageOffer_p start with cycle ' + this.parent.cycle_id);
 			var price_per_stc = Math.randomize(0.9, 1.1) * this.parent.price_per_stc;
 			console.log('my price_per_stc=' + price_per_stc);
 
 			if (this.parent.demands_table.dataset.length > 0) {
+				console.log('demand price per stc =' + this.parent.demands_table.dataset[0].price_per_stc);
+				console.log(this.parent.demands_table.dataset[0]);
 				price_per_stc = Math.max(this.parent.demands_table.dataset[0].price_per_stc, price_per_stc);
 			}
 			console.log('my corrected price_per_stc=' + price_per_stc);
-			price_per_stc = Math.max(this.parent.min_cycle_revenue_price_per_gb * this.parent.gb_per_stc, price_per_stc);
+			price_per_stc = Math.max(this.parent.min_cycle_revenue_price_per_gb * this.parent.gb_per_stc(), price_per_stc);
 
 			this.parent.publishOffer(thread, this, this.amount, price_per_stc);
 		};
@@ -72,6 +75,7 @@
 
 		this.behave_c = function(thread) {
 			var opportunity = Math.randomize(0, 100) > 10;
+			console.log('opportunity=' + opportunity);
 			if (!opportunity) {
 				return;
 			}
@@ -89,7 +93,9 @@
 			}
 
 			var gb_needed = Math.randomize(0, 100);
+			console.log('demand gb_needed=' + gb_needed);
 			price_per_gb = Math.randomize(1, 1.5) * price_per_gb;
+			console.log('demand price_per_gb=' + price_per_gb);
 			this.parent.publishDemand(thread, this, gb_needed, price_per_gb);
 		};
 	};

@@ -63,7 +63,7 @@
 			},
 			stcPerCycle: 100,
 			report_elem: null,
-			nodeCapacity: 500
+			nodeCapacity: 50
 		};
 		this.scale = 1;
 
@@ -96,9 +96,14 @@
 
 		this.totalSTC = 0;
 		this.cycle_id = 0;
-		this.gb_per_stc = 0.5;
+		this.gb_per_stc = function() {
+			if (this.totalSTC == 0) {
+				return 1;
+			}
+			return this.nodes.length * this.options.nodeCapacity / this.totalSTC;
+		};
 		this.price_per_stc = this.options.nodeCapacity * this.competition_price_per_gb / this.options.stcPerCycle;
-		this.price_per_gb = 5;
+		this.price_per_gb = this.competition_price_per_gb;
 		this.cas = 0;
 
 		this.performed_deal_nbr = 0;
@@ -266,20 +271,24 @@
 		};
 
 		this._updateMarketPlace = function(thread) {
-			for (var i = 0; i < this.offers_table.dataset.length; i++) {
-				this.offers_table.dataset[i].gb_qty = jlg.round(this.offers_table.dataset[i].stc_qty * this.gb_per_stc);
-				this.offers_table.dataset[i].price_per_gb = jlg.round(this.offers_table.dataset[i].price_per_stc / this.gb_per_stc);
-			}
-			for (var i = 0; i < this.demands_table.dataset.length; i++) {
-				this.demands_table.dataset[i].price_per_stc = jlg.round(this.demands_table.dataset[i].gb_qty * this.gb_per_stc);
-				this.demands_table.dataset[i].stc_qty = jlg.round(this.demands_table.dataset[i].gb_qty / this.gb_per_stc);
-			}
+			this.updateTables();
 			this.offers_table.repaint();
 			this.demands_table.repaint();
 			setTimeout(function() {
 				self.report({ action: 'next_cycle' });
 				thread.next();
 			}, this.demands_table.options.duration.repaint);
+		};
+
+		this.updateTables = function() {
+			for (var i = 0; i < this.offers_table.dataset.length; i++) {
+				this.offers_table.dataset[i].gb_qty = jlg.round(this.offers_table.dataset[i].stc_qty * this.gb_per_stc());
+				this.offers_table.dataset[i].price_per_gb = jlg.round(this.offers_table.dataset[i].price_per_stc / this.gb_per_stc());
+			}
+			for (var i = 0; i < this.demands_table.dataset.length; i++) {
+				this.demands_table.dataset[i].price_per_stc = jlg.round(this.demands_table.dataset[i].gb_qty * this.gb_per_stc());
+				this.demands_table.dataset[i].stc_qty = jlg.round(this.demands_table.dataset[i].gb_qty / this.gb_per_stc());
+			}
 		};
 
 		this.addReward = function(thread) {
@@ -298,10 +307,6 @@
 				var node = this.nodes[i];
 				node.owner.amount += stc_qty;
 				node.owner.mined_amount += stc_qty;
-			}
-
-			if (this.totalSTC > 0) {
-				this.gb_per_stc = this.nodes.length * this.options.nodeCapacity / this.totalSTC;
 			}
 
 			this.repaintSideView();
@@ -349,10 +354,10 @@
 				return d.nodes.length;
 			});
 			tr.select('td.volume').text(function(d) {
-				if (this.gb_per_stc == 0) {
+				if (self.gb_per_stc() == 0) {
 					return '0.00 GB';
 				}
-				return jlg.round(d.amount * self.gb_per_stc) + ' GB';
+				return jlg.round(d.amount * self.gb_per_stc()) + ' GB';
 			});
 
 			tr.classed('selected', function(d) {
@@ -420,7 +425,7 @@
 			}
 			console.log('price_per_stc=' + price_per_stc);
 
-			var gb_qty = stc_qty * this.gb_per_stc;
+			var gb_qty = stc_qty * this.gb_per_stc();
 
 			if (gb_qty < 5) {
 				console.log('gb_qty < 5');
@@ -432,7 +437,7 @@
 				name: provider.name,
 				stc_qty: jlg.round(stc_qty, 5),
 				gb_qty: jlg.round(gb_qty, 0),
-				price_per_gb: jlg.round(price_per_stc / this.gb_per_stc),
+				price_per_gb: jlg.round(price_per_stc / this.gb_per_stc()),
 				price_per_stc: jlg.round(price_per_stc),
 				price: jlg.round(stc_qty * price_per_stc)
 			});
@@ -461,11 +466,11 @@
 				this.demands_table.removeRecord(record);
 			}
 
-			var price_per_stc = price_per_gb * this.gb_per_stc;
+			var price_per_stc = price_per_gb * this.gb_per_stc();
 			this.demands_table.addRecord({
 				name: consumer.name,
 				gb_qty: jlg.round(gb_needed, 0),
-				stc_qty: jlg.round(gb_needed / this.gb_per_stc, 5),
+				stc_qty: jlg.round(gb_needed / this.gb_per_stc(), 5),
 				price_per_gb: jlg.round(price_per_gb),
 				price_per_stc: jlg.round(price_per_stc),
 				price: jlg.round(gb_needed * price_per_gb)
@@ -492,8 +497,11 @@
 		};
 
 		this._processDeals = function(thread) {
+
 			this.demands_table.dataset.sort(this.demands_table.options.sort);
 			this.offers_table.dataset.sort(this.offers_table.options.sort);
+
+			this.updateTables();
 
 			this.performed_deal_nbr = 0;
 			this._processDealRec(thread);
@@ -517,10 +525,10 @@
 					//console.log('no deal during cycle ' + this.cycle_id);
 					//console.log('this.competition_price_per_gb=' + this.competition_price_per_gb);
 					//console.log('this.gb_per_stc=' + this.gb_per_stc);
-					this.price_per_stc = Math.max(this.price_per_stc / 2, this.competition_price_per_gb * this.gb_per_stc / 2);
+					this.price_per_stc = Math.max(this.price_per_stc * 0.5, this.competition_price_per_gb * this.gb_per_stc() / 2);
 					//this.price_per_stc = this.price_per_stc / 1.001;
 					//console.log('this.price_per_stc=' + this.price_per_stc);
-					this.price_per_gb = this.price_per_stc / this.gb_per_stc;
+					this.price_per_gb = this.price_per_stc / this.gb_per_stc();
 				}
 				thread.next();
 				return;
@@ -539,8 +547,9 @@
 			setTimeout(function() {
 				var transaction = Math.min(demand.stc_qty, offer.stc_qty);
 
-				self.price_per_stc = demand.price_per_stc;
-				self.price_per_gb = self.price_per_stc / self.gb_per_stc;
+				self.price_per_gb = demand.price_per_gb;
+				self.price_per_stc = demand.price_per_gb * self.gb_per_stc() * 1.1;
+
 				self.performed_deal_nbr = self.performed_deal_nbr + 1;
 
 				var provider = self.getActor(offer.name);
@@ -549,19 +558,21 @@
 				provider.price_earned_amount += transaction * offer.price_per_stc;
 				consumer.amount += transaction;
 
-				var gb_needed = demand.gb_qty - (transaction * self.gb_per_stc);
-				demand.gb_qty = jlg.round(gb_needed, 0);
-				demand.stc_qty = jlg.round(gb_needed / self.gb_per_stc, 5);
-				demand.price = jlg.round(demand.price_per_gb * gb_needed);
+
+
+				demand.stc_qty = jlg.round(demand.stc_qty - transaction, 5);
+				demand.gb_qty = jlg.round(demand.stc_qty * self.gb_per_stc(), 0);
+				demand.price = jlg.round(demand.price_per_gb * demand.gb_qty);
 
 				offer.stc_qty = jlg.round(offer.stc_qty - transaction, 5);
-				offer.gb_qty = jlg.round(offer.stc_qty * self.gb_per_stc, 0);
+				offer.gb_qty = jlg.round(offer.stc_qty * self.gb_per_stc(), 0);
 				offer.price = jlg.round(offer.price_per_stc * offer.stc_qty);
 
 				if (offer.stc_qty <= 0) {
 					self.offers_table.removeRecord(offer);
 				}
 				if (demand.gb_qty <= 0) {
+					console.log(demand);
 					self.demands_table.removeRecord(demand);
 				}
 
@@ -614,6 +625,17 @@
 			}
 
 			this.checkPause(t);
+
+			if (this.cycle_id >= cycle_nbr) {
+				t.execute(function() {
+					console.log('interrupted');
+				});
+				thread.do_wait(t);
+				t.start();
+				thread.next();
+				return;
+			}
+
 			this.processDeals(t);
 
 			this.nextCycle(t);

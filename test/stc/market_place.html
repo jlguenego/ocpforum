@@ -913,7 +913,7 @@ function s2() {
 	start();
 
 	var thread = new Thread('main');
-	sys.runCycle(thread, 50);
+	sys.runCycle(thread, 5);
 
 	thread.finish();
 	thread.start();
@@ -954,8 +954,8 @@ $('#stat').get(0).addEventListener("system_stat", function(e) {
 	el.find('.capacity').html(capacity + ' GB');
 	el.find('.stc_total').html(sys.totalSTC + ' STC');
 	el.find('.stc_price').html(jlg.round(sys.price_per_stc) + ' $')
-	el.find('.stc_gb').html(jlg.round(sys.gb_per_stc) + ' GB')
-		.attr('data-value', jlg.round(sys.gb_per_stc));
+	el.find('.stc_gb').html(jlg.round(sys.gb_per_stc()) + ' GB')
+		.attr('data-value', jlg.round(sys.gb_per_stc()));
 
 	switch (stats.action) {
 		case 'add_actor':
@@ -1034,7 +1034,7 @@ function reset_chart() {
 	dataset.length = 0;
 	dataset.push({
 		cycle: 0,
-		gb_per_stc: sys.gb_per_stc,
+		gb_per_stc: sys.gb_per_stc(),
 		price_per_stc: sys.price_per_stc,
 		price_per_gb: sys.price_per_gb,
 		total_stc: sys.totalSTC,
