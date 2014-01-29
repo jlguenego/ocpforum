@@ -5,11 +5,17 @@
 \author{Jean-Louis Gu\'{e}n\'{e}go, Yannis Thomias}
 \date{}
 
+\bibliographystyle{plain}
+
 \begin{document}
 \maketitle \clearpage
 \tableofcontents \clearpage
 
 \section{Introduction}
+~\cite{bitcoin}
+~\cite{peercoin}
+~\cite{smallcell}
+
 \section{Model description}
 \subsection{Provider}
 
@@ -66,10 +72,10 @@ In order to compare both models regarding prices, we consider an example.
 In the example a consumer buys at cycle $n$ a volume $A$ of storage. $A$ is mesured in a storage unit like the Gigabyte. After $M$ cycles, the consumer decide to retaliate it storage resources by selling them.
 
 \paragraph*{}
-For the competition, if we consider that there is no minimal commitment period, that the customer can cancel when desired, and the cost per cycle is $d$, then the cost $D$ will be easy to compute: $D=M.A.d$
+For the competition, if we consider that there is no minimal commitment period, that the customer can cancel when desired, and the cost per cycle is $d$, then the cost $D_{c}$ will be easy to compute: $D_{c}=M.A.d$
 
 \paragraph*{}
-For the StorageCoin system, the computation is made differently. In order to buy storage resources, the consumer must buy enough STC from the providers.
+For the StorageCoin system, the computation is made differently. In order to buy storage resources, the consumer must buy enough STC from the providers at the price $p(n)$ of the market of cycle $n$.
 To get $A$ the amount $S_{A}$ of STC to buy is given buy 
 \[S_{A}=\frac{T(n)}{V(n)}.A\]
 At the next cycle, $R$ STC will be injected into the system. Maybe the number of node in the system will be different (bigger or smaller). 
@@ -77,7 +83,19 @@ Therefore the amount $S_{A}$ will not reflect anymore the volume $A$ of storage 
 \[S_{A}\neq \frac{T(n+1)}{V(n+1)}.A\]
 The amount of space $A(k)$, where $k$ is the number of cycles spent after $n$, corresponding to $S_{A}$ will be: 
 \[A(k)=\frac{V(n+k)}{T(n+k)}.S_{A}\]
-$A(k)$ can be smaller or bigger than $S_{A}$. If the number of node $N$ in the system is constant across the cycles, then we have $V(n+k)=V(n)$, and because $T(n+k)=T(n)+kR$, we have
+$A(k)$ can be smaller or bigger than $S_{A}$. If the number of nodes $N$ in the system is constant across the cycles, then we have $V(n+k)=V(n)$, and because $T(n+k)=T(n)+kR$, we have
 \[A(k)=\frac{V(n)}{T(n)+kR}.S_{A}\le A(0)=A\]
+In this case the consumer would have to buy more STC in order to dispose of volume $A$ in the system.
+However if $n$ is big enough, the amount of STC to buy would be small.
+Instead of buying a small amount at every cycle to maintain the volume $A$ of storage, the consumer should better buy a little bit more of what he needs at the cycle $n$.
+For more simplicity, we assume that the consumer does not need to buy extra space during the $M$ cycles.
+After $M$ cycles, he can resell his STC. The STC will be sold at the current price of the market $p(n + M)$.
+The real cost of renting the volume $A$ on the StorageCoin system is therfore
+\[D_{s}=S_{A}(p(n)-p(n+M))\]
+The consumer will be interested to use the StorageCoin system if it is cheaper than the competition, in other word if we have in most cases $D_{s}<D_{c}$.
+If the STC exchange rate increases, the consumer will even make profit. 
+This business model is similar to buy a house, rent or use it, then sell it.
+If the STC exchange rate decreases, the consumer will check that the decreasing is not too much important in order to still have $D_{s}<D_{c}$. 
 
+\bibliography{ocpbiblio}
 \end{document}
