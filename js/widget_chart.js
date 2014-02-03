@@ -36,11 +36,11 @@
 			dc.renderAll();
 
 			this.repaintButtons();
-			var defaultButton = this.getDefaultButton();
+			var defaultGraph = this.getDefaultGraph();
 
-			d3.select('#' + defaultButton.parent.id + '_' + defaultButton.name).classed('selected', true);
-			this.setDataset(defaultButton.dataset);
-			this.updateChart(defaultButton);
+			d3.select('#' + defaultGraph.parent.id + '_' + defaultGraph.name).classed('selected', true);
+			this.setDataset(defaultGraph.dataset);
+			this.updateChart(defaultGraph);
 		};
 
 		this.setDataset = function(dataset) {
@@ -54,14 +54,14 @@
 			return group;
 		};
 
-		this.getDefaultButton = function() {
+		this.getDefaultGraph = function() {
 			for (var i = 0; i < this.groups; i++) {
-				var data = this.groups[i].getDefaultButton();
-				if (data) {
-					return data;
+				var graph = this.groups[i].getDefaultGraph();
+				if (graph) {
+					return graph;
 				}
 			}
-			return this.groups[0].buttons[0];
+			return this.groups[0].graphs[0];
 		};
 
 		this.repaintButtons = function() {
@@ -78,7 +78,8 @@
 				.text(function(d) { return d.label + ':'; });
 			new_groups.append('div').classed('button_container', true);
 
-			var buttons = groups.selectAll('div.button_container').selectAll('div.button').data(jlg.accessor('buttons'));
+			var buttons = groups.selectAll('div.button_container')
+				.selectAll('div.button').data(jlg.accessor('graphs'));
 
 			buttons.exit().remove();
 
@@ -104,12 +105,11 @@
 				});
 		};
 
-		this.updateChart = function(data) {
-			console.log(data);
-			if (data.type == 'stack') {
-				self.setStackChart(data);
-			} else if (data.type == 'composite') {
-				self.setCompositeChart(data);
+		this.updateChart = function(graph) {
+			if (graph.type == 'stack') {
+				self.setStackChart(graph);
+			} else if (graph.type == 'composite') {
+				self.setCompositeChart(graph);
 			}
 			self.repaintChart();
 		};
@@ -128,15 +128,18 @@
 			dc.redrawAll();
 		};
 
-		this.setStackChart = function(data) {
-			clean_stack(data.accessors.length);
+		this.setStackChart = function(graph) {
+			clean_stack(graph.accessors.length);
 
-			for (var i = 0; i < data.accessors.length; i++) {
-				var g = xDim.group().reduceSum(jlg.accessor(data.accessors[i]));
-				group_stack.push({ label: data.labels[i], group: g });
+			for (var i = 0; i < graph.accessors.length; i++) {
+				var g = xDim.group().reduceSum(jlg.accessor(graph.accessors[i]));
+				group_stack.push({ label: graph.labels[i], group: g });
 			}
 
 			chart.yAxis().tickFormat(function(v) {return v;});
+		};
+
+		this.setCompositeChart = function(accessors) {
 		};
 
 		function clean_stack(nbr) {
@@ -145,30 +148,26 @@
 			for (var i = 0; i < nbr; i++) {
 				my_dataset.push(i);
 			}
-			//console.log(lineChart.data());
 			var svg = d3.select('#chart').select('svg');
 			var stack = svg.select('g.chart-body').selectAll('g.stack-list').selectAll('g.stack');
 			stack.data(my_dataset)
 				.exit().remove();
 			svg.select('g.chart-body').selectAll('g.dc-tooltip-list').selectAll('g.dc-tooltip').data(my_dataset)
 				.exit().remove();
-		}
-
-		this.setCompositeChart = function(accessors) {
 		};
 	};
 
 	jlg.Group = function(label, id) {
 		this.label = label;
 		this.id = id;
-		this.buttons = [];
+		this.graphs = [];
 
-		this.addButton = function(button) {
-			button.parent = this;
-			this.buttons.push(button);
+		this.addGraph = function(graph) {
+			graph.parent = this;
+			this.graphs.push(graph);
 		};
 
-		this.getDefaultButton = function() {
+		this.getDefaultGraph = function() {
 			return null;
 		};
 	};

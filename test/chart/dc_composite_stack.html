@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<base href="../../" />
+		<meta charset="utf-8" />
+		<title>Dc Composite Stack</title>
+
+		<script type="text/javascript" src="_ext/d3.v3.min.js"></script>
+		<script type="text/javascript" src="_ext/crossfilter.min.js"></script>
+		<script type="text/javascript" src="_ext/dc.min.js"></script>
+		<script src="_ext/seedrandom-min.js"></script>
+
+		<link rel="stylesheet" href="_ext/dc.css" />
+
+		<script src="js/jlg_commons.js"></script>
+	</head>
+
+	<body>
+		<div id="chart-line-hitsperday"></div>
+		<script>
+var dataset = [];
+
+for (var i = 0; i < 10; i++) {
+	dataset.push({
+		cycle_id: i,
+		nodes: Math.randomize(0, 100),
+		actors: Math.randomize(0, 50),
+		stc_per_gb: Math.randomize(0, 100),
+		price_per_gb: Math.randomize(0, 50),
+		price_per_stc: Math.randomize(0, 50),
+	});
+}
+
+var ndx = crossfilter(dataset);
+
+var cycle_id = ndx.dimension(function(d) {return d.cycle_id;});
+var nodes = cycle_id.group().reduceSum(dc.pluck('nodes'));
+var actors = cycle_id.group().reduceSum(dc.pluck('actors'));
+var stc_per_gb = cycle_id.group().reduceSum(dc.pluck('stc_per_gb'));
+var price_per_gb = cycle_id.group().reduceSum(dc.pluck('price_per_gb'));
+var price_per_stc = cycle_id.group().reduceSum(dc.pluck('price_per_stc'));
+
+var chart = dc.compositeChart("#chart-line-hitsperday");
+chart
+	.width(500).height(200)
+	.dimension(cycle_id)
+	.x(d3.time.scale().domain([0,9]))
+	.brushOn(false)
+	.legend(dc.legend().x(40).y(20).itemHeight(13).gap(5))
+	.compose([
+		dc.lineChart(chart)
+			.renderArea(true)
+			.colors(["pink", "yellow"])
+			.colorAccessor(function(d, i){return i;})
+			.colorDomain([0,1])
+			.dimension(cycle_id)
+			.group(nodes, "nodes")
+			.stack(actors, "actors"),
+
+		dc.lineChart(chart)
+			.colors(["red","blue", "green"])
+			.colorAccessor(function(d, i){return i;})
+			.colorDomain([0,2])
+			.dimension(cycle_id)
+			.group(stc_per_gb, "stc_per_gb")
+			.stack(price_per_gb, "price_per_gb")
+			.stack(price_per_stc, "price_per_stc")
+	]);
+dc.renderAll();
+
+
+function print_filter(filter){
+	var f=eval(filter);
+	if (typeof(f.length) != "undefined") {}else{}
+	if (typeof(f.top) != "undefined") {f=f.top(Infinity);}else{}
+	if (typeof(f.dimension) != "undefined")
+	{f=f.dimension(function(d) { return "";}).top(Infinity);}else{}
+	console.log(filter+"("+f.length+") = "+JSON.stringify
+	(f).replace("[","[\n\t").replace(/}\,/g,"},\n\t").replace("]","\n]"));
+}
+		</script>
+	</body>
+</html>

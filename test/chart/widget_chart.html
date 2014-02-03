@@ -67,7 +67,7 @@ $('button').click(function() {
 });
 $(document).ready(function() {
 	var group = chart.addGroup('System', 'system');
-	group.addButton({
+	group.addGraph({
 		name: 'price_per_stc',
 		text: '$/STC',
 		labels: [ '$/STC' ],
@@ -76,7 +76,7 @@ $(document).ready(function() {
 		title: 'Value of 1 STC in GB.',
 		dataset: dataset,
 	});
-	group.addButton({
+	group.addGraph({
 		name: 'gb_per_stc',
 		text: 'GB/STC',
 		labels: [ 'GB/STC' ],
@@ -88,7 +88,7 @@ $(document).ready(function() {
 	//group.setDefaultButton('price_per_stc');
 
 	group = chart.addGroup('Actor', 'actor');
-	group.addButton({
+	group.addGraph({
 		name: 'actor_stc',
 		text: 'STC',
 		labels: [ 'STC' ],
@@ -97,7 +97,7 @@ $(document).ready(function() {
 		title: 'STC amount for the given actor.',
 		dataset: dataset_aa.test,
 	});
-	group.addButton({
+	group.addGraph({
 		name: 'nodes',
 		text: 'Nodes',
 		labels: [ 'Nodes', 'STC' ],
@@ -106,7 +106,7 @@ $(document).ready(function() {
 		title: 'STC amount for the given actor.',
 		dataset: dataset_aa.test,
 	});
-	group.addButton({
+	group.addGraph({
 		name: 'nodes',
 		text: 'Nodes',
 		labels: [ 'Nodes', 'STC' ],
@@ -115,7 +115,7 @@ $(document).ready(function() {
 		title: 'STC amount for the given actor.',
 		dataset: dataset_aa.test,
 	});
-	group.addButton({
+	group.addGraph({
 		name: 'nodes',
 		text: 'Nodes',
 		labels: [ 'Nodes', 'STC' ],
@@ -125,7 +125,7 @@ $(document).ready(function() {
 		dataset: dataset_aa.test,
 		class: 'new_line'
 	});
-	group.addButton({
+	group.addGraph({
 		name: 'nodes',
 		text: 'Nodes',
 		labels: [ 'Nodes', 'STC' ],
