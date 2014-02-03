@@ -124,7 +124,8 @@
 		};
 
 		this.setChart = function(graph) {
-			charts.length = 0;
+			var previous_charts = chart.children();
+			charts = [];
 			for (var i = 0; i < graph.accessors.length; i++) {
 				var offset = Math.randomizeInt(0, 100);
 				var group = xDim.group().reduceSum(jlg.accessor(graph.accessors[i][0]));
@@ -138,6 +139,14 @@
 					var g = xDim.group().reduceSum(jlg.accessor(graph.accessors[i][j]));
 					lineChart.stack(g, graph.labels[i][j]);
 				}
+				var g;
+				var chartBodyG;
+				if (previous_charts[i]) {
+					g = previous_charts[i].g();
+					chartBodyG = previous_charts[i].chartBodyG();
+					lineChart.g(g);
+					lineChart.chartBodyG(chartBodyG);
+				}
 				charts.push(lineChart);
 			}
 			var unit = graph.x_axis_unit || function(v) {return v;};
@@ -148,8 +157,8 @@
 		};
 
 		function clean_stack(graph) {
-//			var svg = d3.select(self.chartDivSelector).select('svg');
-//			svg.selectAll('g.sub').data(graph.accessors).exit().remove();
+			var svg = d3.select(self.chartDivSelector).select('svg');
+			svg.selectAll('g.sub').data(graph.accessors).exit().remove();
 
 
 //			group_stack = [];
