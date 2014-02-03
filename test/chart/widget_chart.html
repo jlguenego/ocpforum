@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<base href="../../" />
+		<meta charset="utf-8" />
+
+		<script src="_ext/d3.v3.min.js"></script>
+		<script src="_ext/jquery-1.10.2.min.js"></script>
+		<script src="_ext/sha1.js"></script>
+		<script src="_ext/seedrandom-min.js"></script>
+		<script type="text/javascript" src="_ext/crossfilter.min.js"></script>
+		<script type="text/javascript" src="_ext/dc.js"></script>
+
+		<link rel="stylesheet" href="_ext/dc.css" />
+
+
+		<script src="js/jlg_commons.js"></script>
+
+
+		<script src="js/widget_chart.js"></script>
+		<link rel="stylesheet" href="js/theme/default/widget_chart.css" />
+
+		<style>
+html, body {
+	width: 100%;
+	height: 100%;
+	margin: 0px;
+	padding: 0px;
+}
+		</style>
+	</head>
+
+	<body>
+		<div id="chart"></div>
+
+		<button>Next</button>
+		<script>
+var cycle_id = 0;
+var dataset = [];
+var dataset_aa = {
+	test: []
+};
+push_dataset();
+
+var chart = new jlg.Chart('#chart', 'cycle_id');
+
+function push_dataset() {
+	dataset.push({
+		cycle_id: cycle_id,
+		price_per_stc: Math.randomize(5, 100),
+		gb_per_stc: Math.randomize(3000, 5000)
+	});
+	dataset_aa.test.push({
+		cycle_id: cycle_id,
+		actor_stc: Math.randomize(5, 100),
+		nodes: Math.randomize(5, 100)
+	})
+	cycle_id++;
+}
+
+$('button').click(function() {
+	push_dataset();
+	chart.setDataset(dataset);
+	chart.repaintChart();
+
+	console.log(dataset);
+});
+$(document).ready(function() {
+	var group = chart.addGroup('System', 'system');
+	group.addButton({
+		name: 'price_per_stc',
+		text: '$/STC',
+		labels: [ '$/STC' ],
+		accessors: [ 'price_per_stc' ],
+		type: 'stack',
+		title: 'Value of 1 STC in GB.',
+		dataset: dataset,
+	});
+	group.addButton({
+		name: 'gb_per_stc',
+		text: 'GB/STC',
+		labels: [ 'GB/STC' ],
+		accessors: [ 'gb_per_stc' ],
+		type: 'stack',
+		title: 'Value of 1 STC in GB.',
+		dataset: dataset,
+	});
+	//group.setDefaultButton('price_per_stc');
+
+	group = chart.addGroup('Actor', 'actor');
+	group.addButton({
+		name: 'actor_stc',
+		text: 'STC',
+		labels: [ 'STC' ],
+		accessors: [ 'actor_stc' ],
+		type: 'stack',
+		title: 'STC amount for the given actor.',
+		dataset: dataset_aa.test,
+	});
+	group.addButton({
+		name: 'nodes',
+		text: 'Nodes',
+		labels: [ 'Nodes', 'STC' ],
+		accessors: [ 'nodes', 'actor_stc' ],
+		type: 'stack',
+		title: 'STC amount for the given actor.',
+		dataset: dataset_aa.test,
+	});
+	group.addButton({
+		name: 'nodes',
+		text: 'Nodes',
+		labels: [ 'Nodes', 'STC' ],
+		accessors: [ 'nodes', 'actor_stc' ],
+		type: 'stack',
+		title: 'STC amount for the given actor.',
+		dataset: dataset_aa.test,
+	});
+	group.addButton({
+		name: 'nodes',
+		text: 'Nodes',
+		labels: [ 'Nodes', 'STC' ],
+		accessors: [ 'nodes', 'actor_stc' ],
+		type: 'stack',
+		title: 'STC amount for the given actor.',
+		dataset: dataset_aa.test,
+		class: 'new_line'
+	});
+	group.addButton({
+		name: 'nodes',
+		text: 'Nodes',
+		labels: [ 'Nodes', 'STC' ],
+		accessors: [ 'nodes', 'actor_stc' ],
+		type: 'stack',
+		title: 'STC amount for the given actor.',
+		dataset: dataset_aa.test,
+	});
+
+	chart.setDataset(dataset);
+	chart.init();
+});
+		</script>
+	</body>
+</html>

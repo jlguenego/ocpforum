@@ -1,0 +1,67 @@
+.jlg_chart .dc-chart {
+	float: none;
+}
+
+.jlg_chart div.chart_group {
+	display: inline-block;
+	vertical-align: middle;
+
+	margin-left: 20px;
+}
+
+.jlg_chart div.title {
+	display: inline-block;
+	vertical-align: middle;
+	height: 100%;
+
+	margin-right: 10px;
+
+	font-weight: bold;
+}
+
+.jlg_chart div.button_container {
+	display: inline-block;
+	vertical-align: middle;
+	box-sizing: border-box;
+}
+
+.jlg_chart div.button {
+	float: left;
+	padding: 1px 5px;
+
+	font-size: 14px;
+	cursor: pointer;
+	background-color: #DDEEFF;
+
+	border: 1px solid black;
+	border-left: none;
+	margin: 2px 0px;
+	box-sizing: border-box;
+}
+
+.jlg_chart div.button.new_line {
+	clear: both;
+	border-left: 1px solid black;
+}
+
+.jlg_chart div.button:first-child {
+	border-left: 1px solid black;
+}
+
+.jlg_chart div.button.disabled {
+	color: #AEAEAE;
+	cursor: default;
+	background-color: #DEDEDE;
+}
+
+.jlg_chart div.button:hover {
+	background-color: #A6D2FF;
+}
+
+.jlg_chart div.button:hover.disabled {
+	background-color: #DEDEDE;
+}
+
+.jlg_chart div.button.selected {
+	background-color: #B9DCFF;
+}
