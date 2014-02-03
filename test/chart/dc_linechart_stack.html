@@ -44,40 +44,22 @@ var stc_per_gb = cycle_id.group().reduceSum(dc.pluck('stc_per_gb'));
 var price_per_gb = cycle_id.group().reduceSum(dc.pluck('price_per_gb'));
 var price_per_stc = cycle_id.group().reduceSum(dc.pluck('price_per_stc'));
 
-var chart = dc.compositeChart("#chart-line-hitsperday");
-var chart1 = dc.lineChart(chart)
-			.renderArea(true)
-			.colors(["pink", "yellow"])
-			.colorAccessor(function(d, i){return i;})
-			.colorDomain([0,1])
-			.dimension(cycle_id)
-			.group(nodes, "nodes")
-			.stack(actors, "actors")
-			.x(d3.scale.linear().domain([0,9]));
-var chart2 = dc.lineChart(chart)
-			.colors(["red","blue", "green"])
-			.colorAccessor(function(d, i){return i;})
-			.colorDomain([0,2])
-			.dimension(cycle_id)
-			.group(stc_per_gb, "stc_per_gb")
-			.stack(price_per_gb, "price_per_gb")
-			.stack(price_per_stc, "price_per_stc")
-			.x(d3.scale.linear().domain([0,9]));
+var chart = dc.lineChart("#chart-line-hitsperday")
 chart
 	.width(500).height(200)
 	.dimension(cycle_id)
 	.x(d3.scale.linear().domain([0,9]))
 	.brushOn(false)
-	.group(nodes, "nodes")
 	.legend(dc.legend().x(40).y(20).itemHeight(13).gap(5))
-	.elasticX(true)
-	.elasticY(true)
-	.compose([
-		chart1,
-		chart2
-	]);
+	.renderArea(true)
+	.colors(["pink", "yellow"])
+	.colorAccessor(function(d, i){return i;})
+	.colorDomain([0,1])
+	.dimension(cycle_id)
+	.group(nodes, "nodes")
+	.stack(actors, "actors")
+	.elasticX(true);
 dc.renderAll();
-
 
 $('button').click(function() {
 	dataset.push({
@@ -88,7 +70,9 @@ $('button').click(function() {
 		price_per_gb: Math.randomize(0, 50),
 		price_per_stc: Math.randomize(0, 50),
 	});
-
+	console.log(dataset);
+	chart
+		.x(d3.scale.linear().domain([0,i]));
 	i++
 	ndx.remove();
 	ndx.add(dataset);
