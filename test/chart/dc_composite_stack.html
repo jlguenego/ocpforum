@@ -52,8 +52,7 @@ var chart1 = dc.lineChart(chart)
 			.colorDomain([0,1])
 			.dimension(cycle_id)
 			.group(nodes, "nodes")
-			.stack(actors, "actors")
-			.x(d3.scale.linear().domain([0,9]));
+			.stack(actors, "actors");
 var chart2 = dc.lineChart(chart)
 			.colors(["red","blue", "green"])
 			.colorAccessor(function(d, i){return i;})
@@ -61,14 +60,13 @@ var chart2 = dc.lineChart(chart)
 			.dimension(cycle_id)
 			.group(stc_per_gb, "stc_per_gb")
 			.stack(price_per_gb, "price_per_gb")
-			.stack(price_per_stc, "price_per_stc")
-			.x(d3.scale.linear().domain([0,9]));
+			.stack(price_per_stc, "price_per_stc");
 chart
 	.width(500).height(200)
 	.dimension(cycle_id)
 	.x(d3.scale.linear().domain([0,9]))
 	.brushOn(false)
-	.group(nodes, "nodes")
+	.group(cycle_id.group().reduceSum(function(d) {return 0;}))
 	.legend(dc.legend().x(40).y(20).itemHeight(13).gap(5))
 	.elasticX(true)
 	.elasticY(true)

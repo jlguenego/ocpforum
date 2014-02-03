@@ -73,7 +73,7 @@ $('button').click(function() {
 	console.log(dataset);
 	chart
 		.x(d3.scale.linear().domain([0,i]));
-	i++
+	i++;
 	ndx.remove();
 	ndx.add(dataset);
 	dc.redrawAll();

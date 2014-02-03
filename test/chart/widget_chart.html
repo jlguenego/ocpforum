@@ -62,16 +62,14 @@ $('button').click(function() {
 	push_dataset();
 	chart.setDataset(dataset);
 	chart.repaintChart();
-
-	console.log(dataset);
 });
 $(document).ready(function() {
 	var group = chart.addGroup('System', 'system');
 	group.addGraph({
 		name: 'price_per_stc',
 		text: '$/STC',
-		labels: [ '$/STC' ],
-		accessors: [ 'price_per_stc' ],
+		labels: [ [ '$/STC' ] ],
+		accessors: [ [ 'price_per_stc' ] ],
 		type: 'stack',
 		title: 'Value of 1 STC in GB.',
 		dataset: dataset,
@@ -79,8 +77,8 @@ $(document).ready(function() {
 	group.addGraph({
 		name: 'gb_per_stc',
 		text: 'GB/STC',
-		labels: [ 'GB/STC' ],
-		accessors: [ 'gb_per_stc' ],
+		labels: [ [ 'GB/STC' ] ],
+		accessors: [ [ 'gb_per_stc' ] ],
 		type: 'stack',
 		title: 'Value of 1 STC in GB.',
 		dataset: dataset,
@@ -91,8 +89,8 @@ $(document).ready(function() {
 	group.addGraph({
 		name: 'actor_stc',
 		text: 'STC',
-		labels: [ 'STC' ],
-		accessors: [ 'actor_stc' ],
+		labels: [ [ 'STC' ] ],
+		accessors: [ [ 'actor_stc' ] ],
 		type: 'stack',
 		title: 'STC amount for the given actor.',
 		dataset: dataset_aa.test,
@@ -100,39 +98,12 @@ $(document).ready(function() {
 	group.addGraph({
 		name: 'nodes',
 		text: 'Nodes',
-		labels: [ 'Nodes', 'STC' ],
-		accessors: [ 'nodes', 'actor_stc' ],
+		labels: [ [ 'Nodes' ], [ 'STC' ] ],
+		accessors: [ [ 'nodes' ], [ 'actor_stc' ] ],
 		type: 'stack',
 		title: 'STC amount for the given actor.',
 		dataset: dataset_aa.test,
-	});
-	group.addGraph({
-		name: 'nodes',
-		text: 'Nodes',
-		labels: [ 'Nodes', 'STC' ],
-		accessors: [ 'nodes', 'actor_stc' ],
-		type: 'stack',
-		title: 'STC amount for the given actor.',
-		dataset: dataset_aa.test,
-	});
-	group.addGraph({
-		name: 'nodes',
-		text: 'Nodes',
-		labels: [ 'Nodes', 'STC' ],
-		accessors: [ 'nodes', 'actor_stc' ],
-		type: 'stack',
-		title: 'STC amount for the given actor.',
-		dataset: dataset_aa.test,
-		class: 'new_line'
-	});
-	group.addGraph({
-		name: 'nodes',
-		text: 'Nodes',
-		labels: [ 'Nodes', 'STC' ],
-		accessors: [ 'nodes', 'actor_stc' ],
-		type: 'stack',
-		title: 'STC amount for the given actor.',
-		dataset: dataset_aa.test,
+		y_axis_unit: function(v) {return v + '%';}
 	});
 
 	chart.setDataset(dataset);

@@ -1,11 +1,13 @@
 (function(jlg, undefined){
-	jlg.Chart = function(selector, xDimention) {
+	jlg.Chart = function(selector, x_axis, my_dataset) {
 		var self = this;
 
+		var dataset = my_dataset;
 		var ndx = crossfilter();
-		var xDim = ndx.dimension(jlg.accessor(xDimention));
-		var group; // crossfilter group
-		var chart;
+		var xDim = ndx.dimension(jlg.accessor(x_axis));
+		var chart; // dc.compositeChart
+
+		var charts = [];
 
 		d3.select(selector).classed('jlg_chart', true);
 		this.buttons = d3.select(selector).append('div').classed('chart_header', true);
@@ -18,14 +20,15 @@
 		this.groups = [];
 		var group_stack = [];
 
-		this.init = function() {
-			var min = xDim.bottom(1)[0][xDimention];
-			var max = xDim.top(1)[0][xDimention];
-			group = xDim.group().reduceSum(function(d) {return d.price_per_stc;});
 
-			chart = dc.lineChart(this.chartDivSelector)
+		this.init = function() {
+			var min = xDim.bottom(1)[0][x_axis];
+			var max = xDim.top(1)[0][x_axis];
+
+			var group = xDim.group().reduceSum(function(d) {return 0;});
+
+			chart = dc.compositeChart(this.chartDivSelector)
 				.width(950).height(190)
-				.renderArea(true)
 				.x(d3.scale.linear().domain([min, max]))
 				.legend(dc.legend().x(40).y(20).itemHeight(10).gap(5))
 				.dimension(xDim)
@@ -43,7 +46,12 @@
 			this.updateChart(defaultGraph);
 		};
 
-		this.setDataset = function(dataset) {
+		this.setDataset = function(my_dataset) {
+			dataset = my_dataset;
+			refreshDataset();
+		};
+
+		function refreshDataset() {
 			ndx.remove();
 			ndx.add(dataset);
 		};
@@ -106,54 +114,55 @@
 		};
 
 		this.updateChart = function(graph) {
-			if (graph.type == 'stack') {
-				self.setStackChart(graph);
-			} else if (graph.type == 'composite') {
-				self.setCompositeChart(graph);
-			}
+			self.setChart(graph);
 			self.repaintChart();
 		};
 
 		this.repaintChart = function() {
-			chart.group(group_stack[0].group, group_stack[0].label);
-
-			for (var i = 1; i < group_stack.length; i++) {
-				var g = group_stack[i];
-				chart.stack(g.group, g.label);
-			}
-
-			var min = xDim.bottom(1)[0][xDimention];
-			var max = xDim.top(1)[0][xDimention];
-			chart.x(d3.scale.linear().domain([min, max]));
+			refreshDataset();
 			dc.redrawAll();
 		};
 
-		this.setStackChart = function(graph) {
-			clean_stack(graph.accessors.length);
-
+		this.setChart = function(graph) {
+			charts.length = 0;
 			for (var i = 0; i < graph.accessors.length; i++) {
-				var g = xDim.group().reduceSum(jlg.accessor(graph.accessors[i]));
-				group_stack.push({ label: graph.labels[i], group: g });
+				var offset = Math.randomizeInt(0, 100);
+				var group = xDim.group().reduceSum(jlg.accessor(graph.accessors[i][0]));
+				var lineChart = dc.lineChart(chart)
+					.dimension(xDim)
+					.group(group, graph.labels[i][0])
+					.colors(["red","blue", "green"])
+					.colorAccessor(function(d, i){return (i + offset) % 3;})
+					.colorDomain([0,2]);
+				for (var j = 1; j < graph.accessors[i].length; j++) {
+					var g = xDim.group().reduceSum(jlg.accessor(graph.accessors[i][j]));
+					lineChart.stack(g, graph.labels[i][j]);
+				}
+				charts.push(lineChart);
 			}
+			var unit = graph.x_axis_unit || function(v) {return v;};
+			chart.yAxis().tickFormat(unit);
 
-			chart.yAxis().tickFormat(function(v) {return v;});
+			chart.compose(charts);
+			clean_stack(graph);
 		};
 
-		this.setCompositeChart = function(accessors) {
-		};
+		function clean_stack(graph) {
+//			var svg = d3.select(self.chartDivSelector).select('svg');
+//			svg.selectAll('g.sub').data(graph.accessors).exit().remove();
 
-		function clean_stack(nbr) {
-			group_stack = [];
-			var my_dataset = [];
-			for (var i = 0; i < nbr; i++) {
-				my_dataset.push(i);
-			}
-			var svg = d3.select('#chart').select('svg');
-			var stack = svg.select('g.chart-body').selectAll('g.stack-list').selectAll('g.stack');
-			stack.data(my_dataset)
-				.exit().remove();
-			svg.select('g.chart-body').selectAll('g.dc-tooltip-list').selectAll('g.dc-tooltip').data(my_dataset)
-				.exit().remove();
+
+//			group_stack = [];
+//			var my_dataset = [];
+//			for (var i = 0; i < graph.accessors.length; i++) {
+//				my_dataset.push(i);
+//			}
+//			var stack = svg.select('g.chart-body').selectAll('g.stack-list').selectAll('g.stack');
+//			stack.data(my_dataset)
+//				.exit().remove();
+//			svg.select('g.chart-body').selectAll('g.dc-tooltip-list').selectAll('g.dc-tooltip').data(my_dataset)
+//				.exit().remove();
+
 		};
 	};
 
