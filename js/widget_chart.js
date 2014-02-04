@@ -18,14 +18,12 @@
 
 		this.buttons_dataset = [];
 		this.groups = [];
-		var group_stack = [];
-
 
 		this.init = function() {
 			var min = xDim.bottom(1)[0][x_axis];
 			var max = xDim.top(1)[0][x_axis];
 
-			var group = xDim.group().reduceSum(function(d) {return 0;});
+			var group = xDim.group().reduceSum(d3.functor(0));
 
 			chart = dc.compositeChart(this.chartDivSelector)
 				.width(950).height(190)
@@ -34,7 +32,8 @@
 				.dimension(xDim)
 				.group(group)
 				.elasticY(true)
-				.elasticX(true);
+				.elasticX(true)
+				.brushOn(false);
 
 			dc.renderAll();
 
@@ -135,15 +134,16 @@
 					.colors(["red","blue", "green"])
 					.colorAccessor(function(d, i){return (i + offset) % 3;})
 					.colorDomain([0,2]);
+				if (graph.accessors.length > 1) {
+					lineChart.renderArea(true);
+				}
 				for (var j = 1; j < graph.accessors[i].length; j++) {
 					var g = xDim.group().reduceSum(jlg.accessor(graph.accessors[i][j]));
 					lineChart.stack(g, graph.labels[i][j]);
 				}
-				var g;
-				var chartBodyG;
 				if (previous_charts[i]) {
-					g = previous_charts[i].g();
-					chartBodyG = previous_charts[i].chartBodyG();
+					var g = previous_charts[i].g();
+					var chartBodyG = previous_charts[i].chartBodyG();
 					lineChart.g(g);
 					lineChart.chartBodyG(chartBodyG);
 				}
@@ -160,18 +160,13 @@
 			var svg = d3.select(self.chartDivSelector).select('svg');
 			svg.selectAll('g.sub').data(graph.accessors).exit().remove();
 
-
-//			group_stack = [];
-//			var my_dataset = [];
-//			for (var i = 0; i < graph.accessors.length; i++) {
-//				my_dataset.push(i);
-//			}
-//			var stack = svg.select('g.chart-body').selectAll('g.stack-list').selectAll('g.stack');
-//			stack.data(my_dataset)
-//				.exit().remove();
-//			svg.select('g.chart-body').selectAll('g.dc-tooltip-list').selectAll('g.dc-tooltip').data(my_dataset)
-//				.exit().remove();
-
+			for (var i = 0; i < graph.accessors.length; i++) {
+				var stack = svg.select('g.sub._' + i).select('g.chart-body').selectAll('g.stack-list').selectAll('g.stack');
+				stack.data(graph.accessors[i])
+					.exit().remove();
+				svg.select('g.sub._' + i).select('g.chart-body').selectAll('g.dc-tooltip-list').selectAll('g.dc-tooltip').data(graph.accessors[i])
+					.exit().remove();
+			}
 		};
 	};
 

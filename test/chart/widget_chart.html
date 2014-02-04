@@ -53,7 +53,8 @@ function push_dataset() {
 	dataset_aa.test.push({
 		cycle_id: cycle_id,
 		actor_stc: Math.randomize(5, 100),
-		nodes: Math.randomize(5, 100)
+		nodes: Math.randomize(5, 100),
+		stc: Math.randomize(5, 100)
 	})
 	cycle_id++;
 }
@@ -98,8 +99,8 @@ $(document).ready(function() {
 	group.addGraph({
 		name: 'nodes',
 		text: 'Nodes',
-		labels: [ [ 'Nodes' ], [ 'STC' ] ],
-		accessors: [ [ 'nodes' ], [ 'actor_stc' ] ],
+		labels: [ [ 'STC' ], [ 'Nodes', 'Actor STC' ] ],
+		accessors: [ [ 'stc' ], [ 'nodes', 'actor_stc' ] ],
 		type: 'stack',
 		title: 'STC amount for the given actor.',
 		dataset: dataset_aa.test,
