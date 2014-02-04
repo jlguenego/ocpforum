@@ -179,7 +179,10 @@
 						})
 						.colorDomain([0, colors.length])
 						.brushOn(false);
-					var areaFlag = renderArea || (graph.accessors[i].length > 1);
+					var areaFlag = graph.renderArea;
+					if (areaFlag == undefined) {
+						areaFlag = renderArea || (graph.accessors[i].length > 1);
+					}
 					lineChart.renderArea(areaFlag);
 
 					for (var j = 0; j < graph.accessors[i].length; j++) {

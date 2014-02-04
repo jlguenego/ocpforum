@@ -397,10 +397,12 @@ function init_graph() {
 	group.addGraph({
 		name: 'price_per_gb',
 		text: '$/GB',
-		labels: [ [ '$/GB' ] ],
-		accessors: [ [ 'price_per_gb' ] ],
+		labels: [ [ 'OCP' ], [ 'Competition' ] ],
+		accessors: [ [ 'price_per_gb' ], [ 'competition' ] ],
+		colors: [ [ '#FF8A8A' ], [ '#8AC5FF' ] ],
 		title: 'Exchange rate of 1 GB in $.',
 		dataset: dataset,
+		renderArea: false
 	});
 	group.addGraph({
 		name: 'total_stc',
@@ -411,19 +413,11 @@ function init_graph() {
 		dataset: dataset
 	});
 	group.addGraph({
-		name: 'competition',
-		text: 'Competition',
-		labels: [ [ 'Competition' ] ],
-		accessors: [ [ 'competition' ] ],
-		title: '',
-		dataset: dataset,
-	});
-	group.addGraph({
 		name: 'actors',
 		text: 'Actors',
 		labels: [ [ 'Providers', 'Consumers' ] ],
 		accessors: [ [ 'providers', 'consumers' ] ],
-		colors: [ [ '#FFCACA', '#B9DCFF' ] ],
+		colors: [ [ '#FF8A8A', '#8AC5FF' ] ],
 		title: 'Number of actors in the system.',
 		dataset: dataset,
 		class: 'new_line'
