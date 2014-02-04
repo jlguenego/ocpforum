@@ -86,7 +86,7 @@ $('#toggle_render_area').click(function() {
 });
 
 $(document).ready(function() {
-	var group = chart.addGroup('system', 'System');
+	var group = chart.addGroup('system', 'System', dataset);
 	group.addGraph({
 		name: 'price_per_stc',
 		text: '$/STC',
@@ -94,7 +94,6 @@ $(document).ready(function() {
 		accessors: [ [ 'price_per_stc' ] ],
 		type: 'stack',
 		title: 'Value of 1 STC in GB.',
-		dataset: dataset,
 	});
 	group.addGraph({
 		name: 'gb_per_stc',
@@ -103,11 +102,10 @@ $(document).ready(function() {
 		accessors: [ [ 'gb_per_stc' ] ],
 		type: 'stack',
 		title: 'Value of 1 STC in GB.',
-		dataset: dataset,
 	});
 	group.defaultGraph('gb_per_stc');
 
-	group = chart.addGroup('actor', 'Actor');
+	group = chart.addGroup('actor', 'Actor', dataset_aa.test);
 	group.isEnabled(false);
 	group.addGraph({
 		name: 'actor_stc',
@@ -116,7 +114,6 @@ $(document).ready(function() {
 		accessors: [ [ 'actor_stc' ] ],
 		type: 'stack',
 		title: 'STC amount for the given actor.',
-		dataset: dataset_aa.test,
 		renderArea: false
 	});
 	group.addGraph({
@@ -126,7 +123,6 @@ $(document).ready(function() {
 		accessors: [ [ 'nodes', 'actor_stc' ], [ 'stc' ], [ 'price_per_stc' ] ],
 		type: 'stack',
 		title: 'STC amount for the given actor.',
-		dataset: dataset_aa.test,
 		y_axis_unit: function(v) {return v + '%';},
 		colors: [ [ 'blue', 'green' ], [ 'red' ], [ 'yellow' ] ]
 	});

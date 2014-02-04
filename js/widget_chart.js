@@ -18,7 +18,7 @@
 
 		this.init = function() {
 			var defaultGraph = this.getDefaultGraph();
-			this.setDataset(defaultGraph.dataset);
+			this.setDataset(defaultGraph.dataset());
 
 			d3.select(selector).text('');
 
@@ -50,10 +50,11 @@
 
 		this.focus = function(graph) {
 			graph = graph || this.graph;
+			console.log(graph.dataset());
 			currentChartGroup = graph.parent.id;
 			this.buttons.selectAll('.button').classed('selected', false);
 			d3.select('#' + graph.parent.id + '_' + graph.name).classed('selected', true);
-			this.setDataset(graph.dataset);
+			this.setDataset(graph.dataset());
 			this.setChart(graph);
 			this.repaint();
 		};
@@ -72,8 +73,8 @@
 			ndx.add(dataset);
 		};
 
-		this.addGroup = function(id, label) {
-			var group = new jlg.Group(id, label);
+		this.addGroup = function(id, label, dataset) {
+			var group = new jlg.Group(id, label, dataset);
 			this.groups.push(group);
 			return group;
 		};
@@ -265,16 +266,18 @@
 		};
 	};
 
-	jlg.Group = function(id, label) {
+	jlg.Group = function(id, label, dataset) {
 		this.label = label;
 		this.id = id;
 		this.graphs = [];
 		var isEnabled = true;
 		var defaultGraph = null;
+		this.dataset = dataset;
 
 		this.addGraph = function(graph) {
 			graph.parent = this;
 			this.graphs.push(graph);
+			this.setDataset(graph, graph.dataset);
 		};
 
 		this.isEnabled = function(b) {
@@ -289,6 +292,13 @@
 				return defaultGraph;
 			}
 			defaultGraph = jlg.find(this.graphs, function(d) { return d.name == graphName; });
+		};
+
+		this.setDataset = function(graph, dataset) {
+			graph.dataset = function() {return dataset;};
+			if (!dataset) {
+				graph.dataset = function() {return this.parent.dataset;};
+			}
 		};
 	};
 })(jlg)

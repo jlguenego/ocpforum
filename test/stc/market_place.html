@@ -15,6 +15,12 @@
 
 
 		<script src="js/jlg_commons.js"></script>
+		<script src="js/widget_table.js"></script>
+		<link rel="stylesheet" href="js/theme/default/widget_table.css" />
+
+		<script src="js/widget_chart.js"></script>
+		<link rel="stylesheet" href="js/theme/default/widget_chart.css" />
+
 		<script src="js/thread.js"></script>
 		<script src="js/stc_mp/main.js"></script>
 		<script src="js/stc_mp/Utils.js"></script>
@@ -24,8 +30,7 @@
 		<script src="js/stc_mp/CycleAmount.js"></script>
 
 
-		<script src="js/widget_table.js"></script>
-		<link rel="stylesheet" href="js/theme/default/widget_table.css" />
+
 
 		<style>
 html, body {
@@ -193,28 +198,6 @@ input, select, table button {
 	text-align: right;
 }
 
-#chart_buttons {
-	display: none;
-}
-
-#chart_buttons table {
-	width: 950px;
-}
-
-#chart_buttons th {
-	width: 50px;
-	font-weight: bold;
-	text-align: right;
-}
-
-#chart_buttons td {
-	text-align: left;
-}
-
-#chart_buttons button {
-	width: auto;
-}
-
 #offers {
 	float: left;
 }
@@ -241,65 +224,6 @@ input, select, table button {
 #frame #mp {
 	height: 270px;
 	overflow: auto;
-}
-
-#chart_buttons table {
-	border-collapse: collapse;
-}
-
-#chart_buttons ul {
-	display: inline-block;
-	vertical-align: middle;
-
-	padding: 0px;
-	margin: 0px;
-	font-size: 0px;
-
-	border: 1px solid black;
-}
-
-#chart_buttons li {
-	display: inline-block;
-	vertical-align: middle;
-	padding: 1px 5px;
-
-	font-size: 14px;
-	cursor: pointer;
-	background-color: #DDEEFF;
-
-	border-right: 1px solid black;
-}
-
-#chart_buttons ul li:last-child {
-	border-right: none;
-}
-
-#chart_buttons ul + ul {
-	position: relative;
-	top: -1px;
-}
-
-#chart_buttons li.disabled {
-	color: #AEAEAE;
-	cursor: default;
-	background-color: #DEDEDE;
-}
-
-#chart_buttons li:hover {
-	background-color: #A6D2FF;
-}
-
-#chart_buttons li:hover.disabled {
-	background-color: #DEDEDE;
-}
-
-#chart_buttons li.selected {
-	background-color: #B9DCFF;
-}
-
-#chart_buttons button {
-	margin: 0px;
-	box-sizing: border-box;
 }
 		</style>
 	</head>
@@ -429,47 +353,6 @@ input, select, table button {
 					<div id="demands"><div class="title">Demands</div></div>
 				</div>
 			</div>
-			<div id="chart_buttons">
-				<table>
-					<tr>
-						<th>System:</th>
-						<td class="system">
-							<ul>
-								<li class="change_chart" data-value="price_per_stc">$/STC</li>
-								<li class="change_chart" data-value="gb_per_stc">GB/STC</li>
-								<li class="change_chart" data-value="price_per_gb">$/GB</li>
-								<li class="change_chart" data-value="total_stc">Total STC</li>
-								<li class="change_chart" data-value="competition">Competition</li>
-							</ul>
-							<ul>
-								<li class="change_chart" data-value="actors" data-stack="providers consumers">Actors</li>
-								<li class="change_chart" data-value="nodes">Nodes</li>
-								<li class="change_chart" data-value="capacity">Capacity</li>
-								<li class="change_chart" data-value="performed_deal_nbr">Deal amount</li>
-								<li class="change_chart" data-value="usage" data-unit="%">Usage</li>
-								<li class="change_chart" data-value="attractivity_provider_rate">PAR</li>
-								<li class="change_chart" data-value="attractivity_consumer_rate">CAR</li>
-								<li class="change_chart" data-value="cas">CAS</li>
-							</ul>
-						</td>
-						<th>Actor:</th>
-						<td class="actor">
-							<ul>
-								<li class="change_chart_actor disabled" data-value="actor_stc">STC</li>
-								<li class="change_chart_actor disabled" data-value="actor_nodes">Nodes</li>
-								<li class="change_chart_actor disabled" data-value="actor_volume">Volume</li>
-								<li class="change_chart_actor disabled" data-value="actor_cumulated_mined_stc">Mined</li>
-							</ul>
-							<ul>
-								<li class="change_chart_actor disabled" data-value="actor_price_amount">$</li>
-								<li class="change_chart_actor disabled" data-value="actor_price_earned_amount">$ earned</li>
-								<li class="change_chart_actor disabled" data-value="actor_price_capital" data-stack="actor_price_earned_amount actor_price_amount">$ capital</li>
-								<li class="change_chart_actor disabled" data-value="actor_effectiveness">Evectiveness</li>
-							</ul>
-						</td>
-					</tr>
-				</table>
-			</div>
 			<div id="chart"></div>
 		</div>
 
@@ -485,48 +368,166 @@ var context = {
 }
 
 // CHART STUFF
-var ndx;
-var xDim;
-var group;
-var lineChart;
-var dataset = [];
-var actor_dataset_aa = {};
-var chart_group_selector = 'system';
-var current_chart_title = 'GB/STC';
+var chart;
 
-var group_stack = [];
+function init_graph() {
+	chart = new jlg.Chart('#chart', 'cycle');
+	chart.renderArea(true);
 
-var button_tips = {
-	gb_per_stc: 'Value of 1 STC in GB.',
-	price_per_stc: 'Exchange rate of 1 STC in $.',
-	price_per_gb: 'Exchange rate of 1 GB in $.',
-	total_stc: 'Total amount of STC in the system.',
-	actors: 'Number of actors in the system.',
-	nodes: 'Number of nodes in the system.',
-	capacity: 'Total capacity, in GB, of the system.',
-	performed_deal_nbr: 'Number of deals done during a cycle.',
-	usage: '',
-	competition: '',
+	var group = chart.addGroup('system', 'System', sys.dataset);
+	group.addGraph({
+		name: 'price_per_stc',
+		text: '$/STC',
+		labels: [ [ '$/STC' ] ],
+		accessors: [ [ 'price_per_stc' ] ],
+		title: 'Value of 1 STC in GB.',
+	});
+	group.addGraph({
+		name: 'gb_per_stc',
+		text: 'GB/STC',
+		labels: [ [ 'GB/STC' ] ],
+		accessors: [ [ 'gb_per_stc' ] ],
+		title: 'Exchange rate of 1 STC in $.',
+	});
+	group.addGraph({
+		name: 'price_per_gb',
+		text: '$/GB',
+		labels: [ [ 'OCP' ], [ 'Competition' ] ],
+		accessors: [ [ 'price_per_gb' ], [ 'competition' ] ],
+		colors: [ [ '#FF8A8A' ], [ '#8AC5FF' ] ],
+		title: 'Exchange rate of 1 GB in $.',
+		renderArea: false
+	});
+	group.addGraph({
+		name: 'total_stc',
+		text: 'Total STC',
+		labels: [ [ 'Total STC' ] ],
+		accessors: [ [ 'total_stc' ] ],
+		title: 'Total amount of STC in the system.',
+	});
+	group.addGraph({
+		name: 'actors',
+		text: 'Actors',
+		labels: [ [ 'Providers', 'Consumers' ] ],
+		accessors: [ [ 'providers', 'consumers' ] ],
+		colors: [ [ '#FF8A8A', '#8AC5FF' ] ],
+		title: 'Number of actors in the system.',
+		class: 'new_line'
+	});
+	group.addGraph({
+		name: 'nodes',
+		text: 'Nodes',
+		labels: [ [ 'Nodes' ] ],
+		accessors: [ [ 'nodes' ] ],
+		title: 'Number of nodes in the system.',
+	});
+	group.addGraph({
+		name: 'capacity',
+		text: 'Capacity',
+		labels: [ [ 'Capacity' ] ],
+		accessors: [ [ 'capacity' ] ],
+		title: 'Total capacity, in GB, of the system.',
+	});
+	group.addGraph({
+		name: 'performed_deal_nbr',
+		text: 'Deal amount',
+		labels: [ [ 'Deal amount' ] ],
+		accessors: [ [ 'performed_deal_nbr' ] ],
+		title: 'Number of deals done during a cycle.',
+	});
+	group.addGraph({
+		name: 'usage',
+		text: 'Usage',
+		labels: [ [ 'Usage' ] ],
+		accessors: [ [ 'usage' ] ],
+		title: '',
+		y_axis_unit: function(v) {return v + '%';},
+	});
+	group.addGraph({
+		name: 'attractivity_provider_rate',
+		text: 'PAR',
+		labels: [ [ 'PAR' ] ],
+		accessors: [ [ 'attractivity_provider_rate' ] ],
+		title: 'Provider Attractivity Rate',
+	});
+	group.addGraph({
+		name: 'attractivity_consumer_rate',
+		text: 'CAR',
+		labels: [ [ 'CAR' ] ],
+		accessors: [ [ 'attractivity_consumer_rate' ] ],
+		title: 'Total $ (earned from transaction + current STC amount).',
+	});
+	group.addGraph({
+		name: 'cas',
+		text: 'CAS',
+		labels: [ [ 'CAS' ] ],
+		accessors: [ [ 'cas' ] ],
+		title: '',
+	});
 
-	attractivity_provider_rate: 'Provider Attractivity Rate',
-	attractivity_consumer_rate: 'Consumer Attractivity Rate',
+	var group = chart.addGroup('actor', 'Actor');
+	group.addGraph({
+		name: 'actor_stc',
+		text: 'STC',
+		labels: [ [ 'STC' ] ],
+		accessors: [ [ 'actor_stc' ] ],
+		title: 'STC amount for the given actor.'
+	});
+	group.addGraph({
+		name: 'actor_nodes',
+		text: 'Nodes',
+		labels: [ [ 'Nodes' ] ],
+		accessors: [ [ 'actor_nodes' ] ],
+		title: 'Number of nodes for the given actor.'
+	});
+	group.addGraph({
+		name: 'actor_volume',
+		text: 'Volume',
+		labels: [ [ 'Volume' ] ],
+		accessors: [ [ 'actor_volume' ] ],
+		title: 'Number of GB for the given actor.'
+	});
+	group.addGraph({
+		name: 'actor_cumulated_mined_stc',
+		text: 'Mined',
+		labels: [ [ 'Mined' ] ],
+		accessors: [ [ 'actor_cumulated_mined_stc' ] ],
+		title: 'Number of STC mined by the given actor.'
+	});
+	group.addGraph({
+		name: 'actor_price_amount',
+		text: '$',
+		labels: [ [ '$' ] ],
+		accessors: [ [ 'actor_price_amount' ] ],
+		title: '$ amount of the STC amount for the given actor.',
+		class: 'new_line'
+	});
+	group.addGraph({
+		name: 'actor_price_earned_amount',
+		text: '$ earned',
+		labels: [ [ '$ earned' ] ],
+		accessors: [ [ 'actor_price_earned_amount' ] ],
+		title: '$ earned from transactions.'
+	});
+	group.addGraph({
+		name: 'actor_price_capital',
+		text: '$ capital',
+		labels: [ [ '$ earned', '$' ] ],
+		accessors: [ [ 'actor_price_earned_amount', 'actor_price_amount' ] ],
+		colors: [ [ '#FF8A8A', '#8AC5FF' ] ],
+		title: 'Total $ (earned from transaction + current STC amount).'
+	});
+	group.addGraph({
+		name: 'actor_effectiveness',
+		text: 'Evectiveness',
+		labels: [ [ 'Evectiveness' ] ],
+		accessors: [ [ 'actor_effectiveness' ] ],
+		title: ''
+	});
+	group.isEnabled(false);
 
-	actor_stc: 'STC amount for the given actor.',
-	actor_price_amount: '$ amount of the STC amount for the given actor.',
-	actor_nodes: 'Number of nodes for the given actor.',
-	actor_volume: 'Number of GB for the given actor.',
-	actor_cumulated_mined_stc: 'Number of STC mined by the given actor.',
-	actor_price_earned_amount: '$ earned from transactions.',
-	actor_price_capital: 'Total $ (earned from transaction + current STC amount).',
-	actor_effectiveness: ''
-};
-
-var legends = {
-	providers: 'Providers',
-	consumers: 'Consumers',
-	actor_price_earned_amount: '$ earned',
-	actor_price_amount: '$'
-};
+	chart.init();
+}
 
 function get_initial_actor_dataset() {
 	return [{
@@ -541,23 +542,13 @@ function get_initial_actor_dataset() {
 	}];
 }
 
-function actor_push_data(actor, gb_per_stc) {
-	var price_amount = actor.amount * sys.price_per_stc;
-
-	actor_dataset_aa[actor.name].push({
-		cycle: sys.cycle_id,
-		actor_stc: actor.amount,
-		actor_nodes: actor.nodes.length,
-		actor_volume: jlg.round(actor.amount * gb_per_stc),
-		actor_price_amount: price_amount,
-		actor_cumulated_mined_stc: actor.mined_amount,
-		actor_price_earned_amount: actor.price_earned_amount,
-		actor_effectiveness: (actor.price_earned_amount + price_amount) / (actor.mined_amount * sys.price_per_stc)
-	});
-}
-
-function set_button_title(el) {
-	el.attr('title', button_tips[el.attr('data-value')]);
+function update_chart(selector) {
+	var graph = chart.graph;
+	if (chart.currentChartGroup() != selector) {
+		var g = chart.getGroup(selector);
+		graph = chart.getDefaultGraph(g);
+	}
+	chart.focus(graph);
 }
 // END CHART STUFF
 
@@ -577,7 +568,6 @@ $(document).ready(function() {
 });
 
 var onObjectSelected = function(object) {
-	console.log(object);
 	if (object instanceof stc.Actor) {
 		$('#add_node').attr('disabled', false);
 		$('#node_qty').attr('disabled', false);
@@ -593,8 +583,14 @@ var onObjectSelected = function(object) {
 		actorMenu.find('.wealth').html(jlg.round(object.profile.wealth));
 		$('.menu [data-body=actor]').click();
 
+
+		var g = chart.getGroup('actor');
+		g.isEnabled(true);
+		for (var i = 0; i < g.graphs.length; i++) {
+			g.setDataset(g.graphs[i], sys.actors_dataset_aa[object.name]);
+		}
 		update_chart('actor');
-		refresh_chart();
+		chart.repaint();
 	}
 
 	if (object instanceof stc.Node) {
@@ -617,8 +613,10 @@ var onObjectSelected = function(object) {
 		$('#node_qty').attr('disabled', true);
 		$('#chart_buttons .actor button').attr('disabled', true);
 
+		var g = chart.getGroup('actor');
+		g.isEnabled(false);
 		update_chart('system');
-		refresh_chart();
+		chart.repaint();
 	}
 };
 
@@ -637,23 +635,11 @@ var onObjectDeselected = function(object) {
 	nodeMenu.find('.name').html('');
 	nodeMenu.find('.owner').html('');
 
+	var g = chart.getGroup('actor');
+	g.isEnabled(false);
 	update_chart('system');
-	refresh_chart();
+	chart.repaint();
 };
-
-function update_chart(selector) {
-	if (chart_group_selector != selector) {
-		chart_group_selector = selector;
-		if (selector == 'system') {
-			$('#chart_buttons .system ul:first-child li:first-child').click();
-			//group = xDim.group().reduceSum(jlg.accessor('stc'));
-		} else if (selector == 'actor') {
-			$('#chart_buttons .actor ul:first-child li:first-child').click();
-			//group = xDim.group().reduceSum(jlg.accessor('actor_stc'));
-		}
-		//current_chart_title = 'STC';
-	}
-}
 
 var sys = null;
 
@@ -677,8 +663,6 @@ function start() {
 	$('#actor_qty').attr('disabled', null);
 	$('#next_cycle').attr('disabled', null);
 	$('#do_cycle').attr('disabled', null);
-	$('#chart_buttons').css('display', 'block');
-	$('#chart_buttons .actor li').addClass('disabled');
 	$('#pause_resume').attr('data-paused', 'false');
 	$('#pause_resume').attr('disabled', null);
 
@@ -686,11 +670,14 @@ function start() {
 	var svg = d3.select('#frame').append('svg');
 
 	set_screen_size();
-	sys = new stc.System(svg, actor_dataset_aa, dataset, '#offers', '#demands', {
+
+	sys = new stc.System(svg, '#offers', '#demands', {
 		sideView: '#view',
 		actorsView: '.param_body.actor',
 		nodesView: '.param_body.node'
 	});
+
+	sys.updateDatasets();
 
 	sys.repaintSideView();
 
@@ -913,7 +900,7 @@ function s2() {
 	start();
 
 	var thread = new Thread('main');
-	sys.runCycle(thread, 5);
+	sys.runCycle(thread, 50);
 
 	thread.finish();
 	thread.start();
@@ -959,210 +946,16 @@ $('#stat').get(0).addEventListener("system_stat", function(e) {
 
 	switch (stats.action) {
 		case 'add_actor':
-			actor_dataset_aa[stats.actor.name] = get_initial_actor_dataset();
 			break;
 		case 'add_node':
 			break;
 		case 'remove_node':
 			break;
 		case 'next_cycle':
-			update_dataset();
-			refresh_chart();
+			chart.repaint();
 			break;
 	}
 });
-
-function update_dataset() {
-	var gb_per_stc = 0;
-	if (sys.nodes.length > 0) {
-		gb_per_stc = (sys.nodes.length * sys.options.nodeCapacity) / sys.totalSTC;
-	}
-
-	var used = 0;
-	for (var i = 0; i < sys.consumers.length; i++) {
-		used += sys.consumers[i].amount;
-	}
-
-	dataset.push({
-		cycle: sys.cycle_id,
-		gb_per_stc: gb_per_stc,
-		price_per_stc: sys.price_per_stc,
-		price_per_gb: sys.price_per_gb,
-		total_stc: sys.totalSTC,
-		nodes: sys.nodes.length,
-		actors: sys.actors.length,
-		consumers: sys.consumers.length,
-		providers: sys.providers.length,
-		capacity: sys.nodes.length * sys.options.nodeCapacity,
-		performed_deal_nbr: sys.performed_deal_nbr,
-		usage: used * 100 / sys.totalSTC,
-		competition: sys.competition_price_per_gb,
-		attractivity_provider_rate: sys.attractivity.provider_rate,
-		attractivity_consumer_rate: sys.attractivity.consumer_rate,
-		cas: sys.cas
-	});
-
-	for (var i = 0; i < sys.actors.length; i++) {
-		var actor = sys.actors[i];
-		actor_push_data(actor, gb_per_stc);
-	}
-}
-
-function refresh_chart() {
-	ndx.remove();
-	var prefix = '';
-	if (chart_group_selector == 'system') {
-		ndx.add(dataset);
-		lineChart.group(group, current_chart_title);
-	} else {
-		ndx.add(actor_dataset_aa[sys.selectedObject.name]);
-		prefix = sys.selectedObject.name + ' ';
-		lineChart.group(group, prefix + current_chart_title);
-	}
-
-	for (var i = 0; i < group_stack.length; i++) {
-		var g = group_stack[i];
-		lineChart.stack(g.group, prefix + g.label);
-	}
-
-	lineChart.x(d3.scale.linear().domain([0,sys.cycle_id]))
-		.elasticX(true);
-	dc.redrawAll();
-}
-
-function reset_chart() {
-	dataset.length = 0;
-	dataset.push({
-		cycle: 0,
-		gb_per_stc: sys.gb_per_stc(),
-		price_per_stc: sys.price_per_stc,
-		price_per_gb: sys.price_per_gb,
-		total_stc: sys.totalSTC,
-		nodes: 0,
-		actors: 0,
-		providers: 0,
-		consumers: 0,
-		capacity: 0,
-		performed_deal_nbr: 0,
-		usage: 0,
-		competition: sys.competition_price_per_gb,
-		attractivity_provider_rate: 1,
-		attractivity_consumer_rate: 1,
-		cas: sys.cas
-	});
-	actor_dataset_aa = {};
-
-	$('#chart_buttons ul:first-child li:first-child').click();
-}
-
-
-
-function init_graph() {
-	ndx = crossfilter();
-	xDim = ndx.dimension(function(d) {return d.cycle;});
-	group = xDim.group().reduceSum(function(d) {return d.gb_per_stc;});
-	lineChart = dc.lineChart("#chart")
-		.renderArea(true)
-		.width(950).height(190)
-		.dimension(xDim)
-		.group(group, 'GB/STC')
-		.legend(dc.legend().x(40).y(20).itemHeight(10).gap(5))
-		.x(d3.scale.linear().domain([0,sys.cycle_id]))
-		.elasticY(true)
-		.brushOn(false);
-	dc.renderAll();
-	reset_chart();
-}
-
-$('#chart_buttons li').click(function() {
-	if ($(this).hasClass('disabled')) {
-		return;
-	}
-	$('#chart_buttons li').removeClass('selected');
-	$(this).addClass('selected');
-});
-
-$('.change_chart').click(function() {
-	if ($(this).attr('data-stack')) {
-		set_stack_chart($(this));
-	} else {
-		set_chart($(this));
-	}
-	chart_group_selector = 'system';
-	refresh_chart();
-});
-
-$('.change_chart_actor').click(function() {
-	if ($(this).hasClass('disabled')) {
-		return;
-	}
-	if ($(this).attr('data-stack')) {
-		set_stack_chart($(this));
-	} else {
-		set_chart($(this));
-	}
-	chart_group_selector = 'actor'
-	refresh_chart();
-});
-
-function set_chart(el) {
-	clean_stack(1);
-
-	current_chart_title = el.html();
-	var val_to_show = el.attr('data-value');
-	group = xDim.group().reduceSum(jlg.accessor(val_to_show));
-
-	var unit = el.attr('data-unit') || '';
-	lineChart.yAxis().tickFormat(function(v) {return v + unit;});
-}
-
-function set_stack_chart(el) {
-	current_chart_title = el.html();
-	var values = el.attr('data-stack').split(' ');
-
-	clean_stack(values.length);
-
-	var val_to_show = values[0];
-	group = xDim.group().reduceSum(jlg.accessor(val_to_show));
-	current_chart_title = legends[values[0]];
-
-	var parent = el.parent();
-	for (var i = 1; i < values.length; i++) {
-		var g = xDim.group().reduceSum(jlg.accessor(values[i]));
-		var label = legends[values[i]];
-		group_stack.push({ label: label, group: g });
-	}
-
-	var unit = el.attr('data-unit') || '';
-	lineChart.yAxis().tickFormat(function(v) {return v + unit;});
-}
-
-function clean_stack(nbr) {
-	group_stack = [];
-	var my_dataset = [];
-	for (var i = 0; i < nbr; i++) {
-		my_dataset.push(i);
-	}
-	//console.log(lineChart.data());
-	var svg = d3.select('#chart').select('svg');
-	var stack = svg.select('g.chart-body').selectAll('g.stack-list').selectAll('g.stack');
-	stack.data(my_dataset)
-		.exit().remove();
-	svg.select('g.chart-body').selectAll('g.dc-tooltip-list').selectAll('g.dc-tooltip').data(my_dataset)
-		.exit().remove();
-}
-
-
-// For crossfilter debuging.
-function print_filter(filter){
-	var f=eval(filter);
-	if (typeof(f.length) != "undefined") {}else{}
-	if (typeof(f.top) != "undefined") {f=f.top(Infinity);}else{}
-	if (typeof(f.dimension) != "undefined")
-	{f=f.dimension(function(d) { return "";}).top(Infinity);}else{}
-	console.log(filter+"("+f.length+") = "+JSON.stringify
-	(f).replace("[","[\n\t").replace(/}\,/g,"},\n\t").replace("]","\n]"));
-}
 		</script>
 	</body>
 </html>

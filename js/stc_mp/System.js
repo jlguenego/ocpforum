@@ -1,5 +1,5 @@
 (function(sim, undefined) {
-	stc.System = function(svg, actor_dataset_aa, dataset, offers_table_selector, demands_table_selector, viewSelectors) {
+	stc.System = function(svg, offers_table_selector, demands_table_selector, viewSelectors) {
 		var self = this;
 
 		this.svg = svg;
@@ -121,8 +121,8 @@
 
 		this.performed_deal_nbr = 0;
 
-		this.actors_dataset_aa = actor_dataset_aa;
-		this.dataset = dataset;
+		this.actors_dataset_aa = {};
+		this.dataset = [];
 
 		// MARKET PLACE STUFF
 		var columns = [
@@ -202,6 +202,7 @@
 			actor.parent = this;
 
 			this.actors.push(actor);
+			this.actor_push_data(actor);
 
 			this.report({ action: 'add_actor', actor: actor });
 
@@ -272,7 +273,71 @@
 			ca.split(thread);
 			this.addReward(thread);
 			this.updateMarketPlace(thread);
+			this.nextCycleMisc(thread);
 		};
+
+		this.nextCycleMisc = function(thread) {
+			thread.push({
+				function: this._nextCycleMisc,
+				args: arguments,
+				name: 'nextCycleMisc',
+				object: this
+			});
+		};
+
+		this._nextCycleMisc = function(thread) {
+			this.updateDatasets();
+			thread.next();
+		};
+
+		this.updateDatasets = function() {
+			this.dataset.push({
+				cycle: self.cycle_id,
+				gb_per_stc: self.gb_per_stc(),
+				price_per_stc: self.price_per_stc,
+				price_per_gb: self.price_per_gb,
+				total_stc: self.totalSTC,
+				nodes: self.nodes.length,
+				actors: self.actors.length,
+				consumers: self.consumers.length,
+				providers: self.providers.length,
+				capacity: self.nodes.length * self.options.nodeCapacity,
+				performed_deal_nbr: self.performed_deal_nbr,
+				usage: self.used(),
+				competition: self.competition_price_per_gb,
+				attractivity_provider_rate: self.attractivity.provider_rate,
+				attractivity_consumer_rate: self.attractivity.consumer_rate,
+				cas: self.cas
+			});
+
+			for (var i = 0; i < this.actors.length; i++) {
+				var actor = this.actors[i];
+				this.actor_push_data(actor);
+			}
+		};
+
+		this.actor_push_data = function(actor) {
+			var price_amount = actor.amount * this.price_per_stc;
+			var effectiveness = 0;
+			if (actor.mined_amount > 0) {
+				effectiveness = (actor.price_earned_amount + price_amount) / (actor.mined_amount * self.price_per_stc);
+			}
+
+			if (!this.actors_dataset_aa[actor.name]) {
+				this.actors_dataset_aa[actor.name] = [];
+			}
+
+			this.actors_dataset_aa[actor.name].push({
+				cycle: self.cycle_id,
+				actor_stc: actor.amount,
+				actor_nodes: actor.nodes.length,
+				actor_volume: jlg.round(actor.amount * self.gb_per_stc()),
+				actor_price_amount: price_amount,
+				actor_cumulated_mined_stc: actor.mined_amount,
+				actor_price_earned_amount: actor.price_earned_amount,
+				actor_effectiveness: effectiveness
+			});
+		}
 
 		this.updateMarketPlace = function(thread) {
 			thread.push({
@@ -287,6 +352,7 @@
 			this.updateTables();
 			this.offers_table.repaint();
 			this.demands_table.repaint();
+
 			setTimeout(function() {
 				self.report({ action: 'next_cycle' });
 				thread.next();
