@@ -48,7 +48,7 @@
 	border-left: 1px solid black;
 }
 
-.jlg_chart div.button.disabled {
+.jlg_chart .disabled div.button {
 	color: #AEAEAE;
 	cursor: default;
 	background-color: #DEDEDE;
@@ -58,7 +58,7 @@
 	background-color: #A6D2FF;
 }
 
-.jlg_chart div.button:hover.disabled {
+.jlg_chart .disabled div.button:hover {
 	background-color: #DEDEDE;
 }
 

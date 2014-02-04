@@ -55,10 +55,14 @@
 			ndx.add(dataset);
 		};
 
-		this.addGroup = function(label, id) {
-			var group = new jlg.Group(label, id);
+		this.addGroup = function(id, label) {
+			var group = new jlg.Group(id, label);
 			this.groups.push(group);
 			return group;
+		};
+
+		this.getGroup = function(id) {
+			return jlg.find(this.groups, function(d) { return d.id == id; });
 		};
 
 		this.getDefaultGraph = function() {
@@ -85,6 +89,10 @@
 				.text(function(d) { return d.label + ':'; });
 			new_groups.append('div').classed('button_container', true);
 
+			groups.classed('disabled', function(d) {
+				return !d.isEnabled();
+			});
+
 			var buttons = groups.selectAll('div.button_container')
 				.selectAll('div.button').data(jlg.accessor('graphs'));
 
@@ -105,6 +113,9 @@
 				.attr('title', jlg.accessor('title'))
 				.text(jlg.accessor('text'))
 				.on('click', function(d) {
+					if (!d.parent.isEnabled()) {
+						return;
+					}
 					self.buttons.selectAll('.button').classed('selected', false);
 					d3.select(this).classed('selected', true);
 					self.setDataset(d.dataset);
@@ -114,12 +125,13 @@
 
 		this.updateChart = function(graph) {
 			self.setChart(graph);
-			self.repaintChart();
+			self.repaint();
 		};
 
-		this.repaintChart = function() {
+		this.repaint = function() {
 			refreshDataset();
 			dc.redrawAll();
+			this.repaintButtons();
 		};
 
 		this.setChart = function(graph) {
@@ -227,14 +239,22 @@
 		};
 	};
 
-	jlg.Group = function(label, id) {
+	jlg.Group = function(id, label) {
 		this.label = label;
 		this.id = id;
 		this.graphs = [];
+		var isEnabled = true;
 
 		this.addGraph = function(graph) {
 			graph.parent = this;
 			this.graphs.push(graph);
+		};
+
+		this.isEnabled = function(b) {
+			if (!arguments.length) {
+				return isEnabled;
+			}
+			isEnabled = b;
 		};
 
 		this.getDefaultGraph = function() {
