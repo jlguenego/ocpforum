@@ -92,7 +92,10 @@
 
 		//console.log('ratio	=' + this.competition_price_per_gb / this.min_cycle_revenue_price_per_gb);
 
-		this.attractivity = null;
+		this.attractivity = {
+			provider_rate: 0,
+			consumer_rate: 0,
+		};
 
 		this.totalSTC = 0;
 		this.cycle_id = 0;
@@ -104,6 +107,16 @@
 		};
 		this.price_per_stc = this.options.nodeCapacity * this.competition_price_per_gb / this.options.stcPerCycle;
 		this.price_per_gb = this.competition_price_per_gb;
+		this.used = function() {
+			if (this.totalSTC == 0) {
+				return 0;
+			}
+			var used = 0;
+			for (var i = 0; i < this.consumers.length; i++) {
+				used += this.consumers[i].amount;
+			}
+			return used * 100 / this.totalSTC
+		};
 		this.cas = 0;
 
 		this.performed_deal_nbr = 0;
@@ -720,6 +733,7 @@
 					}
 
 					var d = self.competition_price_per_gb;
+					console.log(self.dataset);
 					var V = v * self.dataset[b].nodes;
 					var T = G * b;
 					var p_buy = self.dataset[b].price_per_stc;

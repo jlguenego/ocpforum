@@ -8,15 +8,17 @@
 		var chart; // dc.compositeChart
 
 		var charts = [];
+		var currentChartGroup;
 
 		this.buttons;
-
 		this.chartDivSelector = selector + ' .chart_view';
-
 		this.buttons_dataset = [];
 		this.groups = [];
 
 		this.init = function() {
+			var defaultGraph = this.getDefaultGraph();
+			this.setDataset(defaultGraph.dataset);
+
 			d3.select(selector).text('');
 
 			d3.select(selector).classed('jlg_chart', true);
@@ -41,17 +43,21 @@
 			dc.renderAll();
 
 			this.repaintButtons();
-			var defaultGraph = this.getDefaultGraph();
 
 			this.focus(defaultGraph);
 		};
 
 		this.focus = function(graph) {
+			currentChartGroup = graph.parent.id;
 			this.buttons.selectAll('.button').classed('selected', false);
 			d3.select('#' + graph.parent.id + '_' + graph.name).classed('selected', true);
 			this.setDataset(graph.dataset);
 			this.setChart(graph);
 			this.repaint();
+		};
+
+		this.currentChartGroup = function(groupId) {
+			return currentChartGroup;
 		};
 
 		this.setDataset = function(my_dataset) {

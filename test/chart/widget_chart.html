@@ -39,9 +39,7 @@ html, body {
 		<script>
 var cycle_id = 0;
 var dataset = [];
-var dataset_aa = {
-	test: []
-};
+var dataset_aa = {};
 push_dataset();
 
 var chart = new jlg.Chart('#chart', 'cycle_id');
@@ -52,6 +50,9 @@ function push_dataset() {
 		price_per_stc: Math.randomize(5, 100),
 		gb_per_stc: Math.randomize(3000, 5000)
 	});
+	if (!dataset_aa.test) {
+		dataset_aa.test = []
+	}
 	dataset_aa.test.push({
 		cycle_id: cycle_id,
 		actor_stc: Math.randomize(5, 100),
@@ -124,7 +125,6 @@ $(document).ready(function() {
 	});
 	group.defaultGraph('nodes');
 
-	chart.setDataset(dataset);
 	chart.init();
 });
 		</script>
