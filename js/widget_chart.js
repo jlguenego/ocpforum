@@ -126,34 +126,93 @@
 			var previous_charts = chart.children();
 			charts = [];
 			for (var i = 0; i < graph.accessors.length; i++) {
-				var offset = Math.randomizeInt(0, 100);
-				var group = xDim.group().reduceSum(jlg.accessor(graph.accessors[i][0]));
-				var lineChart = dc.lineChart(chart)
-					.dimension(xDim)
-					.group(group, graph.labels[i][0])
-					.colors(["red","blue", "green"])
-					.colorAccessor(function(d, i){return (i + offset) % 3;})
-					.colorDomain([0,2]);
-				if (graph.accessors.length > 1) {
-					lineChart.renderArea(true);
-				}
-				for (var j = 1; j < graph.accessors[i].length; j++) {
-					var g = xDim.group().reduceSum(jlg.accessor(graph.accessors[i][j]));
-					lineChart.stack(g, graph.labels[i][j]);
-				}
-				if (previous_charts[i]) {
-					var g = previous_charts[i].g();
-					var chartBodyG = previous_charts[i].chartBodyG();
-					lineChart.g(g);
-					lineChart.chartBodyG(chartBodyG);
-				}
-				charts.push(lineChart);
+				(function(i) {
+					var colors = d3.scale.category20b();
+					if (graph.colors && graph.colors[i]) {
+						colors = graph.colors[i];
+					}
+					var group = xDim.group().reduceSum(jlg.accessor(graph.accessors[i][0]));
+					var lineChart = dc.lineChart(chart)
+						.dimension(xDim)
+						.colors(colors)
+						.colorAccessor(function(d, j) {
+							console.log(d);console.log('j='+j);console.log('i='+i);
+							if (d.x && d.y) {
+								var stack_id = graph.labels[i].indexOf(d.layer);
+								return stack_id % colors.length;
+							}
+							return j % colors.length;
+						})
+						.colorDomain([0, colors.length])
+						.brushOn(false);
+					var areaFlag = graph.accessors[i].length > 1;
+					lineChart.renderArea(areaFlag);
+
+					for (var j = 0; j < graph.accessors[i].length; j++) {
+						var g = xDim.group().reduceSum(jlg.accessor(graph.accessors[i][j]));
+						if (j == 0) {
+							lineChart.group(group, graph.labels[i][0]);
+						} else {
+							lineChart.stack(g, graph.labels[i][j]);
+						}
+					}
+					if (previous_charts[i]) {
+						var g = previous_charts[i].g();
+						var chartBodyG = previous_charts[i].chartBodyG();
+						lineChart.g(g);
+						lineChart.chartBodyG(chartBodyG);
+						manageArea(areaFlag, i, lineChart);
+					}
+					charts.push(lineChart);
+				})(i);
 			}
 			var unit = graph.x_axis_unit || function(v) {return v;};
 			chart.yAxis().tickFormat(unit);
 
 			chart.compose(charts);
 			clean_stack(graph);
+		};
+
+		function manageArea(areaFlag, i, _chart) {
+			var svg = d3.select(self.chartDivSelector).select('svg');
+			var stack = svg.select('g.sub._' + i).select('g.chart-body').selectAll('g.stack-list').selectAll('g.stack');
+			var areas = stack.selectAll('.area');
+			if (areaFlag) {
+				if (areas.empty()) {
+					console.log(_chart);
+					var area = d3.svg.area()
+		                .x(function (d) {
+		                    return chart.x()(d.x);
+		                })
+		                .y(function (d) {
+		                    return chart.y()(d.y + d.y0);
+		                })
+		                .y0(function (d) {
+		                    return chart.y()(d.y0);
+		                })
+		                .interpolate(_chart.interpolate())
+		                .tension(_chart.tension());
+
+		            if (_chart.defined()) {
+		                area.defined(_chart.defined());
+		            }
+
+				    function safeD(d){
+				        return (!d || d.indexOf("NaN") >= 0) ? "M0,0" : d;
+				    }
+
+		            stack.append("path")
+		                .attr("class", "area")
+		                .attr("fill", function(d, i) {
+							return _chart.getColor.call(d, d.values, i);
+						})
+		                .attr("d", function (d) {
+		                    return safeD(area(d.values));
+		                });
+				}
+			} else {
+				areas.remove();
+			}
 		};
 
 		function clean_stack(graph) {

@@ -54,14 +54,14 @@ function push_dataset() {
 		cycle_id: cycle_id,
 		actor_stc: Math.randomize(5, 100),
 		nodes: Math.randomize(5, 100),
-		stc: Math.randomize(5, 100)
+		stc: Math.randomize(5, 100),
+		price_per_stc: Math.randomize(5, 100),
 	})
 	cycle_id++;
 }
 
 $('button').click(function() {
 	push_dataset();
-	chart.setDataset(dataset);
 	chart.repaintChart();
 });
 $(document).ready(function() {
@@ -99,12 +99,13 @@ $(document).ready(function() {
 	group.addGraph({
 		name: 'nodes',
 		text: 'Nodes',
-		labels: [ [ 'STC' ], [ 'Nodes', 'Actor STC' ] ],
-		accessors: [ [ 'stc' ], [ 'nodes', 'actor_stc' ] ],
+		labels: [ [ 'Nodes', 'Actor STC' ] ],
+		accessors: [ [ 'nodes', 'actor_stc' ] ],
 		type: 'stack',
 		title: 'STC amount for the given actor.',
 		dataset: dataset_aa.test,
-		y_axis_unit: function(v) {return v + '%';}
+		y_axis_unit: function(v) {return v + '%';},
+		colors: [ [ 'blue', 'green' ] ]
 	});
 
 	chart.setDataset(dataset);
