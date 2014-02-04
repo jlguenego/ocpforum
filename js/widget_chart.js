@@ -9,10 +9,7 @@
 
 		var charts = [];
 
-		d3.select(selector).classed('jlg_chart', true);
-		this.buttons = d3.select(selector).append('div').classed('chart_header', true);
-
-		d3.select(selector).append('div').classed('chart_view', true);
+		this.buttons;
 
 		this.chartDivSelector = selector + ' .chart_view';
 
@@ -20,6 +17,12 @@
 		this.groups = [];
 
 		this.init = function() {
+			d3.select(selector).text('');
+
+			d3.select(selector).classed('jlg_chart', true);
+			this.buttons = d3.select(selector).append('div').classed('chart_header', true);
+			d3.select(selector).append('div').classed('chart_view', true);
+
 			var min = xDim.bottom(1)[0][x_axis];
 			var max = xDim.top(1)[0][x_axis];
 
