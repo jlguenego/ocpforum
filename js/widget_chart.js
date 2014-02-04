@@ -40,9 +40,15 @@
 			this.repaintButtons();
 			var defaultGraph = this.getDefaultGraph();
 
-			d3.select('#' + defaultGraph.parent.id + '_' + defaultGraph.name).classed('selected', true);
-			this.setDataset(defaultGraph.dataset);
-			this.updateChart(defaultGraph);
+			this.focus(defaultGraph);
+		};
+
+		this.focus = function(graph) {
+			this.buttons.selectAll('.button').classed('selected', false);
+			d3.select('#' + graph.parent.id + '_' + graph.name).classed('selected', true);
+			this.setDataset(graph.dataset);
+			this.setChart(graph);
+			this.repaint();
 		};
 
 		this.setDataset = function(my_dataset) {
@@ -65,14 +71,20 @@
 			return jlg.find(this.groups, function(d) { return d.id == id; });
 		};
 
-		this.getDefaultGraph = function() {
-			for (var i = 0; i < this.groups; i++) {
-				var graph = this.groups[i].getDefaultGraph();
-				if (graph) {
+		this.getDefaultGraph = function(group) {
+			if (group && group.isEnabled()) {
+				return group.defaultGraph() || group.graphs[0];
+			}
+
+			for (var i = 0; i < this.groups.length; i++) {
+				var graph = this.groups[i].defaultGraph();
+				if (this.groups[i].isEnabled() && graph) {
 					return graph;
 				}
 			}
-			return this.groups[0].graphs[0];
+
+			var defaultGroup = jlg.find(this.groups, function(d) { return d.isEnabled();});
+			return defaultGroup.graphs[0];
 		};
 
 		this.repaintButtons = function() {
@@ -116,16 +128,8 @@
 					if (!d.parent.isEnabled()) {
 						return;
 					}
-					self.buttons.selectAll('.button').classed('selected', false);
-					d3.select(this).classed('selected', true);
-					self.setDataset(d.dataset);
-					self.updateChart(d);
+					self.focus(d);
 				});
-		};
-
-		this.updateChart = function(graph) {
-			self.setChart(graph);
-			self.repaint();
 		};
 
 		this.repaint = function() {
@@ -244,6 +248,7 @@
 		this.id = id;
 		this.graphs = [];
 		var isEnabled = true;
+		var defaultGraph = null;
 
 		this.addGraph = function(graph) {
 			graph.parent = this;
@@ -257,8 +262,11 @@
 			isEnabled = b;
 		};
 
-		this.getDefaultGraph = function() {
-			return null;
+		this.defaultGraph = function(graphName) {
+			if (!arguments.length) {
+				return defaultGraph;
+			}
+			defaultGraph = jlg.find(this.graphs, function(d) { return d.name == graphName; });
 		};
 	};
 })(jlg)

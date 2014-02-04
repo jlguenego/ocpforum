@@ -69,7 +69,13 @@ $('#next').click(function() {
 $('#toggle_actor').click(function() {
 	var g = chart.getGroup('actor');
 	g.isEnabled(!g.isEnabled());
-	chart.repaint();
+	if (g.isEnabled()) {
+		var graph = chart.getDefaultGraph(g);
+		chart.focus(graph);
+	} else {
+		var graph = chart.getDefaultGraph();
+		chart.focus(graph);
+	}
 });
 $(document).ready(function() {
 	var group = chart.addGroup('system', 'System');
@@ -91,7 +97,7 @@ $(document).ready(function() {
 		title: 'Value of 1 STC in GB.',
 		dataset: dataset,
 	});
-	//group.setDefaultButton('price_per_stc');
+	group.defaultGraph('gb_per_stc');
 
 	group = chart.addGroup('actor', 'Actor');
 	group.isEnabled(false);
@@ -115,6 +121,7 @@ $(document).ready(function() {
 		y_axis_unit: function(v) {return v + '%';},
 		colors: [ [ 'blue', 'green' ], [ 'red' ], [ 'yellow' ] ]
 	});
+	group.defaultGraph('nodes');
 
 	chart.setDataset(dataset);
 	chart.init();
