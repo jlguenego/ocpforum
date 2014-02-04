@@ -136,7 +136,6 @@
 						.dimension(xDim)
 						.colors(colors)
 						.colorAccessor(function(d, j) {
-							console.log(d);console.log('j='+j);console.log('i='+i);
 							if (d.x && d.y) {
 								var stack_id = graph.labels[i].indexOf(d.layer);
 								return stack_id % colors.length;
@@ -179,7 +178,6 @@
 			var areas = stack.selectAll('.area');
 			if (areaFlag) {
 				if (areas.empty()) {
-					console.log(_chart);
 					var area = d3.svg.area()
 		                .x(function (d) {
 		                    return chart.x()(d.x);

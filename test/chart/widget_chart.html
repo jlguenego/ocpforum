@@ -99,13 +99,13 @@ $(document).ready(function() {
 	group.addGraph({
 		name: 'nodes',
 		text: 'Nodes',
-		labels: [ [ 'Nodes', 'Actor STC' ] ],
-		accessors: [ [ 'nodes', 'actor_stc' ] ],
+		labels: [ [ 'Nodes', 'Actor STC' ], [ 'STC' ], [ '$/STC' ] ],
+		accessors: [ [ 'nodes', 'actor_stc' ], [ 'stc' ], [ 'price_per_stc' ] ],
 		type: 'stack',
 		title: 'STC amount for the given actor.',
 		dataset: dataset_aa.test,
 		y_axis_unit: function(v) {return v + '%';},
-		colors: [ [ 'blue', 'green' ] ]
+		colors: [ [ 'blue', 'green' ], [ 'red' ], [ 'yellow' ] ]
 	});
 
 	chart.setDataset(dataset);
