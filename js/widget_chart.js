@@ -9,6 +9,7 @@
 
 		var charts = [];
 		var currentChartGroup;
+		var renderArea = false;
 
 		this.buttons;
 		this.chartDivSelector = selector + ' .chart_view';
@@ -48,6 +49,7 @@
 		};
 
 		this.focus = function(graph) {
+			graph = graph || this.graph;
 			currentChartGroup = graph.parent.id;
 			this.buttons.selectAll('.button').classed('selected', false);
 			d3.select('#' + graph.parent.id + '_' + graph.name).classed('selected', true);
@@ -56,7 +58,7 @@
 			this.repaint();
 		};
 
-		this.currentChartGroup = function(groupId) {
+		this.currentChartGroup = function() {
 			return currentChartGroup;
 		};
 
@@ -94,6 +96,13 @@
 
 			var defaultGroup = jlg.find(this.groups, function(d) { return d.isEnabled();});
 			return defaultGroup.graphs[0];
+		};
+
+		this.renderArea = function(b) {
+			if (!arguments.length) {
+				return renderArea;
+			}
+			renderArea = b;
 		};
 
 		this.repaintButtons = function() {
@@ -148,6 +157,7 @@
 		};
 
 		this.setChart = function(graph) {
+			this.graph = graph;
 			var previous_charts = chart.children();
 			charts = [];
 			for (var i = 0; i < graph.accessors.length; i++) {
@@ -169,7 +179,7 @@
 						})
 						.colorDomain([0, colors.length])
 						.brushOn(false);
-					var areaFlag = graph.accessors[i].length > 1;
+					var areaFlag = renderArea || (graph.accessors[i].length > 1);
 					lineChart.renderArea(areaFlag);
 
 					for (var j = 0; j < graph.accessors[i].length; j++) {

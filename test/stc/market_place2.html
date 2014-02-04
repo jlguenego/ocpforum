@@ -375,6 +375,7 @@ var chart;
 function init_graph() {
 	update_dataset();
 	chart = new jlg.Chart('#chart', 'cycle');
+	chart.renderArea(true);
 
 	var group = chart.addGroup('system', 'System');
 	group.addGraph({
@@ -604,7 +605,7 @@ function update_dataset() {
 }
 
 function update_chart(selector) {
-	var graph = d3.select('#chart').select('.button.selected').datum();
+	var graph = chart.graph;
 	if (chart.currentChartGroup() != selector) {
 		var g = chart.getGroup(selector);
 		graph = chart.getDefaultGraph(g);

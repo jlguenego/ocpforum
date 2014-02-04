@@ -31,11 +31,11 @@ html, body {
 	</head>
 
 	<body>
-		<div id="chart"><button id="next">Next</button>
-		<button id="toggle_actor">Toggle Actor</button></div>
+		<div id="chart"></div>
 
 		<button id="next">Next</button>
 		<button id="toggle_actor">Toggle Actor</button>
+		<button id="toggle_render_area">Toggle render area</button>
 		<script>
 var cycle_id = 0;
 var dataset = [];
@@ -79,6 +79,12 @@ $('#toggle_actor').click(function() {
 		chart.focus(graph);
 	}
 });
+
+$('#toggle_render_area').click(function() {
+	chart.renderArea(!chart.renderArea());
+	chart.focus();
+});
+
 $(document).ready(function() {
 	var group = chart.addGroup('system', 'System');
 	group.addGraph({
