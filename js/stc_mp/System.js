@@ -3,12 +3,6 @@
 		var self = this;
 
 		this.svg = svg;
-		this.svg.on('click', function(d) {
-			var thread = new Thread('select');
-			self.unselectObject(thread, self.selectedObject);
-			thread.finish();
-			thread.start();
-		});
 		this.svgbox = {
 			x: svg.attr('width'),
 			y: svg.attr('height')
@@ -17,36 +11,6 @@
 		this.sideView = d3.select(viewSelectors.sideView);
 		this.actorsView = d3.select(viewSelectors.actorsView);
 		this.nodesView = d3.select(viewSelectors.nodesView);
-
-		this.defs = this.svg.append('defs');
-		this.defs.append('filter')
-			.attr('id', 'darker')
-			.append('feColorMatrix')
-				.attr('type', 'matrix')
-				.attr('in', 'SourceGraphic')
-				.attr('values', '0.8 0 0 0 -0.2 0 0.8 0 0 -0.2 0 0 0.8 0 -0.2 0 0 0 1 0');
-
-		var man = this.defs.append('symbol')
-			.attr('id', 'actor_symbol')
-			.attr('viewBox', '120 0 228 455')
-			.attr('preserveAspectRatio', 'xMinYMin');
-		man.append('path').attr('d', 'm212.828003,128.610001l-85.639999,89.031998l17.806,17.806l67.834,-72.072998l0.848999,121.252014l-58.507004,180.607971c0,0 38.156998,0.951019 39.005005,-0.744995c0.423004,-0.847992 42.395004,-167.143005 44.091003,-169.686981l47.483994,169.583984l36.459991,0l-58.505981,-178.911987l0.847992,-122.100006l69.528992,70.378006l20.351013,-16.959l-88.184021,-88.184006l-53.419983,0z')
-		man.append('path').attr('d', 'm239.113998,12.4448c-79.705002,1.6958 -78.856995,105.990197 -2.543991,106.838197c82.248993,0 84.791992,-105.990197 2.543991,-106.838197z')
-		man.selectAll('path').attr('fill', 'currentColor');
-
-		var node = this.defs.append('symbol')
-			.attr('id', 'node_symbol')
-			.attr('viewBox', '0 0 24 24')
-			.attr('preserveAspectRatio', 'xMinYMin')
-			.append('circle')
-				.attr('cx', 12)
-				.attr('cy', 12)
-				.attr('r', 10)
-				.attr('fill', 'currentColor');
-
-		this.group = this.svg.insert('g', ':first-child').classed('main', true);
-			//.attr('transform', 'translate(0, ' + (this.svgbox.y / 2) + ')');
-		this.links = this.group.append('g').classed('links', true);
 
 		this.options = {
 			duration: {
@@ -65,12 +29,6 @@
 			report_elem: null,
 			nodeCapacity: 50
 		};
-		this.scale = 1;
-
-		this.foci = {
-			actor: {x: this.svgbox.x / 3, y: this.svgbox.y / 2},
-			node: {x: 2 * this.svgbox.x / 3, y: this.svgbox.y / 2}
-		};
 
 		this.pause = {
 			isRequested: false,
@@ -84,13 +42,10 @@
 		this.nodes = [];
 		this.node_index = 0;
 
-		this.forceNodes = [];
-		this.forceLinks = [];
-
 		this.competition_price_per_gb = 5;// 100 / (1000 * 365); // $/(gb.day)
 		this.min_cycle_revenue_price_per_gb = 1; // 100 / (1000 * 365 * 5); // Per GB/Day
 
-		//console.log('ratio	=' + this.competition_price_per_gb / this.min_cycle_revenue_price_per_gb);
+		//console.log('ratio =' + this.competition_price_per_gb / this.min_cycle_revenue_price_per_gb);
 
 		this.attractivity = {
 			provider_rate: 0,
@@ -467,24 +422,6 @@
 			thread.start();
 		};
 
-		this.buy = function(thread, consumer, provider, stc_amount) {
-			thread.push({
-				function: this._buy,
-				args: arguments,
-				name: 'buy',
-				object: this
-			});
-		};
-
-		this._buy = function(thread, consumer, provider, stc_amount) {
-			if (provider.amount < stc_amount) {
-				throw new Error('Not enough STC for the transaction.');
-			}
-			consumer.amount += stc_amount;
-			provider.amount -= stc_amount;
-			thread.next();
-		};
-
 		this.publishOffer = function(thread, provider, stc_qty, price_per_stc) {
 			thread.push({
 				function: this._publishOffer,
@@ -495,19 +432,19 @@
 		};
 
 		this._publishOffer = function(thread, provider, stc_qty, price_per_stc) {
-			console.log('_publishOffer start');
+			//console.log('_publishOffer start');
 			var record = jlg.find(this.offers_table.dataset, function(d) {
 				return d.name == provider.name;
 			});
 			if (record) {
 				this.offers_table.removeRecord(record);
 			}
-			console.log('price_per_stc=' + price_per_stc);
+			//console.log('price_per_stc=' + price_per_stc);
 
 			var gb_qty = stc_qty * this.gb_per_stc();
 
 			if (gb_qty < 5) {
-				console.log('gb_qty < 5');
+				//console.log('gb_qty < 5');
 				thread.next();
 				return;
 			}
@@ -576,7 +513,6 @@
 		};
 
 		this._processDeals = function(thread) {
-
 			this.demands_table.dataset.sort(this.demands_table.options.sort);
 			this.offers_table.dataset.sort(this.offers_table.options.sort);
 
@@ -651,7 +587,7 @@
 					self.offers_table.removeRecord(offer);
 				}
 				if (demand.gb_qty <= 0) {
-					console.log(demand);
+					//console.log(demand);
 					self.demands_table.removeRecord(demand);
 				}
 
@@ -768,7 +704,7 @@
 		};
 
 		this.computeAttractivity = function() {
-			console.log('Start computeAttractivity at cycle ' + this.cycle_id);
+			//console.log('Start computeAttractivity at cycle ' + this.cycle_id);
 			if (this.cycle_id % 10 == 0) {
 				this.competition_price_per_gb = this.competition_price_per_gb * Math.randomize(0.75, 1.25);
 			}
@@ -783,7 +719,7 @@
 
 			var q = (G * p) / (N * v * c);
 			var provider_rate = this.normalize(4 * (q - 1));
-			console.log('provider_rate=' + provider_rate);
+			//console.log('provider_rate=' + provider_rate);
 			var providers_to_add = Math.floor(3 * Math.max(0, provider_rate));
 
 			// Consumer: \[\frac{1}{M}\sum\limits_{k=1}^M \frac{kdV(n-k)}{T(n-k)(p(n-k)-p(n))}\ge 1\]
@@ -799,32 +735,32 @@
 					}
 
 					var d = self.competition_price_per_gb;
-					console.log(self.dataset);
+//					console.log(self.dataset);
 					var V = v * self.dataset[b].nodes;
 					var T = G * b;
 					var p_buy = self.dataset[b].price_per_stc;
 					var p_sell = self.dataset[n].price_per_stc;
 					var frac_up = T * (p_buy - p_sell);
 					var frac_down = V * d * (n - b);
-					console.log('d=' + d);
-					console.log('V=' + V);
-					console.log('n=' + n);
-					console.log('b=' + b);
-					console.log('T=' + T);
-					console.log('p_buy=' + p_buy);
-					console.log('p_sell=' + p_sell);
-					console.log('frac_up=' + frac_up);
-					console.log('frac_down=' + frac_down);
+//					console.log('d=' + d);
+//					console.log('V=' + V);
+//					console.log('n=' + n);
+//					console.log('b=' + b);
+//					console.log('T=' + T);
+//					console.log('p_buy=' + p_buy);
+//					console.log('p_sell=' + p_sell);
+//					console.log('frac_up=' + frac_up);
+//					console.log('frac_down=' + frac_down);
 
 					result += frac_up / frac_down;
-					console.log('result=' + result);
+//					console.log('result=' + result);
 				}
 				return result;
 			}
 
 			var n = this.cycle_id;
 			this.cas += sum(n);
-			console.log('cas=' + this.cas);
+//			console.log('cas=' + this.cas);
 			var cai = this.cas * (2 / (n * (n - 1)));
 			var consumer_rate = this.normalize(4 * (1 - cai));
 			if (n < 2) {
@@ -841,7 +777,6 @@
 			};
 
 			//if (this.actors.length > 40) {
-
 				this.attractivity.providers_to_add = 0;
 			//}
 			this.attractivity.consumers_to_add = 0;

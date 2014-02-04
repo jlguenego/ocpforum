@@ -50,7 +50,6 @@
 
 		this.focus = function(graph) {
 			graph = graph || this.graph;
-			console.log(graph.dataset());
 			currentChartGroup = graph.parent.id;
 			this.buttons.selectAll('.button').classed('selected', false);
 			d3.select('#' + graph.parent.id + '_' + graph.name).classed('selected', true);

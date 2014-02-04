@@ -41,7 +41,7 @@
 		this.manageNode_p = function(thread) {
 			var node_to_manage = Math.floor(1 * this.profile.wealth * this.attractivity);
 
-			console.log('node_to_manage=' + node_to_manage);
+			//console.log('node_to_manage=' + node_to_manage);
 			var node_to_add = Math.max(0, node_to_manage);
 			var node_to_remove = Math.min(Math.abs(Math.min(0, node_to_manage)), Math.max(0, this.nodes.length - 5));
 
@@ -55,16 +55,16 @@
 		};
 
 		this.manageOffer_p = function(thread) {
-			console.log('manageOffer_p start with cycle ' + this.parent.cycle_id);
+			//console.log('manageOffer_p start with cycle ' + this.parent.cycle_id);
 			var price_per_stc = Math.randomize(0.9, 1.1) * this.parent.price_per_stc;
-			console.log('my price_per_stc=' + price_per_stc);
+			//console.log('my price_per_stc=' + price_per_stc);
 
 			if (this.parent.demands_table.dataset.length > 0) {
-				console.log('demand price per stc =' + this.parent.demands_table.dataset[0].price_per_stc);
-				console.log(this.parent.demands_table.dataset[0]);
+				//console.log('demand price per stc =' + this.parent.demands_table.dataset[0].price_per_stc);
+				//console.log(this.parent.demands_table.dataset[0]);
 				price_per_stc = Math.max(this.parent.demands_table.dataset[0].price_per_stc, price_per_stc);
 			}
-			console.log('my corrected price_per_stc=' + price_per_stc);
+			//console.log('my corrected price_per_stc=' + price_per_stc);
 			price_per_stc = Math.max(this.parent.min_cycle_revenue_price_per_gb * this.parent.gb_per_stc(), price_per_stc);
 
 			this.parent.publishOffer(thread, this, this.amount, price_per_stc);
@@ -75,27 +75,27 @@
 
 		this.behave_c = function(thread) {
 			var opportunity = Math.randomize(0, 100) > 10;
-			console.log('opportunity=' + opportunity);
+			//console.log('opportunity=' + opportunity);
 			if (!opportunity) {
 				return;
 			}
 
 			var price_per_gb = this.parent.price_per_gb;
-			console.log('debug default price_per_gb=' + price_per_gb);
+			//console.log('debug default price_per_gb=' + price_per_gb);
 			if (this.parent.offers_table.dataset.length > 0) {
 				price_per_gb = this.parent.offers_table.dataset[0].price_per_gb;
-				console.log('debug offers_table price_per_gb=' + price_per_gb);
+				//console.log('debug offers_table price_per_gb=' + price_per_gb);
 			}
 
 			if (this.parent.competition_price_per_gb < price_per_gb) {
-				console.log('Not competitive on cycle ' + this.parent.cycle_id + ': ' + (this.parent.competition_price_per_gb / this.parent.min_cycle_revenue_price_per_gb));
+				//console.log('Not competitive on cycle ' + this.parent.cycle_id + ': ' + (this.parent.competition_price_per_gb / this.parent.min_cycle_revenue_price_per_gb));
 				return;
 			}
 
 			var gb_needed = Math.randomize(0, 100);
-			console.log('demand gb_needed=' + gb_needed);
+			//console.log('demand gb_needed=' + gb_needed);
 			price_per_gb = Math.randomize(1, 1.5) * price_per_gb;
-			console.log('demand price_per_gb=' + price_per_gb);
+			//console.log('demand price_per_gb=' + price_per_gb);
 			this.parent.publishDemand(thread, this, gb_needed, price_per_gb);
 		};
 	};
