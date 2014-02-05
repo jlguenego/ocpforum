@@ -34,12 +34,13 @@
 			chart = dc.compositeChart(this.chartDivSelector)
 				.width(950).height(190)
 				.x(d3.scale.linear().domain([min, max]))
-				.legend(dc.legend().x(40).y(20).itemHeight(10).gap(5))
+				.legend(dc.legend().x(60).y(20).itemHeight(10).gap(5))
 				.dimension(xDim)
 				.group(group)
 				.elasticY(true)
 				.elasticX(true)
 				.brushOn(false);
+			chart.margins().left = 50;
 
 			dc.renderAll();
 
@@ -152,7 +153,8 @@
 
 		this.repaint = function() {
 			refreshDataset();
-			dc.redrawAll();
+			//chart.renderYAxis();
+			chart.redraw();
 			this.repaintButtons();
 		};
 
@@ -203,8 +205,7 @@
 					charts.push(lineChart);
 				})(i);
 			}
-			var unit = graph.x_axis_unit || function(v) {return v;};
-			chart.yAxis().tickFormat(unit);
+			chart.yAxis().tickFormat(graph.y_axis_unit);
 
 			chart.compose(charts);
 			clean_stack(graph);
@@ -277,6 +278,9 @@
 			graph.parent = this;
 			this.graphs.push(graph);
 			this.setDataset(graph, graph.dataset);
+			if (graph.y_axis_unit == undefined) {
+				graph.y_axis_unit = function(v) {return v;};
+			}
 		};
 
 		this.isEnabled = function(b) {

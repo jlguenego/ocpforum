@@ -18,7 +18,8 @@
 
 	<body>
 		<div id="chart-line-hitsperday"></div>
-		<button>Next</button>
+		<button id="next">Next</button>
+		<button id="y_format">add %</button>
 		<script>
 
 var dataset = [];
@@ -58,10 +59,11 @@ chart
 	.dimension(cycle_id)
 	.group(nodes, "nodes")
 	.stack(actors, "actors")
-	.elasticX(true);
+	.elasticX(true)
+	.yAxis().tickFormat(function(v){return v;});
 dc.renderAll();
 
-$('button').click(function() {
+$('#next').click(function() {
 	dataset.push({
 		cycle_id: i,
 		nodes: Math.randomize(0, 100),
@@ -77,6 +79,13 @@ $('button').click(function() {
 	ndx.remove();
 	ndx.add(dataset);
 	dc.redrawAll();
+});
+
+
+$('#y_format').click(function() {
+	chart.yAxis().tickFormat(function(v){return v+'%';});
+
+	chart.renderYAxis();
 });
 
 
