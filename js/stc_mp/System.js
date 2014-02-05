@@ -582,7 +582,7 @@
 					//console.log('no deal during cycle ' + this.cycle_id);
 					//console.log('this.competition_price_per_gb=' + this.competition_price_per_gb);
 					//console.log('this.gb_per_stc=' + this.gb_per_stc());
-					this.price_per_stc = Math.max(this.computeProviderMinPricePerSTC(), this.competition_price_per_gb * this.gb_per_stc() / 2);
+					this.price_per_stc = Math.max(this.computeProviderMinPricePerSTC(), this.price_per_stc * 0.9);
 					//this.price_per_stc = this.price_per_stc / 1.001;
 					//console.log('this.price_per_stc=' + this.price_per_stc);
 				}

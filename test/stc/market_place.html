@@ -294,8 +294,7 @@ input, select, table button {
 				<button id="add_consumer" disabled="disabled">Add consumer</button><br/>
 				<button id="debug">Debug</button><br/>
 				<hr/>
-				<button id="scenario1">Scenario 1</button>
-				<button id="scenario2">Scenario 2</button><br/>
+				<button id="scenario1">Scenario 1</button><input id="scenario1_nbr" style="width: 70px;" type="number" value="100" min="1"/><br/>
 				<hr/>
 
 				<div id="stat">
@@ -792,58 +791,14 @@ function button_runCycle() {
 }
 
 $('#scenario1').click(s1);
-$('#scenario2').click(s2);
 
 function s1() {
-	$('#animation').val('on');
-
-	start();
-	sys.totalSTC = 0;
-	sys.computeAttractivity();
-
-	var thread = new Thread('main');
-	//thread.setDebug('#debug');
-
-	var providers = [];
-	var provider_qty = 3;
-	for(var i = 0; i < provider_qty; i++) {
-		var provider = new stc.Actor('Provider_' + context.providerIndex);
-		sys.addActor(thread, provider);
-		providers.push(provider);
-		context.providerIndex++;
-
-		sys.addNode(thread, new stc.Node(provider));
-		context.nodeIndex++;
-	}
-
-	sys.nextCycle(thread);
-
-	var consumer_qty = 3;
-	for(var i = 0; i < consumer_qty; i++) {
-		var consumer = new stc.Actor('Consumer_' + context.userIndex);
-		sys.addActor(thread, consumer);
-		context.userIndex++;
-		sys.publishDemand(thread, consumer, 50, 0.7 + (i / 10));
-	}
-
-	for(var i = 0; i < provider_qty; i++) {
-		sys.publishOffer(thread, providers[i], 20, 1.2 + (i / 10));
-	}
-
-	sys.processDeals(thread);
-	sys.nextCycle(thread);
-
-	thread.finish();
-	thread.start();
-}
-
-function s2() {
 	$('#animation').val('off');
 	start();
 
 	var thread = new Thread('main');
 
-	var cycle_nbr = 600;
+	var cycle_nbr = $('#scenario1_nbr').val();
 	for (var i = 0; i < cycle_nbr; i++) {
 		sys.runCycle(thread);
 	}
