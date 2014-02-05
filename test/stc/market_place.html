@@ -3,6 +3,7 @@
 	<head>
 		<base href="../../" />
 		<meta charset="utf-8" />
+		<title>Market Place</title>
 
 		<script src="_ext/d3.v3.min.js"></script>
 		<script src="_ext/jquery-1.10.2.min.js"></script>
@@ -446,6 +447,7 @@ function init_graph() {
 		labels: [ [ 'PAR' ] ],
 		accessors: [ [ 'attractivity_provider_rate' ] ],
 		title: 'Provider Attractivity Rate',
+		class: 'new_line'
 	});
 	group.addGraph({
 		name: 'attractivity_consumer_rate',
@@ -549,7 +551,8 @@ function update_chart(selector) {
 }
 // END CHART STUFF
 
-$(document).ready(function() {
+$(document).ready(document_ready);
+function document_ready() {
 	$('.change_chart').each(function() {
 		set_button_title($(this));
 	});
@@ -562,7 +565,7 @@ $(document).ready(function() {
 	set_screen_size();
 
 	start();
-});
+}
 
 var onObjectSelected = function(object) {
 	if (object instanceof stc.Actor) {
@@ -734,12 +737,13 @@ function set_animation_durations() {
 	}
 }
 
-
-$('#reset').click(function() {
+$('#reset').click(button_reset);
+function button_reset() {
 	start();
-});
+}
 
-$('#pause_resume').click(function() {
+$('#pause_resume').click(button_pause_resume);
+function button_pause_resume() {
 	if ($(this).attr('data-paused') == 'false') {
 		sys.pause.isRequested = true;
 		$(this).html('Resume');
@@ -750,9 +754,10 @@ $('#pause_resume').click(function() {
 		$(this).attr('data-paused', 'false');
 		sys.pause.thread.next();
 	}
-});
+}
 
-$('#add_provider').click(function() {
+$('#add_provider').click(button_addProvider);
+function button_addProvider() {
 	refresh_options();
 
 	var thread = new Thread('main');
@@ -760,9 +765,10 @@ $('#add_provider').click(function() {
 
 	thread.finish();
 	thread.start();
-});
+}
 
-$('#add_consumer').click(function() {
+$('#add_consumer').click(button_addConsumer);
+function button_addConsumer() {
 	refresh_options();
 
 	var thread = new Thread('main');
@@ -770,7 +776,7 @@ $('#add_consumer').click(function() {
 
 	thread.finish();
 	thread.start();
-});
+}
 
 $('#run_cycle').click(button_runCycle);
 function button_runCycle() {
@@ -842,7 +848,8 @@ function s2() {
 	thread.start();
 }
 
-$('.menu .button').click(function() {
+$('.menu .button').click(button_menu);
+function button_menu() {
 	if ($(this).hasClass('disabled')) {
 		return;
 	}
@@ -853,7 +860,7 @@ $('.menu .button').click(function() {
 
 	$(this).addClass('selected');
 	$('.body .' + body).show();
-});
+}
 
 function reset_stats() {
 	$('#stat td').html(0);
@@ -863,7 +870,8 @@ function reset_stats() {
 	$('#stat .stc_total').html('0 STC');
 };
 
-$('#stat').get(0).addEventListener("system_stat", function(e) {
+$('#stat').get(0).addEventListener("system_stat", on_system_stat_event);
+function on_system_stat_event(e) {
 	var stats = e.detail;
 	var el = $(this);
 
@@ -891,7 +899,7 @@ $('#stat').get(0).addEventListener("system_stat", function(e) {
 			chart.repaint();
 			break;
 	}
-});
+}
 		</script>
 	</body>
 </html>
