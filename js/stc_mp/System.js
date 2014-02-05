@@ -59,7 +59,9 @@
 		};
 
 		this.price_per_stc = 1;
-		this.price_per_gb = this.competition_price_per_gb;
+		this.price_per_gb = function() {
+			return this.price_per_stc / this.gb_per_stc();
+		};
 		this.used = function() {
 			if (this.totalSTC == 0) {
 				return 0;
@@ -78,7 +80,21 @@
 		this.dataset = [];
 
 		this.computeProviderMinPricePerSTC = function() {
-			return Math.max(this.nodes.length, 1) * this.options.nodeCapacity * this.min_cycle_revenue_price_per_gb / this.options.stcPerCycle;
+			return 1 * Math.max(this.nodes.length, 1) * this.options.nodeCapacity * this.min_cycle_revenue_price_per_gb / this.options.stcPerCycle;
+		};
+
+		this.renting_price_per_gb = function() {
+			var previous = this.dataset[this.dataset.length - 1];
+			if (!previous) {
+				previous = {
+					nodes: this.nodes.length,
+					total_stc: this.options.stcPerCycle,
+					price_per_stc: this.price_per_stc
+				};
+			}
+			var gb_start = Math.max(1, previous.nodes) * this.options.nodeCapacity / previous.total_stc;
+			var gb_end = Math.max(1, this.nodes.length) * this.options.nodeCapacity / Math.max(this.options.stcPerCycle, this.totalSTC);
+			return (previous.price_per_stc - this.price_per_stc) / Math.min(gb_start, gb_end);
 		};
 
 		// MARKET PLACE STUFF
@@ -248,23 +264,12 @@
 		};
 
 		this.updateDatasets = function() {
-			var previous = this.dataset[this.dataset.length - 1];
-			if (!previous) {
-				previous = {
-					nodes: this.nodes.length,
-					total_stc: this.options.stcPerCycle,
-					price_per_stc: this.price_per_stc
-				};
-			}
-			var gb_start = Math.max(1, previous.nodes) * this.options.nodeCapacity / previous.total_stc;
-			var gb_end = Math.max(1, this.nodes.length) * this.options.nodeCapacity / Math.max(this.options.stcPerCycle, this.totalSTC);
-			var renting_price_per_gb = (previous.price_per_stc - this.price_per_stc) / Math.min(gb_start, gb_end);
 			this.dataset.push({
 				cycle: this.cycle_id,
 				gb_per_stc: this.gb_per_stc(),
 				price_per_stc: this.price_per_stc,
-				price_per_gb: this.price_per_gb,
-				renting_price_per_gb: renting_price_per_gb,
+				price_per_gb: this.price_per_gb(),
+				renting_price_per_gb: this.renting_price_per_gb(),
 				total_stc: this.totalSTC,
 				nodes: this.nodes.length,
 				actors: this.actors.length,
@@ -334,7 +339,7 @@
 				this.offers_table.dataset[i].price_per_gb = jlg.round(this.offers_table.dataset[i].price_per_stc / this.gb_per_stc());
 			}
 			for (var i = 0; i < this.demands_table.dataset.length; i++) {
-				this.demands_table.dataset[i].price_per_stc = jlg.round(this.demands_table.dataset[i].gb_qty * this.gb_per_stc());
+				this.demands_table.dataset[i].price_per_stc = jlg.round(this.demands_table.dataset[i].price_per_gb * this.gb_per_stc());
 				this.demands_table.dataset[i].stc_qty = jlg.round(this.demands_table.dataset[i].gb_qty / this.gb_per_stc());
 			}
 		};
@@ -369,6 +374,8 @@
 		};
 
 		this.report = function(report) {
+			this.repaintSideView();
+
 			if (!this.options.report_elem) {
 				return;
 			}
@@ -513,6 +520,27 @@
 			}, this.demands_table.options.duration.repaint);
 		};
 
+		this.removeDemand = function(thread, consumer) {
+			thread.push({
+				function: this._removeDemand,
+				args: arguments,
+				name: 'removeDemand',
+				object: this
+			});
+		};
+
+		this._removeDemand = function(thread, consumer) {
+			var record = jlg.find(this.demands_table.dataset, function(d) {
+				return d.name == consumer.name;
+			});
+
+			if (record) {
+				this.demands_table.removeRecord(record);
+			}
+
+			thread.next();
+		};
+
 		this.tableSortByRate = function(a, b) {
 			return a[2] - b[2];
 		};
@@ -552,12 +580,11 @@
 			if ((!offer || !demand) || offer.price_per_stc > demand.price_per_stc) {
 				if (this.performed_deal_nbr == 0) {
 					//console.log('no deal during cycle ' + this.cycle_id);
-					console.log('this.competition_price_per_gb=' + this.competition_price_per_gb);
-					console.log('this.gb_per_stc=' + this.gb_per_stc());
+					//console.log('this.competition_price_per_gb=' + this.competition_price_per_gb);
+					//console.log('this.gb_per_stc=' + this.gb_per_stc());
 					this.price_per_stc = Math.max(this.computeProviderMinPricePerSTC(), this.competition_price_per_gb * this.gb_per_stc() / 2);
 					//this.price_per_stc = this.price_per_stc / 1.001;
-					console.log('this.price_per_stc=' + this.price_per_stc);
-					this.price_per_gb = this.price_per_stc / this.gb_per_stc();
+					//console.log('this.price_per_stc=' + this.price_per_stc);
 				}
 				thread.next();
 				return;
@@ -576,8 +603,7 @@
 			setTimeout(function() {
 				var transaction = Math.min(demand.stc_qty, offer.stc_qty);
 
-				self.price_per_gb = demand.price_per_gb;
-				self.price_per_stc = demand.price_per_gb * self.gb_per_stc();
+				self.price_per_stc = Math.max(demand.price_per_gb * self.gb_per_stc(), self.computeProviderMinPricePerSTC());
 
 				self.performed_deal_nbr = self.performed_deal_nbr + 1;
 
@@ -618,7 +644,7 @@
 			return jlg.find(this.actors, function(d) { return d.name == name; })
 		};
 
-		this.runCycle = function(thread, cycle_nbr) {
+		this.runCycle = function(thread) {
 			thread.push({
 				function: this._runCycle,
 				args: arguments,
@@ -627,8 +653,10 @@
 			});
 		};
 
-		this._runCycle = function(thread, cycle_nbr) {
+		this._runCycle = function(thread) {
 			var t = new Thread('runCycle_' + this.cycle_id);
+
+			var cycle_id = this.cycle_id;
 
 			if (this.providers.length < 1) {
 				this.addProvider(t);
@@ -653,24 +681,9 @@
 				this.makeActivity(t, actor);
 			}
 
-			this.checkPause(t);
-
-			if (this.cycle_id >= cycle_nbr) {
-				t.execute(function() {
-					console.log('End of cycles.');
-				});
-				thread.do_wait(t);
-				t.start();
-				thread.next();
-				return;
-			}
-
 			this.processDeals(t);
-
+			this.checkPause(t);
 			this.nextCycle(t);
-			if (this.cycle_id < cycle_nbr) {
-				this.runCycle(t, cycle_nbr);
-			}
 
 			thread.do_wait(t);
 			t.start();
@@ -744,10 +757,6 @@
 					return 0;
 				}
 				for (var b = 1; b < n; b++) {
-					if (n - b < 0) {
-						break;
-					}
-
 					var d = self.competition_price_per_gb;
 //					console.log(self.dataset);
 					var V = v * self.dataset[b].nodes;
@@ -756,25 +765,26 @@
 					var p_sell = self.dataset[n].price_per_stc;
 					var frac_up = T * (p_buy - p_sell);
 					var frac_down = V * d * (n - b);
-//					console.log('d=' + d);
-//					console.log('V=' + V);
-//					console.log('n=' + n);
-//					console.log('b=' + b);
-//					console.log('T=' + T);
-//					console.log('p_buy=' + p_buy);
-//					console.log('p_sell=' + p_sell);
-//					console.log('frac_up=' + frac_up);
-//					console.log('frac_down=' + frac_down);
+					console.log('d=' + d);
+					console.log('V=' + V);
+					console.log('n=' + n);
+					console.log('b=' + b);
+					console.log('T=' + T);
+					console.log('p_buy=' + p_buy);
+					console.log('p_sell=' + p_sell);
+					console.log('frac_up=' + frac_up);
+					console.log('frac_down=' + frac_down);
 
 					result += frac_up / frac_down;
-//					console.log('result=' + result);
+					console.log('result=' + result);
 				}
 				return result;
 			}
 
 			var n = this.cycle_id;
 			this.cas += sum(n);
-//			console.log('cas=' + this.cas);
+			console.log('cycle_id=' + this.cycle_id);
+			console.log('cas=' + this.cas);
 			var cai = this.cas * (2 / (n * (n - 1)));
 			var consumer_rate = this.normalize(4 * (1 - cai));
 			if (n < 2) {

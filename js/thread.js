@@ -27,6 +27,8 @@ function Thread(name) {
 	};
 
 	this.next = function() {
+//		console.log('thread.next()');
+//		console.log(this.orders.slice(0));
 		if (!this.debug) {
 			this._next();
 		}
@@ -56,6 +58,7 @@ function Thread(name) {
 			function: function(thread) {
 				console.log(thread.name + ': finished');
 				this.isFinished = true;
+				//console.log(this.orders.slice(0));
 				// no thread.next();
 			},
 			args: [ this ],

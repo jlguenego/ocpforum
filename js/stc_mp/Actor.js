@@ -74,28 +74,31 @@
 		};
 
 		this.behave_c = function(thread) {
+
 			var opportunity = Math.randomize(0, 100) > 10;
 			//console.log('opportunity=' + opportunity);
 			if (!opportunity) {
+				this.parent.removeDemand(thread, this);
 				return;
 			}
 
-			var price_per_gb = this.parent.price_per_gb;
-			//console.log('debug default price_per_gb=' + price_per_gb);
-			if (this.parent.offers_table.dataset.length > 0) {
-				price_per_gb = this.parent.offers_table.dataset[0].price_per_gb;
-				//console.log('debug offers_table price_per_gb=' + price_per_gb);
-			}
-
-			if (this.parent.competition_price_per_gb < price_per_gb) {
-				//console.log('Not competitive on cycle ' + this.parent.cycle_id + ': ' + (this.parent.competition_price_per_gb / this.parent.min_cycle_revenue_price_per_gb));
+			if (this.parent.competition_price_per_gb < this.parent.renting_price_per_gb()) {
+				console.log('Not competitive on cycle ' + this.parent.cycle_id + ': ' + (this.parent.competition_price_per_gb / this.parent.min_cycle_revenue_price_per_gb));
 				return;
 			}
 
 			var gb_needed = Math.randomize(0, 100);
 			//console.log('demand gb_needed=' + gb_needed);
-			price_per_gb = Math.randomize(1, 1.5) * price_per_gb;
+
+			var price_per_gb = this.parent.price_per_gb();
+			//console.log('debug default price_per_gb=' + price_per_gb);
+			if (this.parent.offers_table.dataset.length > 0) {
+				price_per_gb = this.parent.offers_table.dataset[0].price_per_gb;
+				//console.log('debug offers_table price_per_gb=' + price_per_gb);
+			}
+			price_per_gb = Math.randomize(1, 1.1) * price_per_gb;
 			//console.log('demand price_per_gb=' + price_per_gb);
+
 			this.parent.publishDemand(thread, this, gb_needed, price_per_gb);
 		};
 	};

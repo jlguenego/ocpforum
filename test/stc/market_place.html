@@ -390,7 +390,7 @@ function init_graph() {
 	group.addGraph({
 		name: 'price_per_gb',
 		text: '$/GB',
-		labels: [ [ 'OCP price per GB' ], [ 'OCP renting per day' ], [ 'Competition renting per day' ] ],
+		labels: [ [ 'OCP buy price per GB' ], [ 'OCP renting price per GB per day' ], [ 'Competition renting price per GB per day' ] ],
 		accessors: [ [ 'price_per_gb' ], [ 'renting_price_per_gb' ], [ 'competition' ] ],
 		colors: [ [ 'red' ], [ 'blue' ], [ 'green' ] ],
 		title: 'Exchange rate of 1 GB in $.',
@@ -784,7 +784,7 @@ function button_runCycle() {
 
 	var thread = new Thread('main');
 	stc.Utils.disableButton(thread, '#run_cycle');
-	sys.runCycle(thread, sys.cycle_id + 1);
+	sys.runCycle(thread);
 	stc.Utils.enableButton(thread, '#run_cycle');
 
 	thread.finish();
@@ -842,7 +842,11 @@ function s2() {
 	start();
 
 	var thread = new Thread('main');
-	sys.runCycle(thread, 50);
+
+	var cycle_nbr = 600;
+	for (var i = 0; i < cycle_nbr; i++) {
+		sys.runCycle(thread);
+	}
 
 	thread.finish();
 	thread.start();
