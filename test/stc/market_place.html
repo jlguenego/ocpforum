@@ -269,7 +269,6 @@ input, select, table button {
 								<td class="owner"></td>
 							</tr>
 						</table>
-						<button id="rm_node" disabled="disabled">Remove Node</button>
 					</div>
 
 					<div class="param_body settings">
@@ -287,13 +286,11 @@ input, select, table button {
 					</div>
 				</div>
 				<hr/>
-				<button id="start">Start</button>
-				<button id="stop">Stop</button>
+				<button id="reset">Reset</button>
 				<button id="pause_resume">Pause</button><br/>
-				<button id="next_cycle" disabled="disabled">Next cycle</button>
-				<button id="do_cycle" disabled="disabled">Do cycle</button><br/>
-				<button id="add_actor" disabled="disabled">Add actor</button><input type="number" id="actor_qty" min="1" max="99" value="1" disabled="disabled" />
-				<button id="add_node" disabled="disabled">Add Node</button><input type="number" id="node_qty" min="1" max="99" value="1" disabled="disabled" /><br/>
+				<button id="run_cycle" disabled="disabled">Run cycle</button><br/>
+				<button id="add_provider" disabled="disabled">Add provider</button>
+				<button id="add_consumer" disabled="disabled">Add consumer</button><br/>
 				<button id="debug">Debug</button><br/>
 				<hr/>
 				<button id="scenario1">Scenario 1</button>
@@ -392,7 +389,7 @@ function init_graph() {
 	group.addGraph({
 		name: 'price_per_gb',
 		text: '$/GB',
-		labels: [ [ 'OCP' ], [ 'OCP renting per day' ], [ 'Competition renting per day' ] ],
+		labels: [ [ 'OCP price per GB' ], [ 'OCP renting per day' ], [ 'Competition renting per day' ] ],
 		accessors: [ [ 'price_per_gb' ], [ 'renting_price_per_gb' ], [ 'competition' ] ],
 		colors: [ [ 'red' ], [ 'blue' ], [ 'green' ] ],
 		title: 'Exchange rate of 1 GB in $.',
@@ -569,12 +566,8 @@ $(document).ready(function() {
 
 var onObjectSelected = function(object) {
 	if (object instanceof stc.Actor) {
-		$('#add_node').attr('disabled', false);
 		$('#node_qty').attr('disabled', false);
 		$('#chart_buttons .actor li').removeClass('disabled');
-
-		// Disable nodes buttons
-		$('#rm_node').attr('disabled', false);
 
 		var actorMenu = $('.param_body.actor');
 		actorMenu.find('.name').html(object.name);
@@ -594,8 +587,6 @@ var onObjectSelected = function(object) {
 	}
 
 	if (object instanceof stc.Node) {
-		$('#rm_node').attr('disabled', false);
-
 		var nodeMenu = $('.param_body.node');
 		nodeMenu.find('.name').html(object.name);
 		nodeMenu.find('.owner').html(object.owner.name);
@@ -609,8 +600,6 @@ var onObjectSelected = function(object) {
 		$('.menu [data-body=node]').click();
 
 		// Disable actors buttons
-		$('#add_node').attr('disabled', true);
-		$('#node_qty').attr('disabled', true);
 		$('#chart_buttons .actor button').attr('disabled', true);
 
 		var g = chart.getGroup('actor');
@@ -621,10 +610,7 @@ var onObjectSelected = function(object) {
 };
 
 var onObjectDeselected = function(object) {
-	$('#add_node').attr('disabled', true);
-	$('#node_qty').attr('disabled', true);
 	$('#chart_buttons .actor li').addClass('disabled');
-	$('#rm_node').attr('disabled', true);
 
 	var actorMenu = $('.param_body.actor');
 	actorMenu.find('.name').html('');
@@ -659,10 +645,10 @@ function start() {
 
 	$('.menu [data-body=actor]').removeClass('disabled');
 	$('.menu [data-body=node]').removeClass('disabled');
-	$('#add_actor').attr('disabled', null);
+	$('#add_provider').attr('disabled', null);
+	$('#add_consumer').attr('disabled', null);
 	$('#actor_qty').attr('disabled', null);
-	$('#next_cycle').attr('disabled', null);
-	$('#do_cycle').attr('disabled', null);
+	$('#run_cycle').attr('disabled', null);
 	$('#pause_resume').attr('data-paused', 'false');
 	$('#pause_resume').attr('disabled', null);
 
@@ -749,7 +735,7 @@ function set_animation_durations() {
 }
 
 
-$('#start').click(function() {
+$('#reset').click(function() {
 	start();
 });
 
@@ -766,88 +752,38 @@ $('#pause_resume').click(function() {
 	}
 });
 
-$('#add_actor').click(function() {
-	var actor_qty = $('#actor_qty').val();
-
+$('#add_provider').click(function() {
 	refresh_options();
 
 	var thread = new Thread('main');
-	thread.execute(function() {
-		$('#add_actor').attr('disabled', 'disabled');
-	});
-
-	for (var i = 0; i < actor_qty; i++) {
-		sys.addActor(thread, new stc.Actor('Provider_' + context.providerIndex));
-		context.providerIndex++;
-	}
-
-	thread.execute(function() {
-		$('#add_actor').attr('disabled', null);
-	});
+	sys.addProvider(thread);
 
 	thread.finish();
 	thread.start();
 });
 
-$('#add_node').click(function() {
-	var node_qty = $('#node_qty').val();
-
+$('#add_consumer').click(function() {
 	refresh_options();
 
 	var thread = new Thread('main');
-	thread.execute(function() {
-		$('#add_node').attr('disabled', 'disabled');
-	});
-
-	for (var i = 0; i < node_qty; i++) {
-		sys.addNode(thread, new stc.Node('Node_' + context.nodeIndex, sys.selectedObject));
-		context.nodeIndex++;
-	}
-
-	thread.execute(function() {
-		$('#add_node').attr('disabled', null);
-	});
+	sys.addConsumer(thread);
 
 	thread.finish();
 	thread.start();
 });
 
-$('#rm_node').click(function() {
-	refresh_options();
-	var selectedNode = sys.selectedObject;
-
-	var thread = new Thread('main');
-	sys.unselectObject(thread, sys.selectedObject);
-	sys.removeNode(thread, selectedNode);
-
-	thread.finish();
-	thread.start();
-});
-
-$('#next_cycle').click(function() {
+$('#run_cycle').click(button_runCycle);
+function button_runCycle() {
 	refresh_options();
 
 	var thread = new Thread('main');
-	stc.Utils.disableButton(thread, '#next_cycle');
-	sys.nextCycle(thread);
-	stc.Utils.enableButton(thread, '#next_cycle');
+	stc.Utils.disableButton(thread, '#run_cycle');
+	sys.runCycle(thread, sys.cycle_id + 1);
+	stc.Utils.enableButton(thread, '#run_cycle');
 
 	thread.finish();
 	thread.start();
-});
-
-$('#do_cycle').click(function() {
-	refresh_options();
-	var scenario = new stc.Scenario(sys, context);
-	stc.Utils.disableButton(scenario.thread, '#do_cycle');
-	scenario.doCycle();
-	stc.Utils.enableButton(scenario.thread, '#do_cycle');
-	scenario.start();
-});
-
-$('#stop').click(function() {
-	window.location.reload();
-});
+}
 
 $('#scenario1').click(s1);
 $('#scenario2').click(s2);
@@ -900,7 +836,7 @@ function s2() {
 	start();
 
 	var thread = new Thread('main');
-	sys.runCycle(thread, 2);
+	sys.runCycle(thread, 50);
 
 	thread.finish();
 	thread.start();
