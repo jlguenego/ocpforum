@@ -55,12 +55,10 @@
 		this.totalSTC = 0;
 		this.cycle_id = 0;
 		this.gb_per_stc = function() {
-			if (this.totalSTC == 0) {
-				return 1;
-			}
-			return this.nodes.length * this.options.nodeCapacity / this.totalSTC;
+			return Math.max(1, this.nodes.length) * this.options.nodeCapacity / Math.max(this.totalSTC, this.options.stcPerCycle);
 		};
-		this.price_per_stc = this.options.nodeCapacity * this.competition_price_per_gb / this.options.stcPerCycle;
+
+		this.price_per_stc = 1;
 		this.price_per_gb = this.competition_price_per_gb;
 		this.used = function() {
 			if (this.totalSTC == 0) {
@@ -78,6 +76,10 @@
 
 		this.actors_dataset_aa = {};
 		this.dataset = [];
+
+		this.computeProviderMinPricePerSTC = function() {
+			return Math.max(this.nodes.length, 1) * this.options.nodeCapacity * this.min_cycle_revenue_price_per_gb / this.options.stcPerCycle;
+		};
 
 		// MARKET PLACE STUFF
 		var columns = [
@@ -227,8 +229,8 @@
 			ca.show(thread);
 			ca.split(thread);
 			this.addReward(thread);
-			this.updateMarketPlace(thread);
 			this.nextCycleMisc(thread);
+			this.updateMarketPlace(thread);
 		};
 
 		this.nextCycleMisc = function(thread) {
@@ -246,23 +248,35 @@
 		};
 
 		this.updateDatasets = function() {
+			var previous = this.dataset[this.dataset.length - 1];
+			if (!previous) {
+				previous = {
+					nodes: this.nodes.length,
+					total_stc: this.options.stcPerCycle,
+					price_per_stc: this.price_per_stc
+				};
+			}
+			var gb_start = Math.max(1, previous.nodes) * this.options.nodeCapacity / previous.total_stc;
+			var gb_end = Math.max(1, this.nodes.length) * this.options.nodeCapacity / Math.max(this.options.stcPerCycle, this.totalSTC);
+			var renting_price_per_gb = (previous.price_per_stc - this.price_per_stc) / Math.min(gb_start, gb_end);
 			this.dataset.push({
-				cycle: self.cycle_id,
-				gb_per_stc: self.gb_per_stc(),
-				price_per_stc: self.price_per_stc,
-				price_per_gb: self.price_per_gb,
-				total_stc: self.totalSTC,
-				nodes: self.nodes.length,
-				actors: self.actors.length,
-				consumers: self.consumers.length,
-				providers: self.providers.length,
-				capacity: self.nodes.length * self.options.nodeCapacity,
-				performed_deal_nbr: self.performed_deal_nbr,
-				usage: self.used(),
-				competition: self.competition_price_per_gb,
-				attractivity_provider_rate: self.attractivity.provider_rate,
-				attractivity_consumer_rate: self.attractivity.consumer_rate,
-				cas: self.cas
+				cycle: this.cycle_id,
+				gb_per_stc: this.gb_per_stc(),
+				price_per_stc: this.price_per_stc,
+				price_per_gb: this.price_per_gb,
+				renting_price_per_gb: renting_price_per_gb,
+				total_stc: this.totalSTC,
+				nodes: this.nodes.length,
+				actors: this.actors.length,
+				consumers: this.consumers.length,
+				providers: this.providers.length,
+				capacity: this.nodes.length * this.options.nodeCapacity,
+				performed_deal_nbr: this.performed_deal_nbr,
+				usage: this.used(),
+				competition: this.competition_price_per_gb,
+				attractivity_provider_rate: this.attractivity.provider_rate,
+				attractivity_consumer_rate: this.attractivity.consumer_rate,
+				cas: this.cas
 			});
 
 			for (var i = 0; i < this.actors.length; i++) {
@@ -538,11 +552,11 @@
 			if ((!offer || !demand) || offer.price_per_stc > demand.price_per_stc) {
 				if (this.performed_deal_nbr == 0) {
 					//console.log('no deal during cycle ' + this.cycle_id);
-					//console.log('this.competition_price_per_gb=' + this.competition_price_per_gb);
-					//console.log('this.gb_per_stc=' + this.gb_per_stc);
-					this.price_per_stc = Math.max(this.price_per_stc * 0.5, this.competition_price_per_gb * this.gb_per_stc() / 2);
+					console.log('this.competition_price_per_gb=' + this.competition_price_per_gb);
+					console.log('this.gb_per_stc=' + this.gb_per_stc());
+					this.price_per_stc = Math.max(this.computeProviderMinPricePerSTC(), this.competition_price_per_gb * this.gb_per_stc() / 2);
 					//this.price_per_stc = this.price_per_stc / 1.001;
-					//console.log('this.price_per_stc=' + this.price_per_stc);
+					console.log('this.price_per_stc=' + this.price_per_stc);
 					this.price_per_gb = this.price_per_stc / this.gb_per_stc();
 				}
 				thread.next();
@@ -563,7 +577,7 @@
 				var transaction = Math.min(demand.stc_qty, offer.stc_qty);
 
 				self.price_per_gb = demand.price_per_gb;
-				self.price_per_stc = demand.price_per_gb * self.gb_per_stc() * 1.1;
+				self.price_per_stc = demand.price_per_gb * self.gb_per_stc();
 
 				self.performed_deal_nbr = self.performed_deal_nbr + 1;
 
@@ -643,7 +657,7 @@
 
 			if (this.cycle_id >= cycle_nbr) {
 				t.execute(function() {
-					console.log('interrupted');
+					console.log('End of cycles.');
 				});
 				thread.do_wait(t);
 				t.start();

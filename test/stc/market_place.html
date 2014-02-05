@@ -392,9 +392,9 @@ function init_graph() {
 	group.addGraph({
 		name: 'price_per_gb',
 		text: '$/GB',
-		labels: [ [ 'OCP' ], [ 'Competition' ] ],
-		accessors: [ [ 'price_per_gb' ], [ 'competition' ] ],
-		colors: [ [ '#FF8A8A' ], [ '#8AC5FF' ] ],
+		labels: [ [ 'OCP' ], [ 'OCP renting per day' ], [ 'Competition renting per day' ] ],
+		accessors: [ [ 'price_per_gb' ], [ 'renting_price_per_gb' ], [ 'competition' ] ],
+		colors: [ [ 'red' ], [ 'blue' ], [ 'green' ] ],
 		title: 'Exchange rate of 1 GB in $.',
 		renderArea: false
 	});
@@ -900,7 +900,7 @@ function s2() {
 	start();
 
 	var thread = new Thread('main');
-	sys.runCycle(thread, 50);
+	sys.runCycle(thread, 2);
 
 	thread.finish();
 	thread.start();
