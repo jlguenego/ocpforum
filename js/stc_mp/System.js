@@ -344,6 +344,14 @@
 			}
 		};
 
+		this.computeTotalSTC = function() {
+			var result = 0;
+			for (var i = 0; i < this.actors.length; i++) {
+				result += this.actors[i].amount;
+			}
+			return Math.round(result * 1000) / 1000;
+		};
+
 		this.addReward = function(thread) {
 			thread.push({
 				function: this._addReward,
@@ -360,6 +368,21 @@
 				var node = this.nodes[i];
 				node.owner.amount += stc_qty;
 				node.owner.mined_amount += stc_qty;
+			}
+
+			var stability_cycle = 20;
+			if (this.totalSTC > stability_cycle * this.options.stcPerCycle) {
+				var tax_rate = (this.options.stcPerCycle / this.totalSTC);
+				// remove 100 STC from the system (tax)
+				for (var i = 0; i < this.actors.length; i++) {
+					this.actors[i].amount -= this.actors[i].amount * (tax_rate);
+				}
+				this.totalSTC -= this.options.stcPerCycle;
+				if (this.totalSTC != this.computeTotalSTC()) {
+					console.log('this.totalSTC=' + this.totalSTC);
+					console.log('sum=' + this.computeTotalSTC());
+					throw new Error('total STC inconsistency.');
+				}
 			}
 
 			this.repaintSideView();
@@ -800,10 +823,11 @@
 				consumers_to_add: consumers_to_add,
 			};
 
-			//if (this.actors.length > 40) {
+			if (this.actors.length > 40) {
 				this.attractivity.providers_to_add = 0;
-			//}
-			this.attractivity.consumers_to_add = 0;
+				this.attractivity.consumers_to_add = 0;
+			}
+
 		};
 
 		this.addProvider = function(thread) {

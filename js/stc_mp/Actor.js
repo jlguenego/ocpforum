@@ -64,6 +64,9 @@
 				//console.log(this.parent.demands_table.dataset[0]);
 				price_per_stc = Math.max(this.parent.demands_table.dataset[0].price_per_stc, price_per_stc);
 			}
+
+			price_per_stc = Math.randomize(0.9, 1.1) * price_per_stc;
+
 			//console.log('my corrected price_per_stc=' + price_per_stc);
 			price_per_stc = Math.max(this.parent.min_cycle_revenue_price_per_gb * this.parent.gb_per_stc(), price_per_stc);
 
@@ -83,7 +86,8 @@
 			}
 
 			if (this.parent.competition_price_per_gb < this.parent.renting_price_per_gb()) {
-				console.log('Not competitive on cycle ' + this.parent.cycle_id + ': ' + (this.parent.competition_price_per_gb / this.parent.min_cycle_revenue_price_per_gb));
+				//console.log('Not competitive on cycle ' + this.parent.cycle_id + ': ' + (this.parent.competition_price_per_gb / this.parent.min_cycle_revenue_price_per_gb));
+				this.parent.removeDemand(thread, this);
 				return;
 			}
 
@@ -96,8 +100,11 @@
 				price_per_gb = this.parent.offers_table.dataset[0].price_per_gb;
 				//console.log('debug offers_table price_per_gb=' + price_per_gb);
 			}
-			price_per_gb = Math.randomize(1, 1.1) * price_per_gb;
-			//console.log('demand price_per_gb=' + price_per_gb);
+			price_per_gb = Math.randomize(0.9, 1.1) * price_per_gb;
+			if (price_per_gb > 20 * this.parent.competition_price_per_gb) {
+				this.parent.removeDemand(thread, this);
+				return;
+			}
 
 			this.parent.publishDemand(thread, this, gb_needed, price_per_gb);
 		};
