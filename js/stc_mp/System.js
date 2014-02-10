@@ -10,7 +10,6 @@
 
 		this.sideView = d3.select(viewSelectors.sideView);
 		this.actorsView = d3.select(viewSelectors.actorsView);
-		this.nodesView = d3.select(viewSelectors.nodesView);
 
 		this.options = {
 			duration: {

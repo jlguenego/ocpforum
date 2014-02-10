@@ -218,11 +218,13 @@ function Thread(name) {
 		});
 	};
 
-	this.execute = function(f) {
+	this.execute = function(f, b) {
 		this.push({
 			function: function() {
 				f();
-				this.next();
+				if (!b) {
+					this.next();
+				}
 			},
 			args: arguments,
 			name: 'execute',
@@ -230,14 +232,11 @@ function Thread(name) {
 		});
 	};
 
-	this.execute_no_next = function(f) {
-		this.push({
-			function: function() {
-				f();
-			},
-			args: arguments,
-			name: 'execute',
-			object: this
-		});
+	this.kill = function() {
+		for (var i = 0; i < this.waiting_list.length; i++) {
+			var t = this.waiting_list[i];
+			t.kill();
+		}
+		this.orders = [];
 	};
 }

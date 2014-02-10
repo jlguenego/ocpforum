@@ -50,8 +50,8 @@ html, body {
 	background-color: #E6F2FF;
 }
 
-#param .param_body.settings table tr :last-child {
-	width: 80px;
+#param button {
+	min-width: 0;
 }
 
 svg {
@@ -66,7 +66,7 @@ table {
 table th, table td {
 	vertical-align: middle;
 	text-align: center;
-	font-size: 14px;
+	font-size: 12px;
 }
 
 th {
@@ -75,8 +75,9 @@ th {
 }
 
 input, select, table button {
+	min-width: 42px;
 	width: 100%;
-	font-size: 14px;
+	font-size: 12px;
 	font-weight: 400;
 
 	box-sizing: border-box;
@@ -120,7 +121,7 @@ input, select, table button {
 	line-height: 28px;
 
 	cursor: pointer;
-	background-color: #FBFDFF
+	background-color: transparent;
 }
 
 .menu .button:hover {
@@ -137,7 +138,7 @@ input, select, table button {
 }
 
 .menu .selected {
-	background-color: transparent;
+	background-color: #FBFDFF;
 }
 
 .body {
@@ -239,7 +240,6 @@ input, select, table button {
 				<div class="menu">
 					<div class="button" data-body="settings">Settings</div>
 					<div class="button disabled" data-body="actor">Actor</div>
-					<div class="button disabled" data-body="node">Node</div>
 				</div>
 				<div class="body">
 					<div class="param_body actor">
@@ -263,19 +263,6 @@ input, select, table button {
 						</table>
 					</div>
 
-					<div class="param_body node">
-						<table>
-							<tr>
-								<th>Name</th>
-								<td class="name"></td>
-							</tr>
-							<tr>
-								<th>Owner</th>
-								<td class="owner"></td>
-							</tr>
-						</table>
-					</div>
-
 					<div class="param_body settings">
 						<table>
 							<tr>
@@ -286,31 +273,34 @@ input, select, table button {
 										<option value="off">Off</option>
 									</select>
 								</td>
+								<td></td>
+								<th title="Competition price">Comp. price</th>
+								<td>
+									<input id="competition_price_per_gb" type="number" value="5" />
+								</td>
 							</tr>
 							<tr>
-								<th>Max Actor nbr</th>
+								<th>Max Actor</th>
 								<td>
 									<input id="max_actor_nbr" type="number" min="2" value="2" />
 								</td>
-								<td><button class="input_switch" data-value="max_actor_nbr" data-type="actor">Disable</button></td>
-							</tr>
-							<tr>
-								<th>Stability cycle id</th>
-								<td>
-									<input id="stability_cycle_id" type="number" min="1" value="1" />
-								</td>
-								<td><button class="input_switch" data-value="stability_cycle_id" data-type="stability_cycle">Disable</button></td>
-							</tr>
-							<tr>
-								<th>Revenu cost</th>
+								<td><button class="input_switch" data-value="max_actor_nbr" data-type="actor">Off</button></td>
+
+								<th>Price cost</th>
 								<td>
 									<input id="min_cycle_revenue_price_per_gb" type="number" value="1" />
 								</td>
 							</tr>
 							<tr>
-								<th>Competition price</th>
+								<th>Stability cycle</th>
 								<td>
-									<input id="competition_price_per_gb" type="number" value="5" />
+									<input id="stability_cycle_id" type="number" min="1" value="20" />
+								</td>
+								<td><button class="input_switch" data-value="stability_cycle_id" data-type="stability_cycle">Off</button></td>
+
+								<th>Node Capacity</th>
+								<td>
+									<input id="node_capacity" type="number" min="1" value="50" />
 								</td>
 							</tr>
 						</table>
@@ -383,6 +373,8 @@ input, select, table button {
 		</div>
 
 		<script>
+var rc_thread;
+var s1_thread;
 var context = {
 	providerIndex: 0,
 	userIndex: 0,
@@ -616,28 +608,6 @@ var onObjectSelected = function(object) {
 		update_chart('actor');
 		chart.repaint();
 	}
-
-	if (object instanceof stc.Node) {
-		var nodeMenu = $('.param_body.node');
-		nodeMenu.find('.name').html(object.name);
-		nodeMenu.find('.owner').html(object.owner.name);
-
-		var actorMenu = $('.param_body.actor');
-		actorMenu.find('.name').html(object.owner.name);
-		actorMenu.find('.amount').html(object.owner.amount);
-		actorMenu.find('.mental').html(jlg.round(object.owner.profile.mental_rate));
-		actorMenu.find('.wealth').html(jlg.round(object.owner.profile.wealth));
-
-		$('.menu [data-body=node]').click();
-
-		// Disable actors buttons
-		$('#chart_buttons .actor button').attr('disabled', true);
-
-		var g = chart.getGroup('actor');
-		g.isEnabled(false);
-		update_chart('system');
-		chart.repaint();
-	}
 };
 
 var onObjectDeselected = function(object) {
@@ -647,10 +617,6 @@ var onObjectDeselected = function(object) {
 	actorMenu.find('.name').html('');
 	actorMenu.find('.amount').html('');
 	actorMenu.find('.wealth').html('');
-
-	var nodeMenu = $('.param_body.node');
-	nodeMenu.find('.name').html('');
-	nodeMenu.find('.owner').html('');
 
 	var g = chart.getGroup('actor');
 	g.isEnabled(false);
@@ -690,8 +656,7 @@ function start() {
 
 	sys = new stc.System(svg, '#offers', '#demands', {
 		sideView: '#view',
-		actorsView: '.param_body.actor',
-		nodesView: '.param_body.node'
+		actorsView: '.param_body.actor'
 	});
 
 	sys.updateDatasets();
@@ -714,8 +679,8 @@ function refresh_options() {
 	sys.options.report_elem = $('#stat').get(0);
 	sys.options.callback.onObjectSelected = onObjectSelected;
 	sys.options.callback.onObjectDeselected = onObjectDeselected;
-	sys.options.nodeCapacity = 50;
 
+	set_node_capacity();
 	set_animation_durations();
 	set_max_actor_nbr();
 	set_stability_cycle_id();
@@ -726,8 +691,9 @@ function refresh_options() {
 $('#animation').change(set_animation_durations);
 $('#max_actor_nbr').change(set_max_actor_nbr);
 $('#stability_cycle_id').change(set_stability_cycle_id);
-$('#min_cycle_revenue_price_per_gb').change(min_cycle_revenue_price_per_gb);
-$('#competition_price_per_gb').change(competition_price_per_gb);
+$('#min_cycle_revenue_price_per_gb').change(set_min_cycle_revenue_price_per_gb);
+$('#competition_price_per_gb').change(set_competition_price_per_gb);
+$('#node_capacity').change(set_node_capacity);
 
 $('#param .input_switch').click(button_disable_input);
 
@@ -737,10 +703,10 @@ function button_disable_input() {
 
 	if ($(input_id).is(':disabled')) {
 		$(input_id).attr('disabled', null);
-		el.html('Disable');
+		el.html('Off');
 	} else {
 		$(input_id).attr('disabled', 'disabled');
-		el.html('Enable');
+		el.html('On');
 	}
 
 	var type = el.attr('data-type');
@@ -757,9 +723,16 @@ function set_min_cycle_revenue_price_per_gb() {
 	}
 
 	var min_cycle_revenue_price_per_gb = parseFloat($('#min_cycle_revenue_price_per_gb').val());
-	console.log('min_cycle_revenue_price_per_gb=' + min_cycle_revenue_price_per_gb);
 	sys.min_cycle_revenue_price_per_gb = min_cycle_revenue_price_per_gb;
-	console.log('sys.min_cycle_revenue_price_per_gb=' + sys.min_cycle_revenue_price_per_gb);
+}
+
+function set_node_capacity() {
+	if (!sys) {
+		return;
+	}
+
+	var node_capacity = parseFloat($('#node_capacity').val());
+	sys.options.nodeCapacity = node_capacity;
 }
 
 function set_competition_price_per_gb() {
@@ -841,6 +814,12 @@ function set_animation_durations() {
 
 $('#reset').click(button_reset);
 function button_reset() {
+	if (rc_thread) {
+		rc_thread.kill();
+	}
+	if (s1_thread) {
+		s1_thread.kill();
+	}
 	start();
 }
 
@@ -891,13 +870,15 @@ function button_runCycle() {
 
 	thread.finish();
 	thread.start();
+
+	rc_thread = thread;
 }
 
 $('#scenario1').click(s1);
 
 function s1() {
 	$('#animation').val('off');
-	start();
+	button_reset();
 
 	var thread = new Thread('main');
 
@@ -908,6 +889,8 @@ function s1() {
 
 	thread.finish();
 	thread.start();
+
+	s1_thread = thread;
 }
 
 $('.menu .button').click(button_menu);
