@@ -174,7 +174,7 @@
 		};
 
 		this._addActor = function(thread, actor) {
-			actor.parent = this;
+			actor.setParent(this);
 
 			this.actors.push(actor);
 			this.actor_push_data(actor);
@@ -379,18 +379,19 @@
 
 			this.totalSTC += increment;
 
-			for (var i = 0; i < this.nodes.length; i++) {
-				var node = this.nodes[i];
-				node.owner.amount += stc_qty;
-				node.owner.mined_amount += stc_qty;
+			for (var i = 0; i < this.actors.length; i++) {
+				this.actors[i].price_cost = this.actors[i].nodes.length * this.options.nodeCapacity * this.actors[i].price_cost_per_gb;
+				this.actors[i].last_mined_amount = this.actors[i].nodes.length * stc_qty;
+				this.actors[i].amount += this.actors[i].last_mined_amount;
+				this.actors[i].mined_amount += this.actors[i].last_mined_amount;
+				this.actors[i].computeAttractivity();
 			}
-
-
 
 			if (this.totalSTC > maxSTC && this.options.maxSTC >= 0 ) {
 				var tax_rate = increment / this.totalSTC;
 				for (var i = 0; i < this.actors.length; i++) {
-					this.actors[i].amount -= this.actors[i].amount * (tax_rate);
+					var tax_amount = this.actors[i].amount * tax_rate;
+					this.actors[i].amount -= tax_amount;
 				}
 				this.totalSTC -= increment;
 			}
@@ -768,7 +769,7 @@
 		};
 
 		this.normalize = function(x) {
-			return (2 / Math.PI) * Math.atan(x);
+			return (2 / Math.PI) * Math.atan(4 * x);
 		};
 
 		this.computeAttractivity = function() {
@@ -777,20 +778,7 @@
 				this.competition_price_per_gb = this.competition_price_per_gb * Math.randomize(0.75, 1.25);
 			}
 
-
-			// Provider: \[\frac{Gp(n)}{N(n)vc_{i}}\ge 1\]
-			var G = this.options.stcPerCycle;
-			var p = this.price_per_stc;
-			var N = Math.max(1, this.nodes.length);
-			var v = this.options.nodeCapacity;
-			var c = this.min_cycle_revenue_price_per_gb;
-
-			var q = (G * p) / (N * v * c);
-			var provider_rate = this.normalize(4 * (q - 1));
-			if (this.cycle_id < 2) {
-				provider_rate = 1;
-			}
-			//console.log('provider_rate=' + provider_rate);
+			var provider_rate = jlg.avg(this.providers.map(jlg.accessor('attractivity')));
 			var providers_to_add = Math.floor(3 * Math.max(0, provider_rate));
 
 			// Consumer: \[\frac{1}{M}\sum\limits_{k=1}^M \frac{kdV(n-k)}{T(n-k)(p(n-k)-p(n))}\ge 1\]
@@ -803,6 +791,8 @@
 				for (var b = 1; b < n; b++) {
 					var d = self.competition_price_per_gb;
 //					console.log(self.dataset);
+					var v = self.options.nodeCapacity;
+					var G = self.options.stcPerCycle;
 					var V = v * self.dataset[b].nodes;
 					var T = G * b;
 					var p_buy = self.dataset[b].price_per_stc;
@@ -830,7 +820,7 @@
 //			console.log('cycle_id=' + this.cycle_id);
 //			console.log('cas=' + this.cas);
 			var cai = this.cas * (2 / (n * (n - 1)));
-			var consumer_rate = this.normalize(4 * (1 - cai));
+			var consumer_rate = this.normalize(1 - cai);
 			if (n < 2) {
 				consumer_rate = 0;
 			}

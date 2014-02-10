@@ -32,34 +32,52 @@ So we have $N=N(n)$, $N_{i}=N_{i}(n)$.
 
 \paragraph*{}
 The StorageCoin (STC) has a notion of \emph{cycle}.
-Every cycle the system injects $G$ STC shared between the providers.
+Every cycle the system injects $G(n)$ STC shared between the providers.
 Each provider $P_{i}$ receives a \emph{gain} $G_{i}$ STC such as
-\[G_{i}(n)=\frac{N_{i}(n)}{N(n)}G\]
+\[G_{i}(n)=\frac{N_{i}(n)}{N(n)}G(n)\]
 
 \paragraph*{}
-We note $T(n)$ the number of STC injected into the system. We have $T(n)=nG$.
+We note $T(n)$ the number of STC injected into the system. We have
+\[T(n)=\sum\limits_{t=1}^{n}G(t)\]
 
 \paragraph*{}
 For each provider, we note $T_{i}$ the current amount of STC received from the beginning. We have
 \[T_{i}(n)=\sum\limits_{t=1}^n G_{i}(t)\]
 
 \paragraph*{}
-The provider has internal cost price to maintain his nodes operational on the system. We assume that this cost is proportional to the storage memory exposed. We note $c_{i}$ the cost price per memory unit for the provider $P_{i}$. The provider cost price is
-\[C_{i}=N_{i}vc_{i}\]
+For each actor we note $U_{i}$ the current amount of STC owned by this actor. We have foe each provider: 
+\[U_{i}(n)\le{T_{i}(n)}\]
+We have the equality if the provider has never sold any STC.
 
 \paragraph*{}
-The StorageCoin can be exchange on a free market, through dedicated STC marketplaces. We note $p$ the exchange rate for 1 STC in a fiat money. We use the dollar unit (\$) in this document.
+Every cycle the system applies a flat tax $F_{i}(n)=f(n)U_{i}(n)$ to every actor, both providers and consumers. The purpose of this tax is to regulate $T(n)$. 
+We want that $T(n)$ does not exceed a maximum value $T_{max}$. 
+For that we define $f(n)=0$ when $T<T_{max}$ and otherwise \[f(n)=\frac{G(n)}{T(n)+G(n)}\]
+
+We are going to study two cases. 
+A first case which we assume that $G(n)$ is constant: $G(n)=G_{0}$. 
+And a second case where providers are rewarded proportionally to there number of nodes: $G_{i}(n)=gN_{i}(n)$. 
+$g$ is a number of STC that a provider receives for one node.
+
+\paragraph*{}
+The provider has internal cost price to maintain his nodes operational on the system. We assume that this cost is proportional to the storage memory exposed. We note $c_{i}$ the cost price per memory unit for the provider $P_{i}$. The provider cost price is
+\[C_{i}(n)=N_{i}(n)vc_{i}\]
+
+\paragraph*{}
+The StorageCoin can be exchanged on a free market, through dedicated STC marketplaces. We note $p$ the exchange rate for 1 STC in a fiat money. We use the dollar unit (\$) in this document.
 In this model we assume that $p$ varies only over cycles. We note $p(n)$.
 $p(n)$ increases or decreases according to the quantity of offer and demand as all free market process.
 
 \paragraph*{}
-The provider revenue $R_{i}$ is the conversion of its gain $G_{i}$ in the fiat money. Therefore we have 
+The provider \emph{activity revenue} $R_{i}$ is the conversion in the fiat money of $G_{i}(n)$. Therefore we have 
 \[R_{i}(n)=G_{i}(n)p(n)\]
 
 \paragraph*{}
+We can notice that we don't include the flat tax in the provider activity revenue. Indeed the flat tax does not depend of the storage contribution activity, but on the STC current amount of the provider.
+
+\paragraph*{}
 A provider will be interested to expose nodes only if 
-$R_{i}(n)\ge{C_{i}}$, in other words: 
-\[\frac{Gp(n)}{N(n)vc_{i}}\ge 1\] 
+$R_{i}(n)\ge{C_{i}}$.
 
 \subsection{Consumer}
 \paragraph*{}

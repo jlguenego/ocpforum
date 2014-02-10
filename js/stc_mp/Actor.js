@@ -10,6 +10,7 @@
 		this.price_earned_amount = 0;
 		this.nodes = [];
 		this.type = type;
+		this.last_gain = 0;
 
 		this.attractivity = 1;
 
@@ -17,8 +18,24 @@
 			mental_rate: Math.randomize(-1, 1),
 			marge: Math.randomize(1, 2),
 			wealth: Math.randomize(1, 5),
-			strategy: Math.randomizeInt(1, 2) // 1: normal, 2: speculator
+			strategy: Math.randomizeInt(1, 2), // 1: normal, 2: speculator
+			price_cost_per_gb: 0
 		};
+
+		this.setParent = function(system) {
+			this.parent = system;
+			this.profile.price_cost_per_gb = Math.randomizeInt(0.9, 1.1) * this.parent.min_cycle_revenue_price_per_gb;
+		};
+
+		this.computeAttractivity = function() {
+			if (this.type == 'provider') {
+				var a = this.parent.normalize(this.last_gain / this.mined_amount);
+				this.attractivity = jlg.avg([ a, this.profile.mental_rate ], [ 1, 0.2 ]);
+			}
+			if (this.type == 'consumer') {
+				// TODO
+			}
+		}
 
 		this.behave = function(thread) {
 			if (this.type == 'provider') {
@@ -30,8 +47,6 @@
 		};
 
 		this.behave_p = function(thread) {
-			this.attractivity = jlg.avg([ this.parent.attractivity.provider_rate, this.profile.mental_rate ], [ 1, 0.2 ]);
-
 			this.manageNode_p(thread);
 			this.manageOffer_p(thread);
 			//this.manageDemand_p(thread);
