@@ -1,4 +1,5 @@
 \documentclass[a4paper,12pt]{article}
+\usepackage[mathscr]{euscript}
 
 \title{StorageCoin: A cryptocurrency designed for a storage system}
 
@@ -20,11 +21,11 @@
 \subsection{Provider}
 
 \paragraph*{}
-The system is a distributed network with $N$ nodes that belong to a set $P$ of \emph{providers} $P_{i}$.
+The system is a distributed network with $N$ nodes that belong to a set $\mathscr{P}$ of \emph{providers} $\mathscr{P}_{i}$.
 Each node has the same storage capacity $v$.
-$N$ can evolve during time because providers can add or remove nodes  when desired. Each provider $P_{i}$ has $N_{i}$ nodes.
+$N$ can evolve during time because providers can add or remove nodes  when desired. Each provider $\mathscr{P}_{i}$ has $N_{i}$ nodes.
 $N$ and $N_{i}$ are function of time. We have 
-\[N=\sum\limits_{i\in{P}}N_{i}\]
+\[N=\sum\limits_{i\in{\mathscr{P}}}N_{i}\]
 
 \paragraph*{}
 The variables $N$, $N_{i}$ depend of time, but we just need representing them according the cycle. We note the cycle $n$.
@@ -33,7 +34,7 @@ So we have $N=N(n)$, $N_{i}=N_{i}(n)$.
 \paragraph*{}
 The StorageCoin (STC) has a notion of \emph{cycle}.
 Every cycle the system injects $G(n)$ STC shared between the providers.
-Each provider $P_{i}$ receives a \emph{gain} $G_{i}$ STC such as
+Each provider $\mathscr{P}_{i}$ receives a \emph{gain} $G_{i}$ STC such as
 \[G_{i}(n)=\frac{N_{i}(n)}{N(n)}G(n)\]
 
 \paragraph*{}
@@ -60,7 +61,7 @@ And a second case where providers are rewarded proportionally to there number of
 $g$ is a number of STC that a provider receives for one node.
 
 \paragraph*{}
-The provider has internal cost price to maintain his nodes operational on the system. We assume that this cost is proportional to the storage memory exposed. We note $c_{i}$ the cost price per memory unit for the provider $P_{i}$. The provider cost price is
+The provider has internal cost price to maintain his nodes operational on the system. We assume that this cost is proportional to the storage memory exposed. We note $c_{i}$ the cost price per memory unit for the provider $\mathscr{P}_{i}$. The provider cost price is
 \[C_{i}(n)=N_{i}(n)vc_{i}\]
 
 \paragraph*{}
@@ -96,16 +97,22 @@ In the example a consumer buys at cycle $n$ a volume $A$ of storage. $A$ is meas
 For the competition, if we consider that there is no minimal commitment period, that the customer can cancel when desired, and the cost per cycle is $d$, then the cost $D_{c}$ will be easy to compute: $D_{c}=m.A.d$
 
 \paragraph*{}
-For the StorageCoin system, the computation is made differently. In order to buy storage resources, the consumer must buy enough STC from the providers at the price $p(n)$ of the market at cycle $n$.
-To get $A$ the amount $S_{A}$ of STC to buy is given by 
+For the StorageCoin system, the computation is made differently. In order to buy storage resources, the consumer must buy enough STC from the providers at the price $p(n)$ of the market at cycle $n_{0}$.
+To get $A$, the consumer $\mathscr{C}_{i}$ will have to buy the amount $S_{A}$ of STC given by 
 \[S_{A}=\frac{T(n)}{V(n)}A\]
+Let $S_{i}(n)$ be the amount of STC owned by the consumer $\mathscr{C}_{i}$.
+We have \[S_{i}(n_{0})=S_{A}\]
 At the next cycle, $G$ STC will be injected into the system if $T(n)<T_{max}$. 
-Otherwise, a flat tax $F_{i}(n)$ is applied to the consumer.
+Otherwise, a flat tax $f(n)$ is applied to the consumer and $T(n)$ is constant.
 Maybe the number of nodes in the system will be different (bigger or smaller). 
 Therefore the amount $S_{A}$ will not reflect anymore the volume $A$ of storage resources 
-\[S_{A}\neq \frac{T(n+1)}{V(n+1)}A\]
-The amount of space $A(k)$, where $k$ is the number of cycles spent after $n$, corresponding to $S_{A}$ will be: 
-\[A(k)=\frac{V(n+k)}{T(n+k)}S_{A}\]
+\[S_{A}\neq \frac{T(n_{0}+1)}{V(n_{0}+1)}A\]
+Furthermore, the amount $S_{i}$ is decreasing when the tax applies:
+\[S_{i}(n+1)=S_{i}(n)(1-f(n))\]
+
+\paragraph*{}
+The amount of space $A(k)$ owned by the consumer $\mathscr{C}_{i}$, where $k$ is the number of cycles spent after $n_{0}$, corresponding to $S_{i}$ will be: 
+\[A(k)=\frac{V(n_{0}+k)}{T(n_{0}+k)}S_{i}(n_{0}+k)\]
 $A(k)$ can be smaller or bigger than $S_{A}$. If the number of nodes $N$ in the system is constant across the cycles, then we have $V(n+k)=V(n)$, and because $T(n+k)=T(n)+kG$, we have
 \[A(k)=\frac{V(n)}{T(n)+kG}S_{A}\le A(0)=A\]
 In this case the consumer would have to buy more STC in order to dispose of volume $A$ in the system.
