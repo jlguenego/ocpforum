@@ -292,11 +292,11 @@ input, select, table button {
 								</td>
 							</tr>
 							<tr>
-								<th>Stability cycle</th>
+								<th>Max STC</th>
 								<td>
-									<input id="stability_cycle_id" type="number" min="1" value="20" />
+									<input id="max_stc" type="number" min="1" value="20" />
 								</td>
-								<td><button class="input_switch" data-value="stability_cycle_id" data-type="stability_cycle">Off</button></td>
+								<td><button class="input_switch" data-value="max_stc" data-type="stability_cycle">Off</button></td>
 
 								<th title="Node Capacity (in TB)">Node Capacity</th>
 								<td>
@@ -307,6 +307,12 @@ input, select, table button {
 								<th>STC per cycle</th>
 								<td>
 									<input id="stc_per_cycle" type="number" min="1" value="10"/>
+								</td>
+								<td colspan="2">
+									<select id="stc_per_cycle_type">
+										<option value="system" selected>System</option>
+										<option value="node">Node</option>
+									</select>
 								</td>
 							</tr>
 						</table>
@@ -686,24 +692,43 @@ function refresh_options() {
 	sys.options.callback.onObjectSelected = onObjectSelected;
 	sys.options.callback.onObjectDeselected = onObjectDeselected;
 
-	set_stc_per_cycle();
-	set_node_capacity();
-	set_animation_durations();
-	set_max_actor_nbr();
-	set_stability_cycle_id();
-	set_min_cycle_revenue_price_per_gb();
-	set_competition_price_per_gb();
+	change_stc_per_cycle();
+	button_stc_per_cycle();
+	change_node_capacity();
+	change_animation_durations();
+	change_max_actor_nbr();
+	change_max_stc();
+	change_min_cycle_revenue_price_per_gb();
+	change_competition_price_per_gb();
 }
 
-$('#animation').change(set_animation_durations);
-$('#max_actor_nbr').change(set_max_actor_nbr);
-$('#stability_cycle_id').change(set_stability_cycle_id);
-$('#min_cycle_revenue_price_per_gb').change(set_min_cycle_revenue_price_per_gb);
-$('#competition_price_per_gb').change(set_competition_price_per_gb);
-$('#node_capacity').change(set_node_capacity);
-$('#stc_per_cycle').change(set_stc_per_cycle);
+$('#animation').change(change_animation_durations);
+$('#max_actor_nbr').change(change_max_actor_nbr);
+$('#max_stc').change(change_max_stc);
+$('#min_cycle_revenue_price_per_gb').change(change_min_cycle_revenue_price_per_gb);
+$('#competition_price_per_gb').change(change_competition_price_per_gb);
+$('#node_capacity').change(change_node_capacity);
+$('#stc_per_cycle').change(change_stc_per_cycle);
 
 $('#param .input_switch').click(button_disable_input);
+
+$('#stc_per_cycle_type').change(button_stc_per_cycle);
+
+function button_stc_per_cycle() {
+	if (!sys) {
+		return;
+	}
+
+	var val = $('#stc_per_cycle_type').val();
+	switch(val) {
+		case 'system':
+			sys.options.stcPerCycleType = 'system';
+			break;
+		case 'node':
+			sys.options.stcPerCycleType = 'node';
+			break;
+	}
+}
 
 function button_disable_input() {
 	var el = $(this);
@@ -719,13 +744,13 @@ function button_disable_input() {
 
 	var type = el.attr('data-type');
 	if (type == 'actor') {
-		set_max_actor_nbr();
+		change_max_actor_nbr();
 	} else if (type = 'stability_cycle') {
-		set_stability_cycle_id();
+		change_max_stc();
 	}
 }
 
-function set_stc_per_cycle() {
+function change_stc_per_cycle() {
 	if (!sys) {
 		return;
 	}
@@ -734,7 +759,7 @@ function set_stc_per_cycle() {
 	sys.options.stcPerCycle = stc_per_cycle;
 }
 
-function set_min_cycle_revenue_price_per_gb() {
+function change_min_cycle_revenue_price_per_gb() {
 	if (!sys) {
 		return;
 	}
@@ -743,7 +768,7 @@ function set_min_cycle_revenue_price_per_gb() {
 	sys.min_cycle_revenue_price_per_gb = min_cycle_revenue_price_per_gb;
 }
 
-function set_node_capacity() {
+function change_node_capacity() {
 	if (!sys) {
 		return;
 	}
@@ -752,7 +777,7 @@ function set_node_capacity() {
 	sys.options.nodeCapacity = node_capacity;
 }
 
-function set_competition_price_per_gb() {
+function change_competition_price_per_gb() {
 	if (!sys) {
 		return;
 	}
@@ -761,19 +786,19 @@ function set_competition_price_per_gb() {
 	sys.competition_price_per_gb = competition_price_per_gb;
 }
 
-function set_stability_cycle_id() {
+function change_max_stc() {
 	if (!sys) {
 		return;
 	}
 
-	var cycle_id = parseInt($('#stability_cycle_id').val());
-	if ($('#stability_cycle_id').is(':disabled')) {
-		cycle_id = -1;
+	var max_stc = parseInt($('#max_stc').val());
+	if ($('#max_stc').is(':disabled')) {
+		max_stc = -1;
 	}
-	sys.options.stabilityCycleId = cycle_id;
+	sys.options.maxSTC = max_stc;
 }
 
-function set_max_actor_nbr() {
+function change_max_actor_nbr() {
 	if (!sys) {
 		return;
 	}
@@ -785,7 +810,7 @@ function set_max_actor_nbr() {
 	sys.options.maxActorNbr = n;
 }
 
-function set_animation_durations() {
+function change_animation_durations() {
 	if (!sys) {
 		return;
 	}

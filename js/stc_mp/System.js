@@ -25,10 +25,11 @@
 				onActorDeselected: function() {},
 			},
 			stcPerCycle: 100,
+			stcPerCycleType: 'system',
 			report_elem: null,
 			nodeCapacity: 50,
 			maxActorNbr: -1,
-			stabilityCycleId: -1
+			maxSTC: -1
 		};
 
 		this.pause = {
@@ -363,26 +364,41 @@
 		};
 
 		this._addReward = function(thread) {
-			this.totalSTC += this.options.stcPerCycle;
-			var stc_qty = this.options.stcPerCycle / this.nodes.length;
+			var stc_qty;
+			var increment;
+			var maxSTC;
+			if (this.options.stcPerCycleType == 'system') {
+				increment = this.options.stcPerCycle;
+				stc_qty = this.options.stcPerCycle / this.nodes.length;
+				maxSTC = this.options.maxSTC;
+			} else if (this.options.stcPerCycleType == 'node') {
+				increment = this.options.stcPerCycle * this.nodes.length;
+				stc_qty = this.options.stcPerCycle;
+				maxSTC = this.options.maxSTC * this.nodes.length;
+			}
+
+			this.totalSTC += increment;
+
 			for (var i = 0; i < this.nodes.length; i++) {
 				var node = this.nodes[i];
 				node.owner.amount += stc_qty;
 				node.owner.mined_amount += stc_qty;
 			}
 
-			if (this.options.stabilityCycleId >= 0 && (this.totalSTC > this.options.stabilityCycleId * this.options.stcPerCycle)) {
-				var tax_rate = (this.options.stcPerCycle / this.totalSTC);
-				// remove 100 STC from the system (tax)
+
+
+			if (this.totalSTC > maxSTC && this.options.maxSTC >= 0 ) {
+				var tax_rate = increment / this.totalSTC;
 				for (var i = 0; i < this.actors.length; i++) {
 					this.actors[i].amount -= this.actors[i].amount * (tax_rate);
 				}
-				this.totalSTC -= this.options.stcPerCycle;
-				if (this.totalSTC != this.computeTotalSTC()) {
-					console.log('this.totalSTC=' + this.totalSTC);
-					console.log('sum=' + this.computeTotalSTC());
-					throw new Error('total STC inconsistency.');
-				}
+				this.totalSTC -= increment;
+			}
+
+			if (this.totalSTC != this.computeTotalSTC()) {
+				console.log('this.totalSTC=' + this.totalSTC);
+				console.log('sum=' + this.computeTotalSTC());
+				throw new Error('total STC inconsistency.');
 			}
 
 			this.repaintSideView();
