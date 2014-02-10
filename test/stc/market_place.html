@@ -50,6 +50,10 @@ html, body {
 	background-color: #E6F2FF;
 }
 
+#param .param_body.settings table tr :last-child {
+	width: 80px;
+}
+
 svg {
 	margin-top: 10px;
 	border: 1px solid black;
@@ -286,13 +290,27 @@ input, select, table button {
 							<tr>
 								<th>Max Actor nbr</th>
 								<td>
-									<input id="max_actor_nbr" type="number" min="-1" value="-1" />
+									<input id="max_actor_nbr" type="number" min="2" value="2" />
 								</td>
+								<td><button class="input_switch" data-value="max_actor_nbr" data-type="actor">Disable</button></td>
 							</tr>
 							<tr>
 								<th>Stability cycle id</th>
 								<td>
-									<input id="stability_cycle_id" type="number" min="-1" value="-1" />
+									<input id="stability_cycle_id" type="number" min="1" value="1" />
+								</td>
+								<td><button class="input_switch" data-value="stability_cycle_id" data-type="stability_cycle">Disable</button></td>
+							</tr>
+							<tr>
+								<th>Revenu cost</th>
+								<td>
+									<input id="min_cycle_revenue_price_per_gb" type="number" value="1" />
+								</td>
+							</tr>
+							<tr>
+								<th>Competition price</th>
+								<td>
+									<input id="competition_price_per_gb" type="number" value="5" />
 								</td>
 							</tr>
 						</table>
@@ -701,11 +719,57 @@ function refresh_options() {
 	set_animation_durations();
 	set_max_actor_nbr();
 	set_stability_cycle_id();
+	set_min_cycle_revenue_price_per_gb();
+	set_competition_price_per_gb();
 }
 
 $('#animation').change(set_animation_durations);
 $('#max_actor_nbr').change(set_max_actor_nbr);
 $('#stability_cycle_id').change(set_stability_cycle_id);
+$('#min_cycle_revenue_price_per_gb').change(min_cycle_revenue_price_per_gb);
+$('#competition_price_per_gb').change(competition_price_per_gb);
+
+$('#param .input_switch').click(button_disable_input);
+
+function button_disable_input() {
+	var el = $(this);
+	var input_id = '#' +  el.attr('data-value');
+
+	if ($(input_id).is(':disabled')) {
+		$(input_id).attr('disabled', null);
+		el.html('Disable');
+	} else {
+		$(input_id).attr('disabled', 'disabled');
+		el.html('Enable');
+	}
+
+	var type = el.attr('data-type');
+	if (type == 'actor') {
+		set_max_actor_nbr();
+	} else if (type = 'stability_cycle') {
+		set_max_actor_nbr();
+	}
+}
+
+function set_min_cycle_revenue_price_per_gb() {
+	if (!sys) {
+		return;
+	}
+
+	var min_cycle_revenue_price_per_gb = parseFloat($('#min_cycle_revenue_price_per_gb').val());
+	console.log('min_cycle_revenue_price_per_gb=' + min_cycle_revenue_price_per_gb);
+	sys.min_cycle_revenue_price_per_gb = min_cycle_revenue_price_per_gb;
+	console.log('sys.min_cycle_revenue_price_per_gb=' + sys.min_cycle_revenue_price_per_gb);
+}
+
+function set_competition_price_per_gb() {
+	if (!sys) {
+		return;
+	}
+
+	var competition_price_per_gb = parseFloat($('#competition_price_per_gb').val());
+	sys.competition_price_per_gb = competition_price_per_gb;
+}
 
 function set_stability_cycle_id() {
 	if (!sys) {
@@ -713,6 +777,9 @@ function set_stability_cycle_id() {
 	}
 
 	var cycle_id = parseInt($('#stability_cycle_id').val());
+	if ($('#stability_cycle_id').is(':disabled')) {
+		cycle_id = -1;
+	}
 	sys.options.stabilityCycleId = cycle_id;
 }
 
@@ -722,6 +789,9 @@ function set_max_actor_nbr() {
 	}
 
 	var n = parseInt($('#max_actor_nbr').val());
+	if ($('#max_actor_nbr').is(':disabled')) {
+		n = -1;
+	}
 	sys.options.maxActorNbr = n;
 }
 

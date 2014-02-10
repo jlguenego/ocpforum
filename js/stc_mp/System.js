@@ -827,10 +827,12 @@
 			if (this.options.maxActorNbr < 0) {
 				return;
 			}
-			if (this.actors.length > this.options.maxActorNbr) {
-				this.attractivity.providers_to_add = 0;
-				this.attractivity.consumers_to_add = 0;
-			}
+			var length = Math.max(this.actors.length, 2);
+
+			this.attractivity.providers_to_add = Math.min(this.attractivity.providers_to_add,
+				this.options.maxActorNbr - length);
+			this.attractivity.consumers_to_add = Math.min(this.attractivity.consumers_to_add,
+				this.options.maxActorNbr - length - this.attractivity.providers_to_add);
 		};
 
 		this.addProvider = function(thread) {
