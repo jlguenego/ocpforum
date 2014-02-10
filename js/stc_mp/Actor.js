@@ -10,7 +10,8 @@
 		this.price_earned_amount = 0;
 		this.nodes = [];
 		this.type = type;
-		this.last_gain = 0;
+		this.last_mined_amount = 0;
+		this.price_cost = 0;
 
 		this.attractivity = 1;
 
@@ -29,7 +30,7 @@
 
 		this.computeAttractivity = function() {
 			if (this.type == 'provider') {
-				var a = this.parent.normalize(this.last_gain / this.mined_amount);
+				var a = this.parent.normalize((this.last_mined_amount * this.parent.price_per_stc - this.price_cost) / this.price_cost);
 				this.attractivity = jlg.avg([ a, this.profile.mental_rate ], [ 1, 0.2 ]);
 			}
 			if (this.type == 'consumer') {

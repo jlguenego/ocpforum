@@ -311,7 +311,8 @@
 				actor_price_amount: price_amount,
 				actor_cumulated_mined_stc: actor.mined_amount,
 				actor_price_earned_amount: actor.price_earned_amount,
-				actor_effectiveness: effectiveness
+				actor_effectiveness: effectiveness,
+				actor_attractivity: actor.attractivity
 			});
 		}
 
@@ -380,7 +381,7 @@
 			this.totalSTC += increment;
 
 			for (var i = 0; i < this.actors.length; i++) {
-				this.actors[i].price_cost = this.actors[i].nodes.length * this.options.nodeCapacity * this.actors[i].price_cost_per_gb;
+				this.actors[i].price_cost = this.actors[i].nodes.length * this.options.nodeCapacity * this.actors[i].profile.price_cost_per_gb;
 				this.actors[i].last_mined_amount = this.actors[i].nodes.length * stc_qty;
 				this.actors[i].amount += this.actors[i].last_mined_amount;
 				this.actors[i].mined_amount += this.actors[i].last_mined_amount;
@@ -616,8 +617,6 @@
 		this._processDealRec = function(thread) {
 			var demand = this.demands_table.dataset[0];
 			var offer = this.offers_table.dataset[0];
-			console.log(offer);
-			console.log(demand);
 
 			if ((!offer || !demand) || offer.price_per_stc > demand.price_per_stc) {
 				if (this.performed_deal_nbr == 0) {

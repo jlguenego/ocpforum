@@ -555,6 +555,14 @@ function init_graph() {
 		accessors: [ [ 'actor_effectiveness' ] ],
 		title: ''
 	});
+	group.addGraph({
+		name: 'actor_attractivity',
+		text: 'Attractivity',
+		labels: [ [ 'Attractivity' ] ],
+		accessors: [ [ 'actor_attractivity' ] ],
+		title: '',
+		class: 'new_line'
+	});
 	group.isEnabled(false);
 
 	chart.init();
