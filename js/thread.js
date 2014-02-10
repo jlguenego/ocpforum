@@ -108,8 +108,8 @@ function Thread(name) {
 	this.waitAll = function() {
 		this.push({
 			function: function() {
-				var waiting_list = this.waiting_list.map(jlg.accessor('name')).join(' ');
-				//console.log(this.name + ': waiting_list = ' + waiting_list);
+				var waiting_list_str = this.waiting_list.map(jlg.accessor('name')).join(' ');
+				//console.log(this.name + ': waiting_list_str = ' + waiting_list_str);
 				this._wait.apply(this, this.waiting_list);
 			},
 			args: [ ],
@@ -121,8 +121,8 @@ function Thread(name) {
 	this.do_waitAll = function() {
 		this.unshift({
 			function: function() {
-				var waiting_list = this.waiting_list.map(jlg.accessor('name')).join(' ');
-				//console.log(this.name + ': waiting_list = ' + waiting_list);
+				var waiting_list_str = this.waiting_list.map(jlg.accessor('name')).join(' ');
+				//console.log(this.name + ': waiting_list_str = ' + waiting_list_str);
 				this._wait.apply(this, this.waiting_list);
 			},
 			args: [ ],
@@ -132,12 +132,12 @@ function Thread(name) {
 	};
 
 	this.wait = function() {
-		var waiting_list = Array.prototype.slice.call(arguments);
+		this.waiting_list = Array.prototype.slice.call(arguments);
 		this.push({
 			function: function() {
-				var str = waiting_list.map(jlg.accessor('name')).join(' ');
+				var str = this.waiting_list.map(jlg.accessor('name')).join(' ');
 				//console.log(this.name + ': start to wait for : ' + str);
-				this._wait.apply(this, waiting_list);
+				this._wait.apply(this, this.waiting_list);
 			},
 			args: [],
 			name: 'wait',
@@ -146,12 +146,12 @@ function Thread(name) {
 	};
 
 	this.do_wait = function() {
-		var waiting_list = Array.prototype.slice.call(arguments);
+		this.waiting_list = Array.prototype.slice.call(arguments);
 		this.unshift({
 			function: function() {
-				var str = waiting_list.map(jlg.accessor('name')).join(' ');
+				var str = this.waiting_list.map(jlg.accessor('name')).join(' ');
 				//console.log(this.name + ': start to wait for : ' + str);
-				this._wait.apply(this, waiting_list);
+				this._wait.apply(this, this.waiting_list);
 			},
 			args: [],
 			name: 'do_wait',

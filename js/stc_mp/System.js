@@ -27,7 +27,9 @@
 			},
 			stcPerCycle: 100,
 			report_elem: null,
-			nodeCapacity: 50
+			nodeCapacity: 50,
+			maxActorNbr: -1,
+			stabilityCycleId: -1
 		};
 
 		this.pause = {
@@ -370,8 +372,7 @@
 				node.owner.mined_amount += stc_qty;
 			}
 
-			var stability_cycle = 20;
-			if (this.totalSTC > stability_cycle * this.options.stcPerCycle) {
+			if (this.options.stabilityCycleId >= 0 && (this.totalSTC > this.options.stabilityCycleId * this.options.stcPerCycle)) {
 				var tax_rate = (this.options.stcPerCycle / this.totalSTC);
 				// remove 100 STC from the system (tax)
 				for (var i = 0; i < this.actors.length; i++) {
@@ -788,26 +789,26 @@
 					var p_sell = self.dataset[n].price_per_stc;
 					var frac_up = T * (p_buy - p_sell);
 					var frac_down = V * d * (n - b);
-					console.log('d=' + d);
-					console.log('V=' + V);
-					console.log('n=' + n);
-					console.log('b=' + b);
-					console.log('T=' + T);
-					console.log('p_buy=' + p_buy);
-					console.log('p_sell=' + p_sell);
-					console.log('frac_up=' + frac_up);
-					console.log('frac_down=' + frac_down);
+//					console.log('d=' + d);
+//					console.log('V=' + V);
+//					console.log('n=' + n);
+//					console.log('b=' + b);
+//					console.log('T=' + T);
+//					console.log('p_buy=' + p_buy);
+//					console.log('p_sell=' + p_sell);
+//					console.log('frac_up=' + frac_up);
+//					console.log('frac_down=' + frac_down);
 
 					result += frac_up / frac_down;
-					console.log('result=' + result);
+//					console.log('result=' + result);
 				}
 				return result;
 			}
 
 			var n = this.cycle_id;
 			this.cas += sum(n);
-			console.log('cycle_id=' + this.cycle_id);
-			console.log('cas=' + this.cas);
+//			console.log('cycle_id=' + this.cycle_id);
+//			console.log('cas=' + this.cas);
 			var cai = this.cas * (2 / (n * (n - 1)));
 			var consumer_rate = this.normalize(4 * (1 - cai));
 			if (n < 2) {
@@ -823,11 +824,13 @@
 				consumers_to_add: consumers_to_add,
 			};
 
-			if (this.actors.length > 40) {
+			if (this.options.maxActorNbr < 0) {
+				return;
+			}
+			if (this.actors.length > this.options.maxActorNbr) {
 				this.attractivity.providers_to_add = 0;
 				this.attractivity.consumers_to_add = 0;
 			}
-
 		};
 
 		this.addProvider = function(thread) {

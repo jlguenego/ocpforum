@@ -283,16 +283,27 @@ input, select, table button {
 									</select>
 								</td>
 							</tr>
+							<tr>
+								<th>Max Actor nbr</th>
+								<td>
+									<input id="max_actor_nbr" type="number" min="-1" value="-1" />
+								</td>
+							</tr>
+							<tr>
+								<th>Stability cycle id</th>
+								<td>
+									<input id="stability_cycle_id" type="number" min="-1" value="-1" />
+								</td>
+							</tr>
 						</table>
 					</div>
 				</div>
 				<hr/>
+				<button id="run_cycle" disabled="disabled">Run cycle</button>
 				<button id="reset">Reset</button>
 				<button id="pause_resume">Pause</button><br/>
-				<button id="run_cycle" disabled="disabled">Run cycle</button><br/>
 				<button id="add_provider" disabled="disabled">Add provider</button>
-				<button id="add_consumer" disabled="disabled">Add consumer</button><br/>
-				<button id="debug">Debug</button><br/>
+				<button id="add_consumer" disabled="disabled">Add consumer</button>
 				<hr/>
 				<button id="scenario1">Scenario 1</button><input id="scenario1_nbr" style="width: 70px;" type="number" value="100" min="1"/><br/>
 				<hr/>
@@ -688,9 +699,31 @@ function refresh_options() {
 	sys.options.nodeCapacity = 50;
 
 	set_animation_durations();
+	set_max_actor_nbr();
+	set_stability_cycle_id();
 }
 
 $('#animation').change(set_animation_durations);
+$('#max_actor_nbr').change(set_max_actor_nbr);
+$('#stability_cycle_id').change(set_stability_cycle_id);
+
+function set_stability_cycle_id() {
+	if (!sys) {
+		return;
+	}
+
+	var cycle_id = parseInt($('#stability_cycle_id').val());
+	sys.options.stabilityCycleId = cycle_id;
+}
+
+function set_max_actor_nbr() {
+	if (!sys) {
+		return;
+	}
+
+	var n = parseInt($('#max_actor_nbr').val());
+	sys.options.maxActorNbr = n;
+}
 
 function set_animation_durations() {
 	if (!sys) {
