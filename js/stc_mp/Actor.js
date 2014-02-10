@@ -10,7 +10,6 @@
 		this.price_earned_amount = 0;
 		this.nodes = [];
 		this.type = type;
-		this.mouse = false;
 
 		this.attractivity = 1;
 
@@ -100,7 +99,7 @@
 				price_per_gb = this.parent.offers_table.dataset[0].price_per_gb;
 				//console.log('debug offers_table price_per_gb=' + price_per_gb);
 			}
-			price_per_gb = Math.randomize(0.9, 1.1) * price_per_gb;
+			price_per_gb = Math.randomize(1, 1.1) * price_per_gb;
 			if (price_per_gb > 20 * this.parent.competition_price_per_gb) {
 				this.parent.removeDemand(thread, this);
 				return;

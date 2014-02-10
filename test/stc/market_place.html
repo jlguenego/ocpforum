@@ -75,7 +75,7 @@ th {
 }
 
 input, select, table button {
-	min-width: 42px;
+	min-width: 47px;
 	width: 100%;
 	font-size: 12px;
 	font-weight: 400;
@@ -274,9 +274,9 @@ input, select, table button {
 									</select>
 								</td>
 								<td></td>
-								<th title="Competition price">Comp. price</th>
+								<th title="Competition price ($ for renting 1TB per year)">Comp. price</th>
 								<td>
-									<input id="competition_price_per_gb" type="number" value="5" />
+									<input id="competition_price_per_gb" type="number" min="0" value="100" />
 								</td>
 							</tr>
 							<tr>
@@ -286,9 +286,9 @@ input, select, table button {
 								</td>
 								<td><button class="input_switch" data-value="max_actor_nbr" data-type="actor">Off</button></td>
 
-								<th>Price cost</th>
+								<th title="Price cost ($ for exposing 1TB per year)">Price cost</th>
 								<td>
-									<input id="min_cycle_revenue_price_per_gb" type="number" value="1" />
+									<input id="min_cycle_revenue_price_per_gb" type="number" min="0" value="20" />
 								</td>
 							</tr>
 							<tr>
@@ -298,9 +298,15 @@ input, select, table button {
 								</td>
 								<td><button class="input_switch" data-value="stability_cycle_id" data-type="stability_cycle">Off</button></td>
 
-								<th>Node Capacity</th>
+								<th title="Node Capacity (in TB)">Node Capacity</th>
 								<td>
-									<input id="node_capacity" type="number" min="1" value="50" />
+									<input id="node_capacity" type="number" min="0.05" value="0.05" step="0.01" />
+								</td>
+							</tr>
+							<tr>
+								<th>STC per cycle</th>
+								<td>
+									<input id="stc_per_cycle" type="number" min="1" value="10"/>
 								</td>
 							</tr>
 						</table>
@@ -659,11 +665,11 @@ function start() {
 		actorsView: '.param_body.actor'
 	});
 
+	refresh_options();
 	sys.updateDatasets();
 
 	sys.repaintSideView();
 
-	refresh_options();
 	init_graph();
 }
 
@@ -680,6 +686,7 @@ function refresh_options() {
 	sys.options.callback.onObjectSelected = onObjectSelected;
 	sys.options.callback.onObjectDeselected = onObjectDeselected;
 
+	set_stc_per_cycle();
 	set_node_capacity();
 	set_animation_durations();
 	set_max_actor_nbr();
@@ -694,6 +701,7 @@ $('#stability_cycle_id').change(set_stability_cycle_id);
 $('#min_cycle_revenue_price_per_gb').change(set_min_cycle_revenue_price_per_gb);
 $('#competition_price_per_gb').change(set_competition_price_per_gb);
 $('#node_capacity').change(set_node_capacity);
+$('#stc_per_cycle').change(set_stc_per_cycle);
 
 $('#param .input_switch').click(button_disable_input);
 
@@ -713,8 +721,17 @@ function button_disable_input() {
 	if (type == 'actor') {
 		set_max_actor_nbr();
 	} else if (type = 'stability_cycle') {
-		set_max_actor_nbr();
+		set_stability_cycle_id();
 	}
+}
+
+function set_stc_per_cycle() {
+	if (!sys) {
+		return;
+	}
+
+	var stc_per_cycle = parseInt($('#stc_per_cycle').val());
+	sys.options.stcPerCycle = stc_per_cycle;
 }
 
 function set_min_cycle_revenue_price_per_gb() {
@@ -722,7 +739,7 @@ function set_min_cycle_revenue_price_per_gb() {
 		return;
 	}
 
-	var min_cycle_revenue_price_per_gb = parseFloat($('#min_cycle_revenue_price_per_gb').val());
+	var min_cycle_revenue_price_per_gb = parseFloat($('#min_cycle_revenue_price_per_gb').val()) / (1000 * 365);
 	sys.min_cycle_revenue_price_per_gb = min_cycle_revenue_price_per_gb;
 }
 
@@ -731,7 +748,7 @@ function set_node_capacity() {
 		return;
 	}
 
-	var node_capacity = parseFloat($('#node_capacity').val());
+	var node_capacity = parseFloat($('#node_capacity').val()) * 1000;
 	sys.options.nodeCapacity = node_capacity;
 }
 
@@ -740,7 +757,7 @@ function set_competition_price_per_gb() {
 		return;
 	}
 
-	var competition_price_per_gb = parseFloat($('#competition_price_per_gb').val());
+	var competition_price_per_gb = parseFloat($('#competition_price_per_gb').val()) / (1000 * 365);
 	sys.competition_price_per_gb = competition_price_per_gb;
 }
 
@@ -878,7 +895,10 @@ $('#scenario1').click(s1);
 
 function s1() {
 	$('#animation').val('off');
-	button_reset();
+
+	reset_stats();
+	refresh_options();
+	sys.repaintSideView();
 
 	var thread = new Thread('main');
 
